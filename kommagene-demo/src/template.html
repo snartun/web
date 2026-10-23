@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kommagene İnşaat | Yapısal Çelik Konstrüksiyon · Adıyaman</title>
+<meta name="description" content="Adıyaman merkezli Kommagene İnşaat; fabrika, depo, hangar, katlı çelik yapı ve çelik villa projelerinde statik projeden imalata, montajdan anahtar teslime tek elden çözüm sunar.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:title" content="Kommagene İnşaat | Yapısal Çelik Konstrüksiyon">
+<meta property="og:description" content="Statik proje, imalat, montaj ve anahtar teslim çelik yapılar. Adıyaman.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "GeneralContractor",
+  "name": "Kommagene İnşaat",
+  "description": "Yapısal çelik konstrüksiyon: statik proje, imalat, montaj ve anahtar teslim uygulama.",
+  "telephone": "+905462064440",
+  "email": "info@kommageneinsaat.com.tr",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Mehmet Akif Mah. 528. Sk. No:7",
+    "addressLocality": "Merkez",
+    "addressRegion": "Adıyaman",
+    "addressCountry": "TR"
+  },
+  "areaServed": "Türkiye",
+  "url": "https://kommageneinsaat.com.tr/"
+}
+</script>
+<style>
+:root{
+  --ink:#0c1016; --ink-2:#121822; --ink-3:#1a2230;
+  --paper:#f3f0ea; --paper-2:#e8e3da; --card:#fbfaf7;
+  --text:#141a22; --muted:#5a6370; --muted-d:#9aa4b1;
+  --line:rgba(20,26,34,.12); --line-d:rgba(255,255,255,.12);
+  --copper:#c4621d; --copper-2:#e2853d; --copper-soft:rgba(196,98,29,.12);
+  --radius:4px;
+  --wrap:1240px;
+  --f-head:"Archivo",system-ui,sans-serif;
+  --f-body:"Inter",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--text);font:400 16px/1.65 var(--f-body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:inherit}
+h1,h2,h3,h4{font-family:var(--f-head);font-stretch:85%;letter-spacing:-.01em;line-height:1.05;margin:0}
+p{margin:0}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 32px}
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--copper)}
+.eyebrow::before{content:"";width:28px;height:1px;background:currentColor}
+:focus-visible{outline:2px solid var(--copper-2);outline-offset:3px}
+
+/* concept strip */
+.concept{background:var(--copper);color:#fff;font:500 12.5px/1.4 var(--f-body);text-align:center;padding:7px 16px}
+
+/* header */
+.hdr{position:fixed;inset:auto 0 auto 0;top:31px;z-index:50;transition:background .3s,top .3s,box-shadow .3s}
+.hdr.solid{top:0;background:rgba(12,16,22,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--line-d)}
+.hdr .wrap{display:flex;align-items:center;justify-content:space-between;height:78px;gap:24px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+.brand svg{flex:none}
+.brand b{display:block;font:800 19px/1 var(--f-head);font-stretch:118%;letter-spacing:.06em}
+.brand small{display:block;font:500 10px/1 var(--f-mono);letter-spacing:.2em;color:var(--muted-d);margin-top:5px}
+.nav{display:flex;align-items:center;gap:30px}
+.nav a{color:rgba(255,255,255,.82);text-decoration:none;font:500 14.5px var(--f-body);transition:color .2s}
+.nav a:hover{color:#fff}
+.btn{display:inline-flex;align-items:center;gap:10px;font:600 14.5px/1 var(--f-body);text-decoration:none;padding:15px 22px;border-radius:var(--radius);border:1px solid transparent;cursor:pointer;transition:background .2s,color .2s,border-color .2s,transform .2s}
+.btn svg{transition:transform .2s}
+.btn:hover svg{transform:translateX(3px)}
+.btn-copper{background:var(--copper);color:#fff}
+.btn-copper:hover{background:var(--copper-2)}
+.btn-ghost{border-color:rgba(255,255,255,.3);color:#fff}
+.btn-ghost:hover{border-color:#fff}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-dark:hover{background:var(--ink-3)}
+.menu-btn{display:none;background:none;border:1px solid var(--line-d);color:#fff;width:44px;height:44px;border-radius:var(--radius);cursor:pointer}
+
+/* hero */
+.hero{position:relative;min-height:100svh;background:var(--ink);color:#fff;display:flex;flex-direction:column;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:url({{IMG_hero}}) center 40%/cover no-repeat;transform:scale(1.04);animation:heroZoom 18s ease-out forwards}
+@keyframes heroZoom{to{transform:scale(1)}}
+.hero::before{content:"";position:absolute;inset:0;z-index:1;background:
+  linear-gradient(90deg,rgba(12,16,22,.94) 0%,rgba(12,16,22,.78) 42%,rgba(12,16,22,.25) 100%),
+  linear-gradient(0deg,rgba(12,16,22,.95) 0%,rgba(12,16,22,0) 40%)}
+.hero::after{content:"";position:absolute;inset:0;z-index:1;opacity:.5;background-image:
+  linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:80px 80px;mask-image:linear-gradient(90deg,#000 0%,transparent 70%);-webkit-mask-image:linear-gradient(90deg,#000 0%,transparent 70%)}
+.hero-in{position:relative;z-index:2;flex:1;display:flex;align-items:center;padding-top:150px;padding-bottom:60px}
+.hero h1{font-size:clamp(44px,6.4vw,92px);font-weight:800;max-width:13ch;margin:22px 0 26px}
+.hero h1 em{font-style:normal;color:var(--copper-2)}
+.hero-lead{max-width:560px;font-size:18px;color:rgba(255,255,255,.78)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:38px}
+.hero-spec{position:absolute;right:32px;top:50%;transform:translateY(-30%);width:270px;border:1px solid var(--line-d);background:rgba(12,16,22,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:22px;font-family:var(--f-mono);font-size:12px;color:var(--muted-d)}
+.hero-spec .row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line-d)}
+.hero-spec .row:last-child{border:0}
+.hero-spec b{color:#fff;font-weight:500}
+.hero-spec .ttl{color:var(--copper-2);letter-spacing:.14em;margin-bottom:8px}
+.hero-bar{position:relative;z-index:2;border-top:1px solid var(--line-d)}
+.hero-bar .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.hero-bar div{padding:26px 24px 30px 0;display:flex;gap:14px;align-items:baseline}
+.hero-bar div+div{padding-left:24px;border-left:1px solid var(--line-d)}
+.hero-bar .n{font:500 12px var(--f-mono);color:var(--copper-2)}
+.hero-bar .t{font:600 15px/1.35 var(--f-body)}
+.hero-bar .t span{display:block;font-weight:400;font-size:13.5px;color:var(--muted-d)}
+
+/* sections */
+section{position:relative}
+.sec{padding:130px 0}
+.sec-head{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;margin-bottom:64px}
+.sec-head h2{font-size:clamp(34px,4.4vw,60px);font-weight:750;margin-top:18px}
+.sec-head p{color:var(--muted);font-size:17px;max-width:520px}
+
+/* story */
+.story{display:grid;grid-template-columns:1.05fr .95fr;gap:80px;align-items:center}
+.story h2{font-size:clamp(34px,4.2vw,58px);font-weight:750;margin:18px 0 28px}
+.story h2 span{color:var(--copper)}
+.story p{color:var(--muted);font-size:17px;margin-bottom:18px;max-width:560px}
+.quote{margin-top:34px;padding:24px 0 0;border-top:1px solid var(--line);display:flex;gap:18px;align-items:flex-start}
+.quote q{font:600 22px/1.3 var(--f-head);font-stretch:90%;quotes:"“" "”"}
+.quote .mono{color:var(--muted);margin-top:8px}
+.story-fig{position:relative}
+.story-fig img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:var(--radius);filter:saturate(.85)}
+.story-fig .tag{position:absolute;left:-28px;bottom:36px;background:var(--ink);color:#fff;padding:20px 22px;width:250px;border-radius:var(--radius)}
+.story-fig .tag .mono{color:var(--copper-2)}
+.story-fig .tag p{font:600 15px/1.45 var(--f-body);margin-top:8px}
+.dim{position:absolute;right:-22px;top:0;bottom:0;width:1px;background:var(--text);opacity:.25}
+.dim::before,.dim::after{content:"";position:absolute;left:-5px;width:11px;height:1px;background:var(--text)}
+.dim::before{top:0}.dim::after{bottom:0}
+.dim span{position:absolute;top:50%;left:10px;transform:translateY(-50%) rotate(90deg);transform-origin:left center;font:500 11px var(--f-mono);letter-spacing:.12em;white-space:nowrap;color:var(--muted)}
+
+/* services */
+.svc{background:var(--ink);color:#fff}
+.svc .sec-head p{color:var(--muted-d)}
+.svc-tabs{display:flex;gap:6px;margin-bottom:34px;border-bottom:1px solid var(--line-d)}
+.svc-tabs button{background:none;border:0;color:var(--muted-d);font:600 15px var(--f-body);padding:14px 4px;margin-right:26px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.svc-tabs button[aria-selected="true"]{color:#fff;border-color:var(--copper)}
+.svc-panel{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px}
+.svc-panel[hidden]{display:none}
+.svc-img{position:relative;border-radius:var(--radius);overflow:hidden;min-height:520px}
+.svc-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.svc-img::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(12,16,22,.9),rgba(12,16,22,0) 55%)}
+.svc-img .cap{position:absolute;left:26px;right:26px;bottom:24px;z-index:1}
+.svc-img .cap h3{font-size:30px;font-weight:750}
+.svc-img .cap p{color:var(--muted-d);margin-top:8px;font-size:15px}
+.svc-list{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line-d);border-left:1px solid var(--line-d)}
+.svc-item{padding:26px 24px 28px;border-right:1px solid var(--line-d);border-bottom:1px solid var(--line-d);transition:background .25s}
+.svc-item:hover{background:var(--ink-2)}
+.svc-item .mono{color:var(--copper-2)}
+.svc-item h4{font:650 19px/1.2 var(--f-head);font-stretch:95%;margin:12px 0 8px}
+.svc-item p{color:var(--muted-d);font-size:14.5px;line-height:1.55}
+
+/* process */
+.proc{display:grid;grid-template-columns:repeat(5,1fr);position:relative;counter-reset:s}
+.proc::before{content:"";position:absolute;left:0;right:0;top:27px;height:1px;background:var(--line)}
+.step{padding-right:26px;position:relative}
+.step .dot{width:55px;height:55px;border:1px solid var(--text);background:var(--paper);display:grid;place-items:center;font:500 14px var(--f-mono);position:relative;z-index:1;transition:background .25s,color .25s}
+.step:hover .dot{background:var(--ink);color:#fff}
+.step:first-child .dot{background:var(--copper);border-color:var(--copper);color:#fff}
+.step h4{font:700 21px/1.2 var(--f-head);font-stretch:95%;margin:28px 0 10px}
+.step p{color:var(--muted);font-size:15px}
+.step .mono{display:block;color:var(--copper);margin-top:16px}
+
+/* why steel */
+.why{background:var(--paper-2)}
+.why-grid{display:grid;grid-template-columns:1.1fr 1fr 1fr;grid-template-rows:auto auto;gap:18px}
+.why-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:30px;display:flex;flex-direction:column;justify-content:space-between;min-height:230px}
+.why-card .big{font:800 64px/1 var(--f-head);font-stretch:80%;color:var(--copper)}
+.why-card h4{font:700 20px/1.25 var(--f-head);font-stretch:95%;margin:18px 0 8px}
+.why-card p{color:var(--muted);font-size:15px}
+.why-card.img{grid-row:span 2;padding:0;overflow:hidden;position:relative;border:0}
+.why-card.img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.why-card.img .cap{position:relative;margin-top:auto;padding:30px;color:#fff;background:linear-gradient(0deg,rgba(12,16,22,.92),rgba(12,16,22,0))}
+.why-card.img .cap h4{font-size:26px;margin:10px 0 6px}
+.why-card.img .cap p{color:rgba(255,255,255,.75)}
+.why-card svg{color:var(--text)}
+
+/* fields gallery */
+.fields{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+.field{position:relative;border-radius:var(--radius);overflow:hidden;color:#fff;min-height:340px;text-decoration:none}
+.field img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.field:hover img{transform:scale(1.04)}
+.field::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(12,16,22,.85),rgba(12,16,22,0) 60%)}
+.field .cap{position:absolute;left:24px;right:24px;bottom:22px;z-index:1;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.field h4{font:700 24px/1.15 var(--f-head);font-stretch:95%}
+.field .mono{color:var(--copper-2);display:block;margin-bottom:8px}
+.field .arr{flex:none;width:44px;height:44px;border:1px solid rgba(255,255,255,.4);display:grid;place-items:center;border-radius:50%;transition:background .2s,border-color .2s}
+.field:hover .arr{background:var(--copper);border-color:var(--copper)}
+.f1{grid-column:span 7}.f2{grid-column:span 5}.f3{grid-column:span 5}.f4{grid-column:span 7}
+.note{margin-top:18px;color:var(--muted);font-size:13.5px}
+
+/* profiles */
+.prof{background:var(--ink);color:#fff}
+.prof .sec-head p{color:var(--muted-d)}
+.prof-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:28px;align-items:start}
+.prof-grid>*,.svc-panel>*,.story>*,.faq-grid>*,.cta-grid>*{min-width:0}
+.ptabs{display:flex;gap:8px;margin-bottom:18px}
+.ptabs button{font:500 13px var(--f-mono);letter-spacing:.08em;background:none;border:1px solid var(--line-d);color:var(--muted-d);padding:10px 16px;border-radius:var(--radius);cursor:pointer}
+.ptabs button[aria-selected="true"]{background:#fff;color:var(--ink);border-color:#fff}
+.tbl-wrap{border:1px solid var(--line-d);border-radius:var(--radius);overflow:auto}
+table{width:100%;border-collapse:collapse;font-family:var(--f-mono);font-size:13.5px}
+th,td{padding:12px 16px;text-align:right;border-bottom:1px solid var(--line-d);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{color:var(--muted-d);font-weight:400;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;background:var(--ink-2);position:sticky;top:0}
+tbody tr:hover td{background:var(--ink-2)}
+tbody td:first-child{color:#fff;font-weight:500}
+td.w{color:var(--copper-2)}
+.calc{border:1px solid var(--line-d);border-radius:var(--radius);padding:26px;background:var(--ink-2)}
+.calc h3{font:700 22px var(--f-head);font-stretch:95%;margin:10px 0 20px}
+.calc label{display:block;font:500 11.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted-d);margin:16px 0 8px}
+.calc select,.calc input{width:100%;background:var(--ink);border:1px solid var(--line-d);color:#fff;font:500 15px var(--f-mono);padding:12px 14px;border-radius:var(--radius)}
+.calc .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.calc .res{margin-top:24px;padding-top:20px;border-top:1px dashed var(--line-d)}
+.calc .res b{display:block;font:800 44px/1 var(--f-head);font-stretch:80%;color:var(--copper-2)}
+.calc .res span{color:var(--muted-d);font-size:13px}
+.profile-svg{display:flex;justify-content:center;margin:6px 0 4px;color:var(--muted-d)}
+
+/* faq */
+.faq-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:80px}
+.faq-grid h2{font-size:clamp(34px,4.2vw,56px);font-weight:750;margin:18px 0 22px}
+.faq-grid > div > p{color:var(--muted);font-size:17px;margin-bottom:28px}
+details{border-top:1px solid var(--line)}
+details:last-child{border-bottom:1px solid var(--line)}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:24px;align-items:center;padding:24px 0;font:650 19px/1.3 var(--f-head);font-stretch:95%}
+summary::-webkit-details-marker{display:none}
+summary .pm{flex:none;width:32px;height:32px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;transition:transform .25s,background .25s}
+details[open] summary .pm{transform:rotate(45deg);background:var(--ink);color:#fff;border-color:var(--ink)}
+details p{color:var(--muted);padding:0 56px 26px 0;font-size:16px}
+
+/* contact */
+.cta{background:var(--ink);color:#fff;overflow:hidden}
+.cta::before{content:"";position:absolute;inset:0;opacity:.35;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:80px 80px}
+.cta-grid{position:relative;display:grid;grid-template-columns:.9fr 1.1fr;gap:70px}
+.cta h2{font-size:clamp(36px,4.6vw,64px);font-weight:800;margin:18px 0 22px}
+.cta h2 em{font-style:normal;color:var(--copper-2)}
+.cta-lead{color:var(--muted-d);font-size:17px;max-width:460px}
+.contact-list{margin-top:44px;display:grid;gap:0}
+.contact-list a,.contact-list div{display:flex;gap:18px;align-items:flex-start;padding:20px 0;border-top:1px solid var(--line-d);text-decoration:none}
+.contact-list .mono{color:var(--muted-d);width:90px;flex:none;padding-top:3px}
+.contact-list b{font:600 17px/1.45 var(--f-body)}
+.contact-list a:hover b{color:var(--copper-2)}
+form{background:var(--card);color:var(--text);padding:38px;border-radius:var(--radius)}
+form h3{font:750 26px var(--f-head);font-stretch:95%;margin-bottom:6px}
+form > p{color:var(--muted);font-size:14.5px;margin-bottom:24px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fgrid .full{grid-column:1/-1}
+.fld label{display:block;font:500 11.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.fld input,.fld select,.fld textarea{width:100%;font:400 15.5px var(--f-body);color:var(--text);background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;transition:border-color .2s}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--copper)}
+.fld textarea{min-height:110px;resize:vertical}
+.kvkk{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--muted);margin:18px 0 22px}
+.kvkk input{margin-top:3px;accent-color:var(--copper);width:17px;height:17px;flex:none}
+.kvkk a{color:var(--text)}
+.form-ok{display:none;margin-top:16px;padding:14px 16px;background:var(--copper-soft);border-left:3px solid var(--copper);font-size:14.5px}
+
+/* footer */
+footer{background:#080b0f;color:var(--muted-d);padding:80px 0 30px;font-size:14.5px}
+.ft{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;padding-bottom:50px;border-bottom:1px solid var(--line-d)}
+.ft h5{font:500 11.5px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:#fff;margin:0 0 18px}
+.ft ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ft a{text-decoration:none}
+.ft a:hover{color:#fff}
+.ft p{max-width:320px;margin-top:20px}
+.fb{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px;font-size:12.5px}
+.fb a{text-decoration:underline;text-decoration-color:rgba(255,255,255,.25)}
+
+/* whatsapp */
+.wa{position:fixed;right:22px;bottom:22px;z-index:60;width:56px;height:56px;border-radius:50%;background:#1fa855;color:#fff;display:grid;place-items:center;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .2s}
+.wa:hover{transform:translateY(-2px)}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.hero-bg{animation:none;transform:none}html{scroll-behavior:auto}}
+
+/* responsive */
+@media (max-width:1100px){
+  .hero-spec{display:none}
+  .nav{display:none}
+  .menu-btn{display:grid;place-items:center}
+  .nav.open{display:flex;position:fixed;inset:78px 0 auto 0;flex-direction:column;align-items:stretch;gap:0;background:var(--ink);padding:10px 32px 28px;border-bottom:1px solid var(--line-d)}
+  .nav.open a{padding:16px 0;border-bottom:1px solid var(--line-d);font-size:17px}
+  .nav.open .btn{margin-top:18px;justify-content:center}
+  .svc-panel,.story,.prof-grid,.faq-grid,.cta-grid{grid-template-columns:1fr}
+  .story{gap:60px}
+  .proc{grid-template-columns:1fr 1fr;row-gap:44px}
+  .proc::before{display:none}
+  .why-grid{grid-template-columns:1fr 1fr}
+  .why-card.img{grid-column:1/-1;grid-row:auto;min-height:380px}
+  .ft{grid-template-columns:1fr 1fr}
+  .sec-head{grid-template-columns:1fr;gap:20px}
+}
+@media (max-width:720px){
+  .wrap{padding:0 16px}
+  .sec{padding:84px 0}
+  .hdr .wrap{height:66px}
+  .nav.open{inset:66px 0 auto 0;padding:6px 16px 22px}
+  .brand b{font-size:16px}
+  .hero-in{padding-top:120px}
+  .hero-lead{font-size:16.5px}
+  .hero-cta .btn{flex:1;justify-content:center}
+  .hero-bar .wrap{grid-template-columns:1fr 1fr}
+  .hero-bar div{padding:18px 12px 20px 0}
+  .hero-bar div+div{padding-left:12px}
+  .hero-bar div:nth-child(3){border-left:0;padding-left:0}
+  .hero-bar div:nth-child(n+3){border-top:1px solid var(--line-d)}
+  .svc-list{grid-template-columns:1fr}
+  .svc-img{min-height:340px}
+  .svc-tabs button{margin-right:14px;font-size:14px}
+  .proc{grid-template-columns:1fr}
+  .why-grid{grid-template-columns:1fr}
+  .fields{grid-template-columns:1fr}
+  .f1,.f2,.f3,.f4{grid-column:auto}
+  .field{min-height:280px}
+  .story-fig .tag{left:12px;bottom:12px;width:auto;right:12px}
+  .dim{display:none}
+  .fgrid{grid-template-columns:1fr}
+  form{padding:26px 20px}
+  details p{padding-right:0}
+  .ft{grid-template-columns:1fr}
+  .calc .res b{font-size:38px}
+}
+</style>
+</head>
+<body>
+
+<div class="concept">Tasarım konsepti — Kommagene İnşaat için hazırlanmış demo sayfasıdır, yayındaki resmi site değildir.</div>
+
+<header class="hdr" id="hdr">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Kommagene İnşaat ana sayfa">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <rect x="0.75" y="0.75" width="38.5" height="38.5" stroke="currentColor" stroke-opacity=".35" stroke-width="1.5"/>
+        <path d="M9 10h22v4H22.5v12H31v4H9v-4h8.5V14H9z" fill="#c4621d"/>
+      </svg>
+      <span><b>KOMMAGENE</b><small>İNŞAAT · ÇELİK YAPI</small></span>
+    </a>
+    <nav class="nav" id="nav" aria-label="Ana menü">
+      <a href="#hizmetler">Hizmetler</a>
+      <a href="#surec">Süreç</a>
+      <a href="#alanlar">Uygulama Alanları</a>
+      <a href="#profiller">Profiller</a>
+      <a href="#sss">SSS</a>
+      <a class="btn btn-copper" href="#teklif">Teklif Al
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" stroke="currentColor" stroke-width="1.6"/></svg></a>
+    </nav>
+    <button class="menu-btn" id="menuBtn" aria-label="Menüyü aç" aria-expanded="false" aria-controls="nav">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6h16M2 14h16" stroke="currentColor" stroke-width="1.6"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg" role="img" aria-label="Çelik konstrüksiyon yapının havadan görünümü"></div>
+  <div class="hero-in">
+    <div class="wrap" style="width:100%">
+      <span class="eyebrow">Adıyaman · Yapısal Çelik Konstrüksiyon</span>
+      <h1>Çelik yapıyı projeden montaja <em>tek elden</em> kuruyoruz.</h1>
+      <p class="hero-lead">Fabrika, depo, hangar, katlı çelik yapı ve çelik villa projelerinde statik hesaptan imalata, saha montajından anahtar teslime kadar tüm süreç tek ekipte.</p>
+      <div class="hero-cta">
+        <a class="btn btn-copper" href="#teklif">Ücretsiz keşif ve teklif
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" stroke="currentColor" stroke-width="1.6"/></svg></a>
+        <a class="btn btn-ghost" href="#hizmetler">Hizmetleri incele</a>
+      </div>
+    </div>
+    <aside class="hero-spec" aria-label="Teknik özet">
+      <div class="ttl">TEKNİK ÖZET</div>
+      <div class="row"><span>Çelik sınıfı</span><b>S235 · S275 · S355</b></div>
+      <div class="row"><span>Profiller</span><b>IPE · HEA · HEB</b></div>
+      <div class="row"><span>Birleşim</span><b>Kaynaklı · Bulonlu</b></div>
+      <div class="row"><span>Yüzey</span><b>Boya · Galvaniz</b></div>
+      <div class="row"><span>Teslim</span><b>Anahtar teslim</b></div>
+    </aside>
+  </div>
+  <div class="hero-bar">
+    <div class="wrap">
+      <div><span class="n">01</span><span class="t">Statik proje<span>Hesap ve uygulama çizimleri</span></span></div>
+      <div><span class="n">02</span><span class="t">İmalat<span>Atölyede kesim, delik, kaynak</span></span></div>
+      <div><span class="n">03</span><span class="t">Montaj<span>Kendi saha ekibimizle</span></span></div>
+      <div><span class="n">04</span><span class="t">Anahtar teslim<span>Kaplama, cephe, ince işler</span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY -->
+<section class="sec">
+  <div class="wrap story">
+    <div class="rv">
+      <span class="eyebrow">Kurumsal</span>
+      <h2>Adını Kommagene'den, sağlamlığını <span>çelikten</span> alır.</h2>
+      <p>Kommagene, Nemrut Dağı'ndaki anıtlarıyla iki bin yılı aşan bir krallığın adı. Biz de Adıyaman'dan aynı iddiayla yola çıktık: kalıcı yapılar üretmek.</p>
+      <p>Kommagene İnşaat; mühendislik, tasarım ve uygulamayı tek çatı altında toplayan bir yapı firmasıdır. Ağır çelik konstrüksiyondan hafif çelik ve modüler yapılara kadar projeyi ilk keşiften anahtar teslime aynı ekiple yürütür.</p>
+      <div class="quote">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><path d="M3 30V18C3 10 7 5 15 4v5c-4 1-6 4-6 8h6v13zM19 30V18c0-8 4-13 12-14v5c-4 1-6 4-6 8h6v13z" fill="#c4621d"/></svg>
+        <div><q>Sen tasarımını belirle, biz uygulayalım.</q><div class="mono">Kommagene İnşaat</div></div>
+      </div>
+    </div>
+    <figure class="story-fig rv" style="margin:0">
+      <img src="{{IMG_detay}}" alt="Galvanizli çelik kiriş ve kolon birleşim detayı" width="1200" height="775">
+      <div class="dim" aria-hidden="true"><span>MÜHENDİSLİK · İMALAT · MONTAJ</span></div>
+      <div class="tag">
+        <span class="mono">Tek muhatap</span>
+        <p>Proje, imalat ve montaj aynı firmada: sorumluluk dağılmaz, takvim kaymaz.</p>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="sec svc" id="hizmetler">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><span class="eyebrow">Hizmetler</span><h2>Endüstriyelden konuta, her ölçekte çelik.</h2></div>
+      <p>Ağır çelik konstrüksiyonda büyük açıklıklı endüstriyel yapılar; hafif çelikte hızlı kurulan konut ve modüler çözümler.</p>
+    </div>
+
+    <div class="svc-tabs rv" role="tablist" aria-label="Hizmet grupları">
+      <button role="tab" aria-selected="true" aria-controls="p-agir" id="t-agir">Ağır Çelik Konstrüksiyon</button>
+      <button role="tab" aria-selected="false" aria-controls="p-hafif" id="t-hafif" tabindex="-1">Hafif Çelik &amp; Modüler</button>
+    </div>
+
+    <div class="svc-panel rv" id="p-agir" role="tabpanel" aria-labelledby="t-agir">
+      <div class="svc-img">
+        <img src="{{IMG_imalat}}" alt="Atölyede çelik kaynak imalatı" width="1400" height="933">
+        <div class="cap"><h3>Ağır Çelik</h3><p>Sıcak haddelenmiş profillerle büyük açıklık ve yüksek taşıma kapasitesi.</p></div>
+      </div>
+      <div class="svc-list">
+        <div class="svc-item"><span class="mono">A.01</span><h4>Fabrika &amp; Endüstriyel Tesis</h4><p>Vinç yolu, ara kat ve tesisat yüklerine göre hesaplanmış üretim binaları.</p></div>
+        <div class="svc-item"><span class="mono">A.02</span><h4>Depo &amp; Hangar</h4><p>Kolonsuz geniş iç hacim, portal çerçeve ve kafes kiriş çözümleri.</p></div>
+        <div class="svc-item"><span class="mono">A.03</span><h4>Katlı Çelik Yapılar</h4><p>Ofis, ticari ve karma kullanımlı çok katlı yapılar, kompozit döşeme.</p></div>
+        <div class="svc-item"><span class="mono">A.04</span><h4>Çelik Ev &amp; Villa</h4><p>Geniş açıklıklı, esnek planlı, deprem davranışı güçlü konutlar.</p></div>
+        <div class="svc-item"><span class="mono">A.05</span><h4>Ahır &amp; Çiftlik</h4><p>Havalandırma ve hijyen odaklı tarım ve hayvancılık yapıları.</p></div>
+        <div class="svc-item"><span class="mono">A.06</span><h4>Silo, Ambar &amp; Merdiven</h4><p>Depolama yapıları, platformlar ve çelik merdiven imalatı.</p></div>
+      </div>
+    </div>
+
+    <div class="svc-panel" id="p-hafif" role="tabpanel" aria-labelledby="t-hafif" hidden>
+      <div class="svc-img">
+        <img src="{{IMG_katli}}" alt="Yükselen çelik iskelet yapı ve kule vinç" width="1200" height="1029">
+        <div class="cap"><h3>Hafif Çelik &amp; Modüler</h3><p>Galvaniz kaplı soğuk şekillendirilmiş profillerle hızlı, temiz şantiye.</p></div>
+      </div>
+      <div class="svc-list">
+        <div class="svc-item"><span class="mono">H.01</span><h4>Hafif Çelik Ev</h4><p>Atölyede hazırlanan panellerle kısa sürede kurulan konutlar.</p></div>
+        <div class="svc-item"><span class="mono">H.02</span><h4>Prefabrik Yapılar</h4><p>Şantiye ofisi, yatakhane ve sosyal tesisler için modüler binalar.</p></div>
+        <div class="svc-item"><span class="mono">H.03</span><h4>Tiny House</h4><p>Küçük metrekarede tam donanımlı, taşınabilir yaşam alanları.</p></div>
+        <div class="svc-item"><span class="mono">H.04</span><h4>Bungalov &amp; Bağ Evi</h4><p>Turizm ve hobi bahçeleri için yalıtımlı, estetik yapılar.</p></div>
+        <div class="svc-item"><span class="mono">H.05</span><h4>Konteyner</h4><p>Yaşam ve depolama konteynerleri, özel ölçü üretim.</p></div>
+        <div class="svc-item"><span class="mono">H.06</span><h4>Güçlendirme &amp; Dönüşüm</h4><p>Mevcut yapılarda çelik ile güçlendirme ve yerinde dönüşüm.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="sec" id="surec">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><span class="eyebrow">Çalışma Süreci</span><h2>İlk keşiften anahtar teslime beş adım.</h2></div>
+      <p>Her adımın sonunda onayınızı alır, bir sonrakine öyle geçeriz. Hangi aşamada olduğunuzu her zaman bilirsiniz.</p>
+    </div>
+    <div class="proc">
+      <div class="step rv"><div class="dot">01</div><h4>Keşif &amp; Röleve</h4><p>Arazi ve ihtiyaç analizi, zemin ve ölçü bilgilerinin toplanması.</p><span class="mono">Sahada</span></div>
+      <div class="step rv"><div class="dot">02</div><h4>Teklif</h4><p>Tonaj, kaplama ve işçilik kalemleri ayrı ayrı gösterilen şeffaf teklif.</p><span class="mono">Kalem kalem</span></div>
+      <div class="step rv"><div class="dot">03</div><h4>Projelendirme</h4><p>Statik hesap, imalat ve montaj çizimleri, ruhsat süreçlerine destek.</p><span class="mono">Mühendislik</span></div>
+      <div class="step rv"><div class="dot">04</div><h4>İmalat &amp; Montaj</h4><p>Atölyede hazırlanan elemanların sahada kendi ekibimizle montajı.</p><span class="mono">Atölye + saha</span></div>
+      <div class="step rv"><div class="dot">05</div><h4>Anahtar Teslim</h4><p>Çatı, cephe ve iç işlerin tamamlanıp yapının kullanıma teslimi.</p><span class="mono">Teslim</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY STEEL -->
+<section class="sec why">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><span class="eyebrow">Neden Çelik</span><h2>Daha hızlı, daha geniş, daha uzun ömürlü.</h2></div>
+      <p>Çelik yapılar atölyede üretildiği için sahada hava koşullarına daha az bağımlıdır ve kalite kontrolü daha kolaydır.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card img rv">
+        <img src="{{IMG_santiye}}" alt="Çok katlı çelik iskelet yapı şantiyesi" width="1200" height="800">
+        <div class="cap"><span class="mono" style="color:var(--copper-2)">Deprem bölgesinde</span><h4>Sünek davranış</h4><p>Çelik, deprem yükleri altında ani kırılma yerine şekil değiştirerek enerji sönümler.</p></div>
+      </div>
+      <div class="why-card rv"><div class="big">%100</div><div><h4>Geri dönüştürülebilir</h4><p>Ömrünü tamamlayan çelik, kalitesini kaybetmeden yeniden kullanılabilir.</p></div></div>
+      <div class="why-card rv">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M4 56V20l28-14 28 14v36" stroke="currentColor" stroke-width="2"/><path d="M4 20h56" stroke="#c4621d" stroke-width="2" stroke-dasharray="4 4"/><path d="M14 56V30M50 56V30" stroke="currentColor" stroke-width="2"/></svg>
+        <div><h4>Kolonsuz geniş açıklık</h4><p>Depo ve hangarlarda iç hacmi bölmeden geniş kullanım alanı.</p></div></div>
+      <div class="why-card rv">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="26" stroke="currentColor" stroke-width="2"/><path d="M32 14v18l12 8" stroke="#c4621d" stroke-width="2.4"/></svg>
+        <div><h4>Kısa şantiye süresi</h4><p>Elemanlar atölyede hazırlanır, sahada bulon ve kaynakla hızla birleştirilir.</p></div></div>
+      <div class="why-card rv">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M8 10h48v8H36v28h20v8H8v-8h20V18H8z" stroke="currentColor" stroke-width="2"/><path d="M28 18h8v28h-8" stroke="#c4621d" stroke-width="2"/></svg>
+        <div><h4>Öngörülebilir kalite</h4><p>Standart profiller ve kontrollü atölye imalatı ile ölçü hassasiyeti.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FIELDS -->
+<section class="sec" id="alanlar">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><span class="eyebrow">Uygulama Alanları</span><h2>Projenizin ölçeği ne olursa olsun.</h2></div>
+      <p>Her kart ilgili hizmet sayfasına gider. Yayın sürümünde bu alanda firmanın kendi tamamlanmış projeleri; yer, yıl ve tonaj bilgileriyle yer almalıdır.</p>
+    </div>
+    <div class="fields">
+      <a class="field f1 rv" href="#teklif"><img src="{{IMG_hero}}" alt="Havadan çelik depo iskeleti"><div class="cap"><div><span class="mono">Endüstriyel</span><h4>Depo, hangar ve üretim tesisleri</h4></div><span class="arr"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.6"/></svg></span></div></a>
+      <a class="field f2 rv" href="#teklif"><img src="{{IMG_katli}}" alt="Çok katlı çelik iskelet"><div class="cap"><div><span class="mono">Ticari</span><h4>Katlı çelik yapılar</h4></div><span class="arr"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.6"/></svg></span></div></a>
+      <a class="field f3 rv" href="#teklif"><img src="{{IMG_imalat}}" alt="Çelik kaynak imalatı"><div class="cap"><div><span class="mono">İmalat</span><h4>Çelik imalat ve merdiven</h4></div><span class="arr"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.6"/></svg></span></div></a>
+      <a class="field f4 rv" href="#teklif"><img src="{{IMG_detay}}" alt="Galvanizli çelik kiriş detayı"><div class="cap"><div><span class="mono">Konut</span><h4>Çelik villa, hafif çelik ve modüler yapılar</h4></div><span class="arr"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 13L13 3M5 3h8v8" stroke="currentColor" stroke-width="1.6"/></svg></span></div></a>
+    </div>
+  </div>
+</section>
+
+<!-- PROFILES -->
+<section class="sec prof" id="profiller">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><span class="eyebrow">Teknik Bilgi</span><h2>Çelik profil tabloları ve ağırlık hesabı.</h2></div>
+      <p>Projelerimizde kullandığımız standart sıcak haddelenmiş profillerin ölçü ve birim ağırlıkları. Tonaj tahmini için hesaplayıcıyı kullanabilirsiniz.</p>
+    </div>
+    <div class="prof-grid">
+      <div class="rv">
+        <div class="ptabs" role="tablist" aria-label="Profil tipi">
+          <button role="tab" aria-selected="true" data-p="IPE">IPE</button>
+          <button role="tab" aria-selected="false" data-p="HEA">HEA</button>
+          <button role="tab" aria-selected="false" data-p="HEB">HEB</button>
+        </div>
+        <div class="tbl-wrap">
+          <table aria-describedby="tblnote">
+            <thead><tr><th>Profil</th><th>h (mm)</th><th>b (mm)</th><th>tw (mm)</th><th>tf (mm)</th><th>Ağırlık (kg/m)</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <p class="note" id="tblnote" style="color:var(--muted-d)">Değerler EN 10365 standart kesitlerine göre nominaldir; kesin değerler için üretici sertifikası esas alınır.</p>
+      </div>
+      <div class="calc rv">
+        <span class="mono" style="color:var(--copper-2)">Hesaplayıcı</span>
+        <h3>Profil ağırlığı</h3>
+        <div class="profile-svg" aria-hidden="true">
+          <svg width="120" height="110" viewBox="0 0 120 110" fill="none"><path d="M20 10h80v10H65v70h35v10H20V90h35V20H20z" stroke="currentColor" stroke-width="1.5"/><path d="M8 10v90M4 10h8M4 100h8" stroke="#e2853d"/><text x="0" y="58" fill="#e2853d" font-family="JetBrains Mono" font-size="9" transform="rotate(-90 6 58)">h</text></svg>
+        </div>
+        <label for="cP">Profil</label>
+        <select id="cP"></select>
+        <div class="two">
+          <div><label for="cL">Boy (m)</label><input id="cL" type="number" min="0" step="0.5" value="12" inputmode="decimal"></div>
+          <div><label for="cN">Adet</label><input id="cN" type="number" min="0" step="1" value="10" inputmode="numeric"></div>
+        </div>
+        <div class="res" aria-live="polite"><b id="cR">0 kg</b><span id="cS"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec" id="sss">
+  <div class="wrap faq-grid">
+    <div class="rv">
+      <span class="eyebrow">Sıkça Sorulanlar</span>
+      <h2>Karar vermeden önce merak edilenler.</h2>
+      <p>Sorunuzun cevabı burada yoksa bir telefonla netleştirelim.</p>
+      <a class="btn btn-dark" href="tel:+905462064440">+90 546 206 44 40</a>
+    </div>
+    <div class="rv">
+      <details open><summary>Çelik yapının maliyeti neye göre belirlenir?<span class="pm" aria-hidden="true">+</span></summary><p>Maliyeti belirleyen başlıca kalemler; yapının açıklığı ve yüksekliği, bölgenin kar ve rüzgâr yükleri, toplam çelik tonajı, çatı ve cephe kaplama türü ile temel işleridir. Keşif sonrasında bu kalemleri ayrı ayrı gösteren bir teklif hazırlıyoruz.</p></details>
+      <details><summary>Bir çelik yapı ne kadar sürede tamamlanır?<span class="pm" aria-hidden="true">+</span></summary><p>Süre; projenin büyüklüğüne, onay ve ruhsat süreçlerine ve kaplama detaylarına göre değişir. Elemanlar atölyede hazırlandığı için saha montajı betonarmeye göre belirgin şekilde kısadır. Net takvim, projelendirme aşamasında iş programıyla birlikte verilir.</p></details>
+      <details><summary>Çelik yapılar depreme dayanıklı mı?<span class="pm" aria-hidden="true">+</span></summary><p>Doğru hesaplanmış ve doğru imal edilmiş çelik yapılar, sünek malzeme davranışı sayesinde deprem enerjisini şekil değiştirerek sönümler. Tüm projelerimiz Türkiye Bina Deprem Yönetmeliği'ne göre statik hesapla tasarlanır.</p></details>
+      <details><summary>Ağır çelik ile hafif çelik arasındaki fark nedir?<span class="pm" aria-hidden="true">+</span></summary><p>Ağır çelikte sıcak haddelenmiş IPE, HEA, HEB gibi profiller kullanılır; fabrika, hangar ve katlı yapılar için uygundur. Hafif çelikte galvaniz kaplı, soğuk şekillendirilmiş ince profiller kullanılır; konut, bungalov ve modüler yapılarda tercih edilir.</p></details>
+      <details><summary>Projeyi siz mi çiziyorsunuz?<span class="pm" aria-hidden="true">+</span></summary><p>Evet. Statik proje, imalat ve montaj çizimleri ekibimiz tarafından hazırlanır. Elinizde hazır bir mimari proje varsa onun üzerinden de ilerleyebiliriz.</p></details>
+      <details><summary>Adıyaman dışında hizmet veriyor musunuz?<span class="pm" aria-hidden="true">+</span></summary><p>Merkezimiz Adıyaman'dadır. Bölge illerinde ve proje ölçeğine göre Türkiye genelinde uygulama yapıyoruz.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="sec cta" id="teklif">
+  <div class="wrap cta-grid">
+    <div class="rv">
+      <span class="eyebrow">Teklif &amp; İletişim</span>
+      <h2>Projenizi <em>konuşalım.</em></h2>
+      <p class="cta-lead">Formu doldurun, aynı iş günü içinde dönüş yapalım. Keşif ve ön değerlendirme ücretsizdir.</p>
+      <div class="contact-list">
+        <a href="tel:+905462064440"><span class="mono">Telefon</span><b>+90 546 206 44 40</b></a>
+        <a href="https://wa.me/905462064440"><span class="mono">WhatsApp</span><b>Mesaj gönderin</b></a>
+        <a href="mailto:info@kommageneinsaat.com.tr"><span class="mono">E-posta</span><b>info@kommageneinsaat.com.tr</b></a>
+        <a href="https://www.google.com/maps/search/?api=1&query=Kommagene+%C4%B0n%C5%9Faat+Ad%C4%B1yaman" target="_blank" rel="noopener"><span class="mono">Adres</span><b>Mehmet Akif Mah. 528. Sk. No:7<br>Merkez / Adıyaman</b></a>
+      </div>
+    </div>
+    <form class="rv" id="form" novalidate>
+      <h3>Teklif talebi</h3>
+      <p>Yıldızlı alanlar zorunludur.</p>
+      <div class="fgrid">
+        <div class="fld"><label for="fN">Ad Soyad *</label><input id="fN" name="ad" autocomplete="name" required></div>
+        <div class="fld"><label for="fT">Telefon *</label><input id="fT" name="telefon" type="tel" autocomplete="tel" required></div>
+        <div class="fld"><label for="fE">E-posta</label><input id="fE" name="eposta" type="email" autocomplete="email"></div>
+        <div class="fld"><label for="fY">Yapı tipi</label>
+          <select id="fY" name="tip"><option>Fabrika / Endüstriyel</option><option>Depo / Hangar</option><option>Katlı çelik yapı</option><option>Çelik ev / Villa</option><option>Hafif çelik / Modüler</option><option>Ahır / Çiftlik</option><option>Diğer</option></select></div>
+        <div class="fld"><label for="fA">Yaklaşık alan (m²)</label><input id="fA" name="alan" inputmode="numeric"></div>
+        <div class="fld"><label for="fI">İl / ilçe</label><input id="fI" name="konum" autocomplete="address-level2"></div>
+        <div class="fld full"><label for="fM">Projeniz hakkında</label><textarea id="fM" name="mesaj"></textarea></div>
+      </div>
+      <label class="kvkk"><input type="checkbox" id="fK" required><span><a href="#">KVKK Aydınlatma Metni</a>'ni okudum; iletişim bilgilerimin teklif amacıyla işlenmesini kabul ediyorum. *</span></label>
+      <button class="btn btn-copper" type="submit" style="width:100%;justify-content:center">Teklif talebini gönder
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" stroke="currentColor" stroke-width="1.6"/></svg></button>
+      <div class="form-ok" id="formOk" role="status">Bu bir tasarım konseptidir; form gönderimi kapalıdır. Yayın sürümünde talep doğrudan firmaya iletilir.</div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="ft">
+      <div>
+        <a class="brand" href="#top"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="0.75" y="0.75" width="38.5" height="38.5" stroke="currentColor" stroke-opacity=".35" stroke-width="1.5"/><path d="M9 10h22v4H22.5v12H31v4H9v-4h8.5V14H9z" fill="#c4621d"/></svg><span><b>KOMMAGENE</b><small>İNŞAAT · ÇELİK YAPI</small></span></a>
+        <p>Adıyaman merkezli yapısal çelik konstrüksiyon firması. Statik proje, imalat, montaj ve anahtar teslim uygulama.</p>
+      </div>
+      <div><h5>Ağır Çelik</h5><ul><li><a href="#hizmetler">Fabrika &amp; Tesis</a></li><li><a href="#hizmetler">Depo &amp; Hangar</a></li><li><a href="#hizmetler">Katlı Çelik Yapı</a></li><li><a href="#hizmetler">Çelik Villa</a></li></ul></div>
+      <div><h5>Hafif Çelik</h5><ul><li><a href="#hizmetler">Hafif Çelik Ev</a></li><li><a href="#hizmetler">Prefabrik</a></li><li><a href="#hizmetler">Tiny House</a></li><li><a href="#hizmetler">Bungalov &amp; Bağ Evi</a></li></ul></div>
+      <div><h5>Kurumsal</h5><ul><li><a href="#surec">Çalışma Süreci</a></li><li><a href="#profiller">Profil Tabloları</a></li><li><a href="#sss">Sıkça Sorulanlar</a></li><li><a href="#teklif">İletişim</a></li></ul></div>
+    </div>
+    <div class="fb">
+      <span>© 2026 Kommagene İnşaat · Tasarım konsepti</span>
+      <span>Görseller: Wikimedia Commons (CC0) ve „Moscow, 1st Brestskaya Street – steel frame construction“, <a href="https://commons.wikimedia.org/wiki/File:Moscow,_1st_Brestskaya_Street_-_steel_frame_construction.jpg" target="_blank" rel="noopener">CC BY 3.0</a>. Yayın sürümünde firmanın kendi proje fotoğrafları kullanılmalıdır.</span>
+    </div>
+  </div>
+</footer>
+
+<a class="wa" href="https://wa.me/905462064440" aria-label="WhatsApp ile yazın">
+  <svg width="28" height="28" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 3a13 13 0 0 0-11.2 19.6L3 29l6.6-1.7A13 13 0 1 0 16 3zm0 23.7c-2 0-4-.6-5.7-1.6l-.4-.2-3.9 1 1-3.8-.3-.4A10.7 10.7 0 1 1 16 26.7zm5.9-8c-.3-.2-1.9-1-2.2-1s-.5-.2-.7.2-.8 1-1 1.2-.4.2-.7 0a8.8 8.8 0 0 1-4.4-3.8c-.3-.6.3-.5 1-1.7.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4s-1.2 1.1-1.2 2.7 1.2 3.2 1.4 3.4 2.4 3.6 5.7 5c2.1.9 2.9 1 4 .8.6-.1 1.9-.8 2.2-1.5s.3-1.4.2-1.5-.3-.2-.6-.4z"/></svg>
+</a>
+
+<script>
+(function(){
+  // header + mobile menu
+  var hdr=document.getElementById('hdr'),nav=document.getElementById('nav'),mb=document.getElementById('menuBtn');
+  function onScroll(){hdr.classList.toggle('solid',window.scrollY>40||nav.classList.contains('open'))}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+  mb.addEventListener('click',function(){var o=nav.classList.toggle('open');mb.setAttribute('aria-expanded',o);onScroll()});
+  nav.addEventListener('click',function(e){if(e.target.closest('a')){nav.classList.remove('open');mb.setAttribute('aria-expanded',false);onScroll()}});
+
+  // reveal on scroll
+  var rv=document.querySelectorAll('.rv');
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px'});
+    rv.forEach(function(el,i){el.style.transitionDelay=(i%5)*70+'ms';io.observe(el)});
+  } else rv.forEach(function(el){el.classList.add('in')});
+
+  // service tabs
+  var tabs=document.querySelectorAll('.svc-tabs [role=tab]');
+  tabs.forEach(function(t){t.addEventListener('click',function(){
+    tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;var p=document.getElementById(x.getAttribute('aria-controls'));p.hidden=!on;if(on)p.classList.add('rv','in')});
+  })});
+
+  // profile data (EN 10365 nominal): name,h,b,tw,tf,kg/m
+  var D={
+    IPE:[[100,100,55,4.1,5.7,8.1],[120,120,64,4.4,6.3,10.4],[140,140,73,4.7,6.9,12.9],[160,160,82,5.0,7.4,15.8],[180,180,91,5.3,8.0,18.8],[200,200,100,5.6,8.5,22.4],[220,220,110,5.9,9.2,26.2],[240,240,120,6.2,9.8,30.7],[270,270,135,6.6,10.2,36.1],[300,300,150,7.1,10.7,42.2],[330,330,160,7.5,11.5,49.1],[360,360,170,8.0,12.7,57.1],[400,400,180,8.6,13.5,66.3]],
+    HEA:[[100,96,100,5.0,8.0,16.7],[120,114,120,5.0,8.0,19.9],[140,133,140,5.5,8.5,24.7],[160,152,160,6.0,9.0,30.4],[180,171,180,6.0,9.5,35.5],[200,190,200,6.5,10.0,42.3],[220,210,220,7.0,11.0,50.5],[240,230,240,7.5,12.0,60.3],[260,250,260,7.5,12.5,68.2],[280,270,280,8.0,13.0,76.4],[300,290,300,8.5,14.0,88.3]],
+    HEB:[[100,100,100,6.0,10.0,20.4],[120,120,120,6.5,11.0,26.7],[140,140,140,7.0,12.0,33.7],[160,160,160,8.0,13.0,42.6],[180,180,180,8.5,14.0,51.2],[200,200,200,9.0,15.0,61.3],[220,220,220,9.5,16.0,71.5],[240,240,240,10.0,17.0,83.2],[260,260,260,10.0,17.5,93.0],[280,280,280,10.5,18.0,103.0],[300,300,300,11.0,19.0,117.0]]
+  };
+  var fmt=function(n,d){return n.toLocaleString('tr-TR',{minimumFractionDigits:d,maximumFractionDigits:d})};
+  var tb=document.getElementById('tbody'),sel=document.getElementById('cP');
+  function render(t){tb.innerHTML=D[t].map(function(r){return '<tr><td>'+t+' '+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+fmt(r[3],1)+'</td><td>'+fmt(r[4],1)+'</td><td class="w">'+fmt(r[5],1)+'</td></tr>'}).join('')}
+  document.querySelectorAll('.ptabs button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.ptabs button').forEach(function(x){x.setAttribute('aria-selected',x===b)});render(b.dataset.p)})});
+  render('IPE');
+  Object.keys(D).forEach(function(t){var g=document.createElement('optgroup');g.label=t;D[t].forEach(function(r){var o=document.createElement('option');o.value=r[5];o.textContent=t+' '+r[0]+' · '+fmt(r[5],1)+' kg/m';if(t==='HEB'&&r[0]===200)o.selected=true;g.appendChild(o)});sel.appendChild(g)});
+  var L=document.getElementById('cL'),N=document.getElementById('cN'),R=document.getElementById('cR'),Sx=document.getElementById('cS');
+  function calc(){var kg=(+sel.value||0)*(+L.value||0)*(+N.value||0);R.textContent=kg>=1000?fmt(kg/1000,2)+' ton':fmt(kg,0)+' kg';Sx.textContent=fmt(+L.value||0,1)+' m × '+(+N.value||0)+' adet · yaklaşık, kaynak ve bağlantı elemanları hariç'}
+  [sel,L,N].forEach(function(el){el.addEventListener('input',calc)});calc();
+
+  // form (concept only)
+  var f=document.getElementById('form');
+  f.addEventListener('submit',function(e){e.preventDefault();if(!f.checkValidity()){f.reportValidity();return}document.getElementById('formOk').style.display='block'});
+})();
+</script>
+</body>
+</html>
