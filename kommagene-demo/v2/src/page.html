@@ -1,0 +1,611 @@
+<title>Kommagene İnşaat Konsept</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Kommagene İnşaat, Adıyaman merkezli yapısal çelik firması: depo, fabrika, katlı çelik yapı ve çelik konutta statik projeden montaja.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"GeneralContractor","name":"Kommagene İnşaat","url":"https://kommageneinsaat.com.tr/","telephone":"+905526168435","email":"info@kommageneinsaat.com.tr","address":{"@type":"PostalAddress","streetAddress":"Mehmet Akif Mah. 528. Sk. No:7","addressLocality":"Merkez","addressRegion":"Adıyaman","addressCountry":"TR"},"slogan":"Sen tasarımını belirle, biz uygulayalım.","knowsAbout":["Yapısal çelik konstrüksiyon","Hafif çelik yapı","Çelik depo ve hangar","Katlı çelik yapı"]}
+</script>
+<style>
+/* Layout: white drawing sheets on a concrete-grey ground. The firm's own site photos carry the hero; one assembly drawing is the page's single moving part. */
+:root{
+  color-scheme:light;
+  --concrete:#eceeed;
+  --sheet:#ffffff;
+  --ink:#18202b;
+  --muted:#5a6470;
+  --rule:#d2d7dc;
+  --navy:#204280;
+  --navy-deep:#132a55;
+  --steel:#15181c;
+  --sky:#4a7fc6;
+  --soil:#8a7562;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Public Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --data:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --gut:max(clamp(16px,4vw,44px),env(safe-area-inset-left,0px));
+  --gut-r:max(clamp(16px,4vw,44px),env(safe-area-inset-right,0px));
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--concrete);color:var(--ink);font:400 16px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit}
+h1,h2,h3{margin:0;font-family:var(--display);font-weight:800;line-height:.95;letter-spacing:.005em;text-transform:uppercase;text-wrap:balance}
+p{margin:0}
+.wrap{max-width:1280px;margin:0 auto;padding-left:var(--gut);padding-right:var(--gut-r)}
+.num{font-family:var(--data);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* concept note */
+.note-bar{background:var(--steel);color:#c9ced4;font-size:12.5px;line-height:1.4;text-align:center;padding:7px var(--gut-r) 7px var(--gut)}
+
+/* header */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--sheet)}
+.hdr{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--sheet);border-bottom:1px solid var(--rule)}
+.hdr .wrap{display:flex;align-items:center;gap:28px;height:72px}
+.logo{display:block;flex:none}
+.logo img{height:34px;width:auto}
+.nav{display:flex;gap:26px;margin-left:auto}
+.nav a{text-decoration:none;font-weight:500;font-size:15px;color:var(--ink);padding:6px 0;border-bottom:2px solid transparent}
+.nav a:hover{border-color:var(--navy)}
+.hdr-tel{font:500 14px var(--data);color:var(--muted);white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:10px;font:600 15px/1 var(--body);text-decoration:none;border:0;cursor:pointer;padding:14px 20px;background:var(--navy);color:#fff;border-radius:2px;transition:background .15s}
+.btn:hover{background:var(--navy-deep)}
+.btn.line{background:transparent;color:var(--navy);box-shadow:inset 0 0 0 1.5px var(--navy)}
+.btn.line:hover{background:var(--navy);color:#fff}
+.menu{display:none;margin-left:auto;background:none;border:1px solid var(--rule);border-radius:2px;width:44px;height:44px;cursor:pointer;color:var(--ink)}
+
+/* hero */
+.hero{background:var(--sheet);border-bottom:1px solid var(--rule)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:56px;padding-top:64px;padding-bottom:72px;align-items:stretch}
+.hero-copy{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.kicker{font-weight:600;font-size:14px;color:var(--navy);letter-spacing:.02em}
+.hero h1{font-size:clamp(56px,8.4vw,124px);margin:18px 0 26px;color:var(--steel)}
+.hero h1 span{color:var(--navy)}
+.lead{font-size:18.5px;line-height:1.55;color:var(--muted);max-width:34em}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
+.hero-photo{position:relative;min-width:0}
+.hero-photo figure{margin:0;height:100%}
+.hero-photo img{width:100%;height:100%;max-height:680px;object-fit:cover;object-position:50% 40%}
+.hero-photo figcaption{font-size:13px;color:var(--muted);margin-top:10px}
+
+/* title block (antet) */
+.antet{position:absolute;left:-40px;bottom:46px;width:min(340px,92%);background:var(--sheet);border:1.5px solid var(--steel);font-size:13px}
+.antet div{display:grid;grid-template-columns:96px 1fr;border-top:1px solid var(--steel)}
+.antet div:first-child{border-top:0}
+.antet span{padding:7px 10px;border-right:1px solid var(--steel);font:500 10.5px/1.6 var(--data);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.antet b{padding:7px 10px;font-weight:600}
+.antet .t b{font-family:var(--display);font-size:20px;font-weight:800;text-transform:uppercase;line-height:1.1}
+
+/* generic section */
+.sec{padding:96px 0}
+.sec-h{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:end;margin-bottom:44px}
+.sec-h h2{font-size:clamp(42px,5.6vw,76px);color:var(--steel)}
+.sec-h p{color:var(--muted);font-size:17px;max-width:36em}
+
+/* building types schedule */
+.types{background:var(--sheet)}
+.types-grid{display:block}
+.sched{width:100%;border-collapse:collapse;font-size:15.5px}
+.sched th{font:500 11px var(--data);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:0 14px 12px 0;border-bottom:1.5px solid var(--steel)}
+.sched td{padding:18px 14px 18px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.sched td:first-child{font-family:var(--display);font-weight:800;font-size:23px;text-transform:uppercase;line-height:1.05;color:var(--steel);width:30%}
+.sched td:nth-child(2){color:var(--muted);width:34%}
+.sched td:last-child{font-size:14.5px}
+.sched .grp td{padding:28px 0 10px;border-bottom:0;font:600 13px var(--body);font-family:var(--body);text-transform:none;color:var(--navy);letter-spacing:.02em}
+.types-photo{position:sticky;top:96px}
+.types-photo img{width:100%;aspect-ratio:3/4;object-fit:cover}
+.types-photo p{font-size:13px;color:var(--muted);margin-top:10px}
+
+/* assembly drawing */
+.mont{background:var(--concrete)}
+.mont-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:40px;align-items:start}
+.steps{list-style:none;margin:0;padding:0;counter-reset:st;border-top:1.5px solid var(--steel)}
+.steps li{border-bottom:1px solid var(--rule)}
+.steps button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:44px 1fr;gap:4px 12px;width:100%;padding:16px 4px 16px 0;cursor:pointer}
+.steps button:focus-visible{outline:2px solid var(--sky);outline-offset:-2px}
+.steps .k{font:500 13px var(--data);color:var(--muted);padding-top:4px}
+.steps .t{font:800 24px/1.05 var(--display);text-transform:uppercase;color:#8a939d;transition:color .2s}
+.steps .d{grid-column:2;color:var(--muted);font-size:15px;display:none}
+.steps li.on .t{color:var(--steel)}
+.steps li.on .k{color:var(--navy)}
+.steps li.on .d{display:block}
+.board{background:var(--sheet);border:1.5px solid var(--steel);position:relative}
+.board canvas{display:block;width:100%;height:auto;aspect-ratio:16/11}
+.board-foot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1.5px solid var(--steel);font-size:12.5px}
+.board-foot div{padding:9px 12px;border-right:1px solid var(--steel);min-width:0}
+.board-foot div:last-child{border-right:0}
+.board-foot span{display:block;font:500 10px/1.5 var(--data);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.board-foot b{font-weight:600}
+
+/* process */
+.proc{background:var(--navy-deep);color:#fff;padding:56px 0}
+.proc .wrap{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,2fr);gap:40px;align-items:start}
+.proc h2{font-size:clamp(34px,3.6vw,48px)}
+.proc ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border-top:1px solid rgba(255,255,255,.25)}
+.proc li{padding:16px 16px 0 0;min-width:0}
+.proc li b{display:block;font:800 22px/1.05 var(--display);text-transform:uppercase;margin-bottom:6px}
+.proc li span{font-size:14px;color:#b9c4d8}
+.proc li i{display:block;font:500 12px var(--data);font-style:normal;color:#8fa7d1;margin-bottom:10px}
+
+/* projects */
+.proj{background:var(--sheet)}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}
+.card{min-width:0}
+.card img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
+.card h3{font-size:32px;color:var(--steel);margin:18px 0 12px}
+.card dl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0;border-top:1.5px solid var(--steel)}
+.card dl div{padding:10px 10px 0 0;min-width:0}
+.card dt{font:500 10.5px var(--data);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.card dd{margin:4px 0 0;font-weight:600;font-size:15px}
+.card dd.empty{color:#a0a8b1;font-weight:400}
+.proj-note{margin-top:28px;font-size:14px;color:var(--muted);max-width:60em}
+
+/* profiles */
+.prof{background:var(--concrete)}
+.prof-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,.8fr);gap:32px;align-items:start}
+.tabs{display:flex;gap:0;border:1.5px solid var(--steel);width:max-content;margin-bottom:16px}
+.tabs button{all:unset;cursor:pointer;font:500 13px var(--data);letter-spacing:.06em;padding:9px 18px;border-right:1px solid var(--steel)}
+.tabs button:last-child{border-right:0}
+.tabs button[aria-selected="true"]{background:var(--steel);color:#fff}
+.tabs button:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.tbl{background:var(--sheet);border:1.5px solid var(--steel);overflow-x:auto}
+.tbl table{width:100%;border-collapse:collapse;font:400 14px var(--data);font-variant-numeric:tabular-nums}
+.tbl th{font:500 10.5px var(--data);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:right;padding:11px 14px;border-bottom:1.5px solid var(--steel);white-space:nowrap;background:var(--sheet)}
+.tbl td{text-align:right;padding:9px 14px;border-bottom:1px solid var(--rule);white-space:nowrap}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl td:first-child{font-weight:500}
+.tbl td:last-child{color:var(--navy);font-weight:500}
+.tbl tr:hover td{background:#f3f5f8}
+.tbl-note{font-size:13px;color:var(--muted);margin-top:10px}
+.calc{background:var(--sheet);border:1.5px solid var(--steel)}
+.calc h3{font-size:30px;padding:18px 20px 0;color:var(--steel)}
+.calc form{padding:8px 20px 20px}
+.calc label{display:block;font:500 10.5px var(--data);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.calc select,.calc input{width:100%;font:500 15px var(--data);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:2px;padding:11px 12px}
+.calc select:focus,.calc input:focus{outline:none;border-color:var(--navy)}
+.calc .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.calc output{display:block;border-top:1.5px solid var(--steel);padding:16px 20px 20px}
+.calc output b{display:block;font:800 52px/1 var(--display);color:var(--navy)}
+.calc output span{font-size:13px;color:var(--muted)}
+
+/* faq */
+.faq{background:var(--sheet)}
+.faq-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px;border-top:1.5px solid var(--steel)}
+details{border-bottom:1px solid var(--rule)}
+summary{cursor:pointer;list-style:none;padding:20px 32px 20px 0;font-weight:600;font-size:17px;position:relative}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";position:absolute;right:4px;top:28px;width:9px;height:9px;border-right:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);transform:rotate(45deg);transition:transform .2s}
+details[open] summary::after{transform:rotate(225deg);top:32px}
+details p{color:var(--muted);padding:0 0 22px;max-width:40em}
+
+/* contact */
+.cont{background:var(--steel);color:#fff}
+.cont .wrap{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:56px}
+.cont h2{font-size:clamp(46px,6vw,84px)}
+.cont .lead{color:#b8bfc8;margin-top:20px}
+.info{margin-top:36px;border-top:1px solid rgba(255,255,255,.2)}
+.info div{display:grid;grid-template-columns:110px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.2)}
+.info span{font:500 10.5px var(--data);letter-spacing:.08em;text-transform:uppercase;color:#98a1ac}
+.info b{font-weight:500;font-size:16.5px;user-select:all;min-width:0;overflow-wrap:anywhere}
+.info a{font-size:13px;color:#cfd8e6}
+.copy{all:unset;cursor:pointer;font-size:13px;color:#cfd8e6;text-decoration:underline;text-underline-offset:3px}
+.copy:focus-visible{outline:2px solid var(--sky)}
+.req{background:var(--sheet);color:var(--ink);padding:30px;border-top:4px solid var(--navy)}
+.req h3{font-size:34px;color:var(--steel)}
+.req > p{color:var(--muted);font-size:14px;margin:6px 0 18px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg .full{grid-column:1/-1}
+.fld label{display:block;font-weight:600;font-size:13.5px;margin-bottom:6px}
+.fld input,.fld select,.fld textarea{width:100%;font:400 15.5px var(--body);color:var(--ink);background:#fff;border:1px solid #b9c0c7;border-radius:2px;padding:12px}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(32,66,128,.15)}
+.fld textarea{min-height:100px;resize:vertical}
+.kvkk{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--muted);margin:16px 0 20px}
+.kvkk input{width:18px;height:18px;margin-top:2px;accent-color:var(--navy);flex:none}
+.done{margin-top:14px;padding:12px 14px;background:#eef2f9;border-left:3px solid var(--navy);font-size:14.5px}
+
+/* footer */
+.foot{background:var(--sheet);padding:36px 0 30px;font-size:13.5px;color:var(--muted)}
+.foot .wrap{display:flex;flex-wrap:wrap;gap:18px 40px;align-items:center;justify-content:space-between}
+.foot img{height:28px;width:auto}
+
+/* responsive */
+@media (max-width:1060px){
+  .nav,.hdr-tel,.hdr .btn{display:none}
+  .menu{display:grid;place-items:center}
+  .nav.open{display:flex;flex-direction:column;gap:0;position:absolute;top:72px;left:0;right:0;background:var(--sheet);border-bottom:1px solid var(--rule);padding:6px var(--gut-r) 18px var(--gut)}
+  .nav.open a{padding:14px 0;border-bottom:1px solid var(--rule);font-size:17px}
+  .hero .wrap,.types-grid,.mont-grid,.prof-grid,.cont .wrap,.proc .wrap{grid-template-columns:minmax(0,1fr)}
+  .sec-h{grid-template-columns:minmax(0,1fr);gap:16px}
+  .antet{left:12px}
+  .types-photo{position:static;max-width:520px}
+  .proc ol{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:22px}
+}
+@media (max-width:680px){
+  .sec{padding:68px 0}
+  .hero .wrap{padding-top:36px;padding-bottom:48px;gap:36px}
+  .lead{font-size:17px}
+  .hero-photo figure{height:auto}
+  .hero-photo img{height:auto;aspect-ratio:4/5;max-height:none}
+  .antet{position:relative;left:auto;bottom:auto;width:100%;margin-top:-1px}
+  .sched thead{display:none}
+  .sched tr{display:block;border-bottom:1px solid var(--rule);padding:14px 0}
+  .sched td{display:block;border:0;padding:2px 0;width:auto!important}
+  .sched .grp{border:0;padding:18px 0 0}
+  .proc ol{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cards,.faq-list{grid-template-columns:minmax(0,1fr)}
+  .card dl{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:8px}
+  .fg{grid-template-columns:minmax(0,1fr)}
+  .req{padding:22px 18px}
+  .info div{grid-template-columns:minmax(0,1fr) auto}
+  .info span{grid-column:1/-1}
+  .board-foot{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .board-foot div:nth-child(2){border-right:0}
+  .board-foot div:last-child{grid-column:1/-1;border-top:1px solid var(--steel)}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+
+<div class="note-bar">Tasarım konsepti: Kommagene İnşaat için hazırlanmış demo sayfadır, firmanın resmi sitesi değildir.</div>
+
+<header class="hdr">
+  <div class="wrap">
+    <a class="logo" href="#top"><img src="{{logo}}" alt="Kommagene İnşaat" width="560" height="98"></a>
+    <nav class="nav" id="nav" aria-label="Ana menü">
+      <a href="#yapilar">Yapı tipleri</a>
+      <a href="#montaj">Montaj</a>
+      <a href="#projeler">Projeler</a>
+      <a href="#profiller">Profil tabloları</a>
+      <a href="#sss">SSS</a>
+      <a href="#iletisim">İletişim</a>
+    </nav>
+    <span class="hdr-tel num">0552 616 84 35</span>
+    <a class="btn" href="#iletisim">Teklif iste</a>
+    <button class="menu" id="menu" aria-expanded="false" aria-controls="nav" aria-label="Menü">
+      <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><path d="M0 1h20M0 7h20M0 13h20" stroke="currentColor" stroke-width="1.6"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <p class="kicker">Yapısal çelik · Adıyaman</p>
+      <h1>Çeliği keser, kaynatır, <span>sahada kurarız.</span></h1>
+      <p class="lead">Depo, fabrika, katlı çelik yapı ve çelik konut. Statik projeyi çizen, profili kesip kaynatan ve sahada montajı yapan aynı ekip. Arada taşeron yok.</p>
+      <div class="hero-cta">
+        <a class="btn" href="#iletisim">Keşif ve teklif iste</a>
+        <a class="btn line" href="#montaj">Montaj sırasını gör</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <figure>
+        <img src="{{santiye1}}" alt="Temel üzerinde yükselen siyah astarlı çelik kolonlar ve kirişler" width="1000" height="1333">
+        <figcaption>Kommagene İnşaat şantiyesi, Adıyaman.</figcaption>
+      </figure>
+      <div class="antet" aria-label="Firma künyesi">
+        <div class="t"><span>Firma</span><b>Kommagene İnşaat</b></div>
+        <div><span>Merkez</span><b>Merkez / Adıyaman</b></div>
+        <div><span>Kapsam</span><b>Proje · İmalat · Montaj</b></div>
+        <div><span>Çelik</span><b class="num">S235 · S275 · S355</b></div>
+        <div><span>Hesap</span><b>TBDY 2018</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec types" id="yapilar">
+  <div class="wrap">
+    <div class="sec-h">
+      <h2>Yapı tipleri</h2>
+      <p>Her yapı tipinin taşıyıcı sistemi farklıdır. Teklif vermeden önce kullanım amacını, açıklığı ve yükleri konuşuruz.</p>
+    </div>
+    <div class="types-grid">
+      <table class="sched">
+        <thead><tr><th>Yapı</th><th>Ne için</th><th>Taşıyıcı sistem</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="3">Ağır çelik, sıcak haddelenmiş profil</td></tr>
+          <tr><td>Depo ve hangar</td><td>Arasında kolon olmayan geniş iç hacim</td><td>Portal çerçeve veya kafes kiriş, çatıda aşık ve çapraz</td></tr>
+          <tr><td>Fabrika</td><td>Üretim hattı, vinç, ara kat</td><td>Çerçeve sistem, vinç yolu kirişi, ara kat döşemesi</td></tr>
+          <tr><td>Katlı çelik yapı</td><td>Ofis, ticari, karma kullanım</td><td>Çaprazlı veya moment çerçeve, kompozit döşeme</td></tr>
+          <tr><td>Çelik ev ve villa</td><td>Esnek planlı konut</td><td>Kolon-kiriş çerçeve, trapez sac üzeri betonarme döşeme</td></tr>
+          <tr><td>Ahır, silo, ambar</td><td>Tarım ve hayvancılık</td><td>Hafif portal çerçeve, havalandırmalı çatı</td></tr>
+          <tr class="grp"><td colspan="3">Hafif çelik, galvanizli soğuk şekillendirilmiş profil</td></tr>
+          <tr><td>Hafif çelik ev</td><td>Hızlı kurulan konut</td><td>Atölyede hazırlanan duvar ve çatı panelleri</td></tr>
+          <tr><td>Tiny house, bungalov, bağ evi</td><td>Küçük, yalıtımlı yaşam alanı</td><td>Panel sistem, taşınabilir şasi seçeneği</td></tr>
+          <tr><td>Güçlendirme</td><td>Mevcut binada taşıma kapasitesi</td><td>Çelik çapraz, kolon ve kiriş takviyesi</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="sec mont" id="montaj">
+  <div class="wrap">
+    <div class="sec-h">
+      <h2>Bir çelik depo nasıl yükselir</h2>
+      <p>24 × 15 metrelik, beş akslı bir depo örneği. Bir aşamaya dokunun, çizim o aşamayı göstersin.</p>
+    </div>
+    <div class="mont-grid">
+      <ol class="steps" id="steps">
+        <li class="on"><button type="button" data-s="0"><span class="k num">01</span><span class="t">Temel ve ankraj</span><span class="d">Aks çizgileri sahaya aplikasyon edilir. Ankraj bulonları temele gömülür, taban plakalarının kotu terazilenir.</span></button></li>
+        <li><button type="button" data-s="1"><span class="k num">02</span><span class="t">Kolonlar</span><span class="d">Atölyede delinip boyanmış kolonlar vinçle dikilir, taban plakasından bulonlanır ve şakülüne alınır.</span></button></li>
+        <li><button type="button" data-s="2"><span class="k num">03</span><span class="t">Çatı kirişleri</span><span class="d">Mahya birleşimi atölyede hazırlanmış çatı kirişleri kolon başlarına bulonlanır. Portal çerçeveler tamamlanır.</span></button></li>
+        <li><button type="button" data-s="3"><span class="k num">04</span><span class="t">Aşık ve çaprazlar</span><span class="d">Çatı aşıkları ve yatay-düşey çaprazlar takılır. Yapı rüzgâr ve deprem yüklerine karşı stabil hale gelir.</span></button></li>
+        <li><button type="button" data-s="4"><span class="k num">05</span><span class="t">Çatı ve cephe</span><span class="d">Sandviç panel çatı ve cephe kaplaması, dere, kapı ve pencere detaylarıyla yapı kullanıma hazırlanır.</span></button></li>
+      </ol>
+      <div class="board">
+        <canvas id="cv" width="960" height="660" role="img" aria-label="Çelik depo montaj aşaması çizimi"></canvas>
+        <div class="board-foot">
+          <div><span>Yapı</span><b>Çelik depo, örnek</b></div>
+          <div><span>Ölçü</span><b class="num">24 × 15 × 6 m</b></div>
+          <div><span>Aşama</span><b id="stName">Temel ve ankraj</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="proc" aria-labelledby="procH">
+  <div class="wrap">
+    <h2 id="procH">Sizinle çalışma şeklimiz</h2>
+    <ol>
+      <li><i class="num">1</i><b>Keşif</b><span>Arazide ölçü ve ihtiyaç analizi</span></li>
+      <li><i class="num">2</i><b>Teklif</b><span>Tonaj, kaplama ve işçilik ayrı kalemlerde</span></li>
+      <li><i class="num">3</i><b>Proje</b><span>Statik hesap, imalat ve montaj çizimi</span></li>
+      <li><i class="num">4</i><b>Uygulama</b><span>Atölyede imalat, sahada montaj</span></li>
+      <li><i class="num">5</i><b>Teslim</b><span>Anahtar teslim veya karkas teslim</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec proj" id="projeler">
+  <div class="wrap">
+    <div class="sec-h">
+      <h2>Sahadan</h2>
+      <p>Her projede konum, yapı tipi, çelik tonajı ve alan bilgisi birlikte verilir. Çelik yapı alan bir müşteri önce bunlara bakar.</p>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <img src="{{santiye2}}" alt="İki katlı çelik iskelet yapı" width="1000" height="1333">
+        <h3>İki katlı çelik yapı</h3>
+        <dl>
+          <div><dt>Konum</dt><dd>Adıyaman</dd></div>
+          <div><dt>Durum</dt><dd>Karkas</dd></div>
+          <div><dt>Tonaj</dt><dd class="empty">eklenecek</dd></div>
+          <div><dt>Alan</dt><dd class="empty">eklenecek</dd></div>
+        </dl>
+      </article>
+      <article class="card">
+        <img src="{{santiye1}}" alt="Tek katlı geniş açıklıklı çelik iskelet" width="1000" height="1333">
+        <h3>Çelik iskelet yapı</h3>
+        <dl>
+          <div><dt>Konum</dt><dd>Adıyaman</dd></div>
+          <div><dt>Durum</dt><dd>Montaj</dd></div>
+          <div><dt>Tonaj</dt><dd class="empty">eklenecek</dd></div>
+          <div><dt>Alan</dt><dd class="empty">eklenecek</dd></div>
+        </dl>
+      </article>
+    </div>
+    <p class="proj-note">Fotoğraflar firmanın kendi sitesinden alınmıştır. Proje adı, tonaj, alan ve yıl bilgileri firmadan alınıp bu alana eklenecek.</p>
+  </div>
+</section>
+
+<section class="sec prof" id="profiller">
+  <div class="wrap">
+    <div class="sec-h">
+      <h2>Profil tabloları</h2>
+      <p>IPE, HEA ve HEB profillerin ölçü ve birim ağırlıkları. Yandaki hesapla yaklaşık çelik tonajını bulabilirsiniz.</p>
+    </div>
+    <div class="prof-grid">
+      <div>
+        <div class="tabs" role="tablist" aria-label="Profil serisi">
+          <button role="tab" aria-selected="true" data-p="IPE">IPE</button>
+          <button role="tab" aria-selected="false" data-p="HEA" tabindex="-1">HEA</button>
+          <button role="tab" aria-selected="false" data-p="HEB" tabindex="-1">HEB</button>
+        </div>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Profil</th><th>h mm</th><th>b mm</th><th>tw mm</th><th>tf mm</th><th>kg/m</th></tr></thead>
+            <tbody id="tb"></tbody>
+          </table>
+        </div>
+        <p class="tbl-note">EN 10365 nominal değerleri. Kesin değerler için üretici sertifikası esas alınır.</p>
+      </div>
+      <div class="calc">
+        <h3>Tonaj hesabı</h3>
+        <form id="calc" onsubmit="return false">
+          <label for="cP">Profil</label>
+          <select id="cP"></select>
+          <div class="two">
+            <div><label for="cL">Boy, m</label><input id="cL" type="number" min="0" step="0.5" value="12" inputmode="decimal"></div>
+            <div><label for="cN">Adet</label><input id="cN" type="number" min="0" step="1" value="10" inputmode="numeric"></div>
+          </div>
+        </form>
+        <output for="cP cL cN" aria-live="polite"><b id="cR" class="num">0 kg</b><span id="cS"></span></output>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec faq" id="sss">
+  <div class="wrap">
+    <div class="sec-h">
+      <h2>Sık sorulanlar</h2>
+      <p>Cevabını burada bulamadığınız soruyu telefonla sorun: <span class="num">0552 616 84 35</span>.</p>
+    </div>
+    <div class="faq-list">
+      <div>
+        <details open><summary>Çelik yapının fiyatı neye göre değişir?</summary><p>Açıklık ve yükseklik, bölgenin kar ve rüzgâr yükü, toplam çelik tonajı, çatı ve cephe kaplaması ile temel işleri fiyatı belirler. Keşiften sonra bu kalemleri ayrı ayrı gösteren teklif veriyoruz.</p></details>
+        <details><summary>Bir çelik depo ne kadar sürede kurulur?</summary><p>Süre yapının büyüklüğüne, ruhsat sürecine ve kaplama detayına bağlıdır. Elemanlar atölyede hazırlandığı için saha montajı betonarmeye göre kısadır. Net takvimi proje aşamasında iş programıyla birlikte veriyoruz.</p></details>
+        <details><summary>Çelik yapılar depremde nasıl davranır?</summary><p>Çelik sünek bir malzemedir; deprem yükü altında ani kırılmak yerine şekil değiştirerek enerjiyi sönümler. Projelerimizi Türkiye Bina Deprem Yönetmeliği'ne (TBDY 2018) göre hesaplıyoruz.</p></details>
+      </div>
+      <div>
+        <details><summary>Ağır çelik ile hafif çelik arasındaki fark ne?</summary><p>Ağır çelikte IPE, HEA, HEB gibi sıcak haddelenmiş profiller kullanılır; depo, fabrika ve katlı yapılar içindir. Hafif çelikte galvanizli, soğuk şekillendirilmiş ince profiller kullanılır; konut, bungalov ve modüler yapılarda tercih edilir.</p></details>
+        <details><summary>Projeyi siz mi çiziyorsunuz?</summary><p>Evet. Statik proje, imalat ve montaj çizimlerini ekibimiz hazırlar. Elinizde mimari proje varsa onun üzerinden ilerleriz.</p></details>
+        <details><summary>Adıyaman dışında iş yapıyor musunuz?</summary><p>Merkezimiz Adıyaman. Çevre illerde ve proje ölçeğine göre Türkiye genelinde uygulama yapıyoruz.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec cont" id="iletisim">
+  <div class="wrap">
+    <div>
+      <h2>Projenizi anlatın</h2>
+      <p class="lead">Arsanın yerini, yapının ne için kullanılacağını ve yaklaşık ölçüsünü yazın. Keşif için sizi arayalım.</p>
+      <div class="info">
+        <div><span>Telefon</span><b class="num">0552 616 84 35</b><button class="copy" type="button" data-copy="05526168435">Kopyala</button></div>
+        <div><span>E-posta</span><b>info@kommageneinsaat.com.tr</b><button class="copy" type="button" data-copy="info@kommageneinsaat.com.tr">Kopyala</button></div>
+        <div><span>Adres</span><b>Mehmet Akif Mah. 528. Sk. No:7, Merkez / Adıyaman</b><a href="https://www.google.com/maps/search/?api=1&amp;query=Kommagene+%C4%B0n%C5%9Faat+Ad%C4%B1yaman" target="_blank" rel="noopener">Harita</a></div>
+      </div>
+    </div>
+    <form class="req" id="req" novalidate>
+      <h3>Teklif talebi</h3>
+      <p>Yıldızlı alanlar zorunlu.</p>
+      <div class="fg">
+        <div class="fld"><label for="fN">Ad soyad *</label><input id="fN" name="ad" autocomplete="name" required></div>
+        <div class="fld"><label for="fT">Telefon *</label><input id="fT" name="tel" type="tel" autocomplete="tel" required></div>
+        <div class="fld"><label for="fY">Yapı tipi</label><select id="fY" name="tip"><option>Depo / hangar</option><option>Fabrika</option><option>Katlı çelik yapı</option><option>Çelik ev / villa</option><option>Ahır / silo</option><option>Hafif çelik / tiny house</option><option>Güçlendirme</option><option>Diğer</option></select></div>
+        <div class="fld"><label for="fA">Yaklaşık alan, m²</label><input id="fA" name="alan" inputmode="numeric"></div>
+        <div class="fld full"><label for="fI">Arsa nerede?</label><input id="fI" name="konum" placeholder="İl, ilçe"></div>
+        <div class="fld full"><label for="fM">Not</label><textarea id="fM" name="not"></textarea></div>
+      </div>
+      <label class="kvkk"><input type="checkbox" id="fK" required><span>KVKK aydınlatma metnini okudum, bilgilerimin teklif için kullanılmasını kabul ediyorum. *</span></label>
+      <button class="btn" type="submit" style="width:100%;justify-content:center">Talebi gönder</button>
+      <div class="done" id="done" hidden>Bu demo sayfada form gönderilmez. Yayındaki sitede talep doğrudan firmaya iletilir.</div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <img src="{{logo}}" alt="Kommagene İnşaat" width="560" height="98">
+    <span>Mehmet Akif Mah. 528. Sk. No:7, Merkez / Adıyaman · <span class="num">0552 616 84 35</span></span>
+    <span>© 2026 Kommagene İnşaat · Tasarım konsepti</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var nav=document.getElementById('nav'),menu=document.getElementById('menu');
+  menu.addEventListener('click',function(){var o=nav.classList.toggle('open');menu.setAttribute('aria-expanded',o)});
+  nav.addEventListener('click',function(e){if(e.target.closest('a')){nav.classList.remove('open');menu.setAttribute('aria-expanded','false')}});
+
+  /* ---------- assembly drawing ---------- */
+  var cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+  var W=960,H=660,dpr=Math.min(window.devicePixelRatio||1,2);
+  cv.width=W*dpr;cv.height=H*dpr;ctx.scale(dpr,dpr);
+  var L=24,B=15,Hc=6,Hr=7.5,AX=['A','B','C','D','E'],AY=['1','2'];
+  var xs=[0,6,12,18,24],ys=[0,B];
+  var S=1,ox=0,oy=0,c30=Math.cos(Math.PI/6),s30=0.5;
+  function P(x,y,z){return [ox+(x-y)*c30*S,oy+(x+y)*s30*S-z*S]}
+  (function fit(){var pts=[[-3,-3,0],[L+7,-3,0],[L+7,B+7,0],[-3,B+7,0],[0,B/2,Hr],[L,B/2,Hr],[L+3.2,0,Hc]],mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;pts.forEach(function(p){var q=P.apply(null,p);mnx=Math.min(mnx,q[0]);mxx=Math.max(mxx,q[0]);mny=Math.min(mny,q[1]);mxy=Math.max(mxy,q[1])});S=Math.min((W-90)/(mxx-mnx),(H-70)/(mxy-mny));ox=(W-(mxx-mnx)*S)/2-mnx*S;oy=(H-(mxy-mny)*S)/2-mny*S})();
+  var C={ink:'#18202b',navy:'#204280',grid:'#9fb0c6',faint:'#d2d7dc',soil:'#e9e4dc',panel:'rgba(32,66,128,.10)',panelS:'rgba(32,66,128,.55)'};
+  function line(a,b,col,w,dash){ctx.beginPath();ctx.setLineDash(dash||[]);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.setLineDash([])}
+  function seg(p,q,t,col,w){var a=P.apply(null,p),b=P(p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t,p[2]+(q[2]-p[2])*t);line(a,b,col,w)}
+  function poly(pts,fill,stroke){ctx.beginPath();pts.forEach(function(p,i){var q=P.apply(null,p);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])});ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}}
+  function bubble(p,txt){var q=P.apply(null,p);ctx.beginPath();ctx.arc(q[0],q[1],11,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=C.ink;ctx.lineWidth=1;ctx.stroke();ctx.fillStyle=C.ink;ctx.font='500 11px "IBM Plex Mono", monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,q[0],q[1]+.5)}
+  function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
+
+  function draw(stage,t){
+    ctx.clearRect(0,0,W,H);
+    // ground slab
+    poly([[-3,-3,0],[L+3,-3,0],[L+3,B+3,0],[-3,B+3,0]],C.soil,null);
+    // grid lines + bubbles
+    xs.forEach(function(x,i){line(P(x,-2.5,0),P(x,B+5,0),C.grid,1,[6,5]);bubble([x,B+6.2,0],AX[i])});
+    ys.forEach(function(y,i){line(P(-2.5,y,0),P(L+5,y,0),C.grid,1,[6,5]);bubble([L+6.2,y,0],AY[i])});
+    var k=function(s){return stage>s?1:(stage===s?ease(t):0)};
+    var cur=function(s){return stage===s?C.navy:C.ink};
+    // stage 0: base plates
+    var k0=k(0);
+    xs.forEach(function(x){ys.forEach(function(y){if(k0>0){var r=.45*k0;poly([[x-r,y-r,0],[x+r,y-r,0],[x+r,y+r,0],[x-r,y+r,0]],stage===0?C.navy:C.ink,null)}})});
+    // stage 4 back faces first (roof + back wall) for depth
+    var k4=k(4);
+    if(k4>0){
+      var a=k4*.9;
+      ctx.globalAlpha=a;
+      poly([[0,B,0],[L,B,0],[L,B,Hc],[0,B,Hc]],'rgba(32,66,128,.07)',null);
+      poly([[0,0,0],[0,B,0],[0,B,Hc],[0,B/2,Hr],[0,0,Hc]],'rgba(32,66,128,.08)',null);
+      ctx.globalAlpha=1;
+    }
+    // stage 1: columns
+    var k1=k(1);
+    xs.forEach(function(x,i){ys.forEach(function(y,j){var tt=Math.max(0,Math.min(1,k1*1.6-(i*2+j)*.06));if(tt>0)seg([x,y,0],[x,y,Hc],tt,cur(1),3.2)})});
+    // stage 2: rafters + eave beams
+    var k2=k(2);
+    if(k2>0){xs.forEach(function(x,i){var tt=Math.max(0,Math.min(1,k2*1.5-i*.1));if(tt>0){seg([x,0,Hc],[x,B/2,Hr],tt,cur(2),2.8);seg([x,B,Hc],[x,B/2,Hr],tt,cur(2),2.8)}});
+      ys.forEach(function(y){seg([0,y,Hc],[L,y,Hc],k2,cur(2),2)})}
+    // stage 3: purlins + bracing
+    var k3=k(3);
+    if(k3>0){[0.17,0.34,0.5,0.66,0.83].forEach(function(f,i){var y=f*B;var z=Hc+(Hr-Hc)*(1-Math.abs(y-B/2)/(B/2));var tt=Math.max(0,Math.min(1,k3*1.4-i*.08));seg([0,y,z],[L,y,z],tt,cur(3),1.3)});
+      [[0,6],[18,24]].forEach(function(b){ys.forEach(function(y){seg([b[0],y,0],[b[1],y,Hc],k3,cur(3),1);seg([b[1],y,0],[b[0],y,Hc],k3,cur(3),1)});
+        seg([b[0],0,Hc],[b[1],B/2,Hr],k3,cur(3),1);seg([b[1],0,Hc],[b[0],B/2,Hr],k3,cur(3),1)})}
+    // stage 4: front cladding
+    if(k4>0){
+      ctx.globalAlpha=k4;
+      poly([[0,0,Hc],[L,0,Hc],[L,B/2,Hr],[0,B/2,Hr]],'rgba(32,66,128,.18)',C.panelS);
+      poly([[0,0,0],[L,0,0],[L,0,Hc],[0,0,Hc]],'rgba(32,66,128,.10)',C.panelS);
+      poly([[L,0,0],[L,B,0],[L,B,Hc],[L,B/2,Hr],[L,0,Hc]],'rgba(32,66,128,.14)',C.panelS);
+      // door on gable end
+      poly([[L,B/2-2.5,0],[L,B/2+2.5,0],[L,B/2+2.5,4.5],[L,B/2-2.5,4.5]],'rgba(255,255,255,.75)',C.panelS);
+      ctx.globalAlpha=1;
+    }
+    // dimension: height
+    var d0=P(L+3.2,0,0),d1=P(L+3.2,0,Hc);line(d0,d1,C.ink,1);line([d0[0]-5,d0[1]],[d0[0]+5,d0[1]],C.ink,1);line([d1[0]-5,d1[1]],[d1[0]+5,d1[1]],C.ink,1);
+    ctx.fillStyle=C.ink;ctx.font='500 12px "IBM Plex Mono", monospace';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText('6,00 m',d1[0]+10,(d0[1]+d1[1])/2);
+    var e0=P(0,B+3.4,0),e1=P(L,B+3.4,0);line(e0,e1,C.ink,1);ctx.textAlign='center';var m=P(L/2,B+3.4,0);ctx.fillStyle='#fff';ctx.fillRect(m[0]-30,m[1]-9,60,18);ctx.fillStyle=C.ink;ctx.fillText('24,00 m',m[0],m[1]);
+  }
+
+  var names=['Temel ve ankraj','Kolonlar','Çatı kirişleri','Aşık ve çaprazlar','Çatı ve cephe'];
+  var stage=0,raf=null,reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var items=[].slice.call(document.querySelectorAll('#steps li')),stName=document.getElementById('stName');
+  function go(s,animate){
+    stage=s;items.forEach(function(li,i){li.classList.toggle('on',i===s);li.querySelector('button').setAttribute('aria-current',i===s?'step':'false')});
+    stName.textContent=names[s];
+    if(raf)cancelAnimationFrame(raf);
+    if(!animate||reduce){draw(s,1);return}
+    var t0=null;(function f(ts){if(!t0)t0=ts;var t=Math.min(1,(ts-t0)/1100);draw(s,t);if(t<1)raf=requestAnimationFrame(f)})(performance.now());
+  }
+  items.forEach(function(li,i){li.querySelector('button').addEventListener('click',function(){stopAuto();go(i,true)})});
+  // at rest the drawing shows the finished frame; it plays through once when it scrolls into view
+  draw(4,1);stage=4;items.forEach(function(li,i){li.classList.toggle('on',i===4)});stName.textContent=names[4];
+  var auto=null;function stopAuto(){if(auto){clearInterval(auto);auto=null}}
+  if('IntersectionObserver' in window&&!reduce){
+    var io=new IntersectionObserver(function(es){if(es[0].isIntersecting){io.disconnect();var s=0;go(0,true);auto=setInterval(function(){s++;if(s>4){stopAuto();return}go(s,true)},1800)}},{threshold:.45});
+    io.observe(cv);
+  }
+
+  /* ---------- profiles ---------- */
+  var D={
+    IPE:[[100,100,55,4.1,5.7,8.1],[120,120,64,4.4,6.3,10.4],[140,140,73,4.7,6.9,12.9],[160,160,82,5.0,7.4,15.8],[180,180,91,5.3,8.0,18.8],[200,200,100,5.6,8.5,22.4],[220,220,110,5.9,9.2,26.2],[240,240,120,6.2,9.8,30.7],[270,270,135,6.6,10.2,36.1],[300,300,150,7.1,10.7,42.2],[330,330,160,7.5,11.5,49.1],[360,360,170,8.0,12.7,57.1],[400,400,180,8.6,13.5,66.3]],
+    HEA:[[100,96,100,5.0,8.0,16.7],[120,114,120,5.0,8.0,19.9],[140,133,140,5.5,8.5,24.7],[160,152,160,6.0,9.0,30.4],[180,171,180,6.0,9.5,35.5],[200,190,200,6.5,10.0,42.3],[220,210,220,7.0,11.0,50.5],[240,230,240,7.5,12.0,60.3],[260,250,260,7.5,12.5,68.2],[280,270,280,8.0,13.0,76.4],[300,290,300,8.5,14.0,88.3]],
+    HEB:[[100,100,100,6.0,10.0,20.4],[120,120,120,6.5,11.0,26.7],[140,140,140,7.0,12.0,33.7],[160,160,160,8.0,13.0,42.6],[180,180,180,8.5,14.0,51.2],[200,200,200,9.0,15.0,61.3],[220,220,220,9.5,16.0,71.5],[240,240,240,10.0,17.0,83.2],[260,260,260,10.0,17.5,93.0],[280,280,280,10.5,18.0,103.0],[300,300,300,11.0,19.0,117.0]]
+  };
+  function f(n,d){return n.toLocaleString('tr-TR',{minimumFractionDigits:d,maximumFractionDigits:d})}
+  var tb=document.getElementById('tb'),tabs=[].slice.call(document.querySelectorAll('.tabs button'));
+  function render(t){tb.innerHTML=D[t].map(function(r){return '<tr><td>'+t+' '+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+f(r[3],1)+'</td><td>'+f(r[4],1)+'</td><td>'+f(r[5],1)+'</td></tr>'}).join('')}
+  tabs.forEach(function(b){b.addEventListener('click',function(){tabs.forEach(function(x){var on=x===b;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1});render(b.dataset.p)})});
+  render('IPE');
+  var sel=document.getElementById('cP');
+  Object.keys(D).forEach(function(t){var g=document.createElement('optgroup');g.label=t;D[t].forEach(function(r){var o=document.createElement('option');o.value=r[5];o.textContent=t+' '+r[0]+'  ('+f(r[5],1)+' kg/m)';if(t==='HEA'&&r[0]===200)o.selected=true;g.appendChild(o)});sel.appendChild(g)});
+  var cL=document.getElementById('cL'),cN=document.getElementById('cN'),cR=document.getElementById('cR'),cS=document.getElementById('cS');
+  function calc(){var kg=(+sel.value||0)*(+cL.value||0)*(+cN.value||0);cR.textContent=kg>=1000?f(kg/1000,2)+' ton':f(kg,0)+' kg';cS.textContent='Bağlantı levhası, bulon ve kaynak hariç yaklaşık değer.'}
+  [sel,cL,cN].forEach(function(el){el.addEventListener('input',calc)});calc();
+
+  /* ---------- copy + form ---------- */
+  document.querySelectorAll('.copy').forEach(function(b){b.addEventListener('click',function(){
+    var v=b.dataset.copy,done=function(){b.textContent='Kopyalandı';setTimeout(function(){b.textContent='Kopyala'},1600)};
+    var fb=function(){var s=window.getSelection(),r=document.createRange();r.selectNodeContents(b.previousElementSibling);s.removeAllRanges();s.addRange(r)};
+    try{navigator.clipboard.writeText(v).then(done,fb)}catch(e){fb()}
+  })});
+  var req=document.getElementById('req');
+  req.addEventListener('submit',function(e){e.preventDefault();if(!req.checkValidity()){req.reportValidity();return}document.getElementById('done').hidden=false});
+})();
+</script>
