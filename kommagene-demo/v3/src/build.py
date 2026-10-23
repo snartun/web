@@ -14,7 +14,7 @@ assets = os.path.join(root, 'assets')
 
 ASSETS = {
     'mark': 'mark.png',
-    'santiye1': 'santiye-1.webp', 'hero': 'hero.webp', 'kartal': 'kartal.webp', 'endustri': 'endustri.webp', 'imalat': 'imalat.webp', 'hafif': 'hafif.webp',
+    'santiye1': 'santiye-1.webp', 'herocelik': 'hero-celik.webp', 'nemrut': 'nemrut-bant.webp', 'kartal': 'kartal.webp', 'endustri': 'endustri.webp', 'imalat': 'imalat.webp', 'hafif': 'hafif.webp',
     'santiye2': 'santiye-2.webp',
 }
 

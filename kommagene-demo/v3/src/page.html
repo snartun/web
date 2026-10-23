@@ -4,7 +4,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,500;0,600;0,700;1,600&family=Hanken+Grotesk:wght@300;400;500;600&display=swap">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"GeneralContractor","name":"Kommagene İnşaat","url":"https://kommageneinsaat.com.tr/","telephone":"+905526168435","email":"info@kommageneinsaat.com.tr","address":{"@type":"PostalAddress","streetAddress":"Mehmet Akif Mah. 528. Sk. No:7","addressLocality":"Merkez","addressRegion":"Adıyaman","addressCountry":"TR"},"geo":{"@type":"GeoCoordinates","latitude":37.7662,"longitude":38.2795},"slogan":"Sen tasarımını belirle, biz uygulayalım."}
 </script>
@@ -18,7 +18,7 @@
   --dust:#a1978a;
   --line:rgba(236,229,218,.14);
   --ember:#d49a5b;
-  --serif:"Instrument Serif","Cormorant Garamond",Georgia,"Times New Roman",serif;
+  --head:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
   --sans:"Hanken Grotesk","Helvetica Neue",Arial,sans-serif;
   --gl:max(clamp(20px,5vw,72px),env(safe-area-inset-left,0px));
   --gr:max(clamp(20px,5vw,72px),env(safe-area-inset-right,0px));
@@ -29,11 +29,11 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--night);color:var(--stone);font:300 17px/1.65 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 img{max-width:100%;display:block}
 a{color:inherit}
-h1,h2,h3{font-family:var(--serif);font-weight:400;margin:0;line-height:.98;letter-spacing:-.01em;text-wrap:balance}
-em{font-style:italic}
+h1,h2,h3{font-family:var(--head);font-weight:600;margin:0;line-height:.98;letter-spacing:-.035em;text-wrap:balance}
+h1 em,h2 em{font-style:normal;color:var(--dust)}
 p{margin:0}
 .pad{padding-left:var(--gl);padding-right:var(--gr)}
-.label{font:500 11.5px/1.4 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--dust)}
+.label{font:500 12px/1.4 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--dust)}
 :focus-visible{outline:1px solid var(--ember);outline-offset:4px}
 
 /* concept note */
@@ -57,12 +57,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 /* hero */
 .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
-.hero-img{position:absolute;inset:0;background:url({{hero}}) 50% 55%/cover no-repeat;animation:drift 22s var(--ease) both}
+.hero-img{position:absolute;inset:0;background:url({{herocelik}}) 50% 50%/cover no-repeat;animation:drift 22s var(--ease) both}
 @keyframes drift{from{transform:scale(1.12)}to{transform:scale(1)}}
-.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,12,11,.55) 0%,rgba(13,12,11,0) 28%,rgba(13,12,11,.15) 55%,rgba(13,12,11,.92) 100%),linear-gradient(90deg,rgba(13,12,11,.55),rgba(13,12,11,0) 60%)}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,12,11,.6) 0%,rgba(13,12,11,.1) 26%,rgba(13,12,11,.35) 50%,rgba(13,12,11,.94) 100%),linear-gradient(90deg,rgba(13,12,11,.82) 0%,rgba(13,12,11,.5) 45%,rgba(13,12,11,0) 75%)}
+.hero h1 em{color:#c9bfb1}
 .hero-in{position:relative;z-index:1;padding-top:180px;padding-bottom:56px}
 .hero .label{color:rgba(236,229,218,.72)}
-.hero h1{font-size:clamp(64px,11vw,184px);max-width:9.5ch}
+.hero h1{font-size:clamp(50px,8.6vw,148px);max-width:12ch;letter-spacing:-.045em}
 .hero h1 .ln{display:block;overflow:hidden;padding-bottom:.06em}
 .hero h1 .ln span{display:block;animation:rise 1.3s var(--ease) both}
 .hero h1 .ln:nth-child(2) span{animation-delay:.14s}
@@ -78,11 +79,11 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .mani > div{max-width:1100px}
 .mani h2{font-size:clamp(38px,4.6vw,72px);line-height:1.08}
 .mani h2 em{color:var(--ember)}
+.bant{margin:clamp(56px,7vw,96px) 0 0}
+.bant img{width:100%;height:auto;aspect-ratio:21/9;object-fit:cover}
+.bant figcaption{margin-top:12px}
 .mani-sign{margin-top:48px;display:flex;gap:22px;align-items:baseline;flex-wrap:wrap}
-.mani-sign q{font:italic 400 26px/1.3 var(--serif);quotes:"“" "”"}
-.mani figure{margin:0}
-.mani img{width:100%;aspect-ratio:4/5;object-fit:cover}
-.mani figcaption{margin-top:14px}
+.mani-sign q{font:600 26px/1.3 var(--head);quotes:"“" "”"}
 
 /* expertise */
 .exp{border-top:1px solid var(--line);padding-top:clamp(90px,10vw,150px);padding-bottom:clamp(90px,10vw,150px);position:relative}
@@ -109,7 +110,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .frame-copy{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding-top:clamp(60px,7vw,110px);padding-bottom:clamp(40px,5vw,70px);pointer-events:none}
 .frame-copy h2{font-size:clamp(44px,6.2vw,104px);max-width:8ch}
 .specs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;border-top:1px solid var(--line);padding-top:22px;max-width:980px}
-.specs b{display:block;font:400 26px/1.15 var(--serif);margin:8px 0 6px}
+.specs b{display:block;font:600 26px/1.15 var(--head);margin:8px 0 6px}
 .specs span{font-size:15px;color:var(--dust)}
 
 /* process */
@@ -118,7 +119,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .proc ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0}
 .proc li{padding:28px 28px 0 0;border-top:1px solid var(--line);position:relative}
 .proc li::before{content:"";position:absolute;top:-4px;left:0;width:7px;height:7px;border-radius:50%;background:var(--ember)}
-.proc .rn{font:italic 400 30px/1 var(--serif);color:var(--ember)}
+.proc .rn{font:600 30px/1 var(--head);color:var(--ember)}
 .proc h3{font-size:34px;margin:22px 0 12px}
 .proc p{font-size:15.5px;color:var(--dust)}
 
@@ -140,7 +141,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .faq h2{font-size:clamp(44px,5vw,80px)}
 details{border-bottom:1px solid var(--line)}
 details:first-child{border-top:1px solid var(--line)}
-summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:24px;padding:26px 0;font:400 clamp(24px,2.4vw,32px)/1.2 var(--serif)}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:24px;padding:26px 0;font:600 clamp(24px,2.4vw,32px)/1.2 var(--head)}
 summary::-webkit-details-marker{display:none}
 summary i{flex:none;position:relative;width:16px;height:16px}
 summary i::before,summary i::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--stone);transition:transform .4s var(--ease)}
@@ -156,7 +157,7 @@ details p{color:var(--dust);padding:0 48px 28px 0;max-width:38em}
 .cta h2{font-size:clamp(60px,9vw,150px)}
 .direct{margin-top:56px;display:grid;gap:22px}
 .direct div{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px}
-.direct .v{font:400 clamp(26px,2.8vw,40px)/1.15 var(--serif);user-select:all;overflow-wrap:anywhere}
+.direct .v{font:600 clamp(26px,2.8vw,40px)/1.15 var(--head);user-select:all;overflow-wrap:anywhere}
 .copy{all:unset;cursor:pointer;font:500 11px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--dust);border-bottom:1px solid var(--line);padding-bottom:2px}
 .copy:hover{color:var(--stone)}
 .copy:focus-visible{outline:1px solid var(--ember);outline-offset:4px}
@@ -192,7 +193,6 @@ form{display:grid;gap:26px;padding-top:12px}
   .nav.open{display:flex;flex-direction:column;gap:0;position:fixed;top:84px;left:0;right:0;background:var(--night);padding:8px var(--gr) 26px var(--gl);border-bottom:1px solid var(--line)}
   .nav.open a{font-size:20px;padding:16px 0;border-bottom:1px solid var(--line)}
   .mani,.faq,.cta-in{grid-template-columns:minmax(0,1fr)}
-  .mani figure{max-width:520px}
   .exp-row{grid-template-columns:minmax(0,1fr) 40px;gap:14px 20px;padding:28px 0}
   .exp-row p{grid-column:1/-1;grid-row:3}
   .exp-row .thumb{display:block;grid-column:1/-1;grid-row:2;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;margin:6px 0 4px}
@@ -211,6 +211,7 @@ form{display:grid;gap:26px;padding-top:12px}
   .brand span{font-size:12px;letter-spacing:.34em}
   .nav.open{top:70px}
   .hero-in{padding-top:140px;padding-bottom:36px}
+  .hero::after{background:linear-gradient(180deg,rgba(13,12,11,.55) 0%,rgba(13,12,11,.55) 35%,rgba(13,12,11,.96) 100%)}
   .hero-sub{grid-template-columns:minmax(0,1fr);gap:22px}
   .hero-sub p{font-size:17px}
   .coord{text-align:left}
@@ -251,13 +252,13 @@ form{display:grid;gap:26px;padding-top:12px}
 
 <main id="top">
   <section class="hero" aria-label="Giriş">
-    <div class="hero-img" role="img" aria-label="Nemrut Dağı'nda gün batımı ve Kommagene heykelleri"></div>
+    <div class="hero-img" role="img" aria-label="Havadan çekilmiş geniş açıklıklı çelik depo iskeleti"></div>
     <div class="hero-in pad">
       <p class="label">Kommagene İnşaat · Yapısal çelik · Adıyaman</p>
-      <h1><span class="ln"><span>Kalıcı olanı</span></span><span class="ln"><span><em>inşa ederiz.</em></span></span></h1>
+      <h1><span class="ln"><span>Çelik yapı.</span></span><span class="ln"><span><em>Projeden montaja.</em></span></span></h1>
       <div class="hero-sub">
         <p>Depo, fabrika, katlı yapı ve çelik konut. Statik projeyi çizen, çeliği atölyede işleyen ve sahada kuran aynı ekip.</p>
-        <div class="coord">Nemrut Dağı, Adıyaman<br><b>37°58′ K · 38°44′ D</b></div>
+        <div class="coord">Merkez, Adıyaman<br><b>37°45′ K · 38°16′ D</b></div>
       </div>
     </div>
   </section>
@@ -267,6 +268,7 @@ form{display:grid;gap:26px;padding-top:12px}
       <p class="label">Kommagene</p>
       <h2 id="maniH" style="margin-top:28px">Kommagene Krallığı, iki bin yıl önce Nemrut'un zirvesine taştan bir anıt bıraktı. Biz aynı topraklarda, <em>aynı kalıcılık iddiasıyla</em> çelik yapılar kuruyoruz.</h2>
       <div class="mani-sign"><q>Sen tasarımını belirle, biz uygulayalım.</q><span class="label">Kommagene İnşaat</span></div>
+      <figure class="bant"><img src="{{nemrut}}" alt="Nemrut Dağı'nda gün batımı ve Kommagene heykelleri" width="1600" height="686"><figcaption class="label">Nemrut Dağı, Adıyaman · Kommagene Krallığı, MÖ 1. yüzyıl</figcaption></figure>
     </div>
   </section>
 
