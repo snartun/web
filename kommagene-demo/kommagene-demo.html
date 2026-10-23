@@ -276,8 +276,8 @@ footer{background:#080b0f;color:var(--muted-d);padding:80px 0 30px;font-size:14.
 .wa:hover{transform:translateY(-2px)}
 
 /* reveal */
-.rv{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
-.rv.in{opacity:1;transform:none}
+.rv.pre{opacity:.001;transform:translateY(24px)}
+.rv{transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.hero-bg{animation:none;transform:none}html{scroll-behavior:auto}}
 
 /* responsive */
@@ -649,14 +649,14 @@ footer{background:#080b0f;color:var(--muted-d);padding:80px 0 30px;font-size:14.
   // reveal on scroll
   var rv=document.querySelectorAll('.rv');
   if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px'});
-    rv.forEach(function(el,i){el.style.transitionDelay=(i%5)*70+'ms';io.observe(el)});
-  } else rv.forEach(function(el){el.classList.add('in')});
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.remove('pre');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px'});
+    rv.forEach(function(el,i){var r=el.getBoundingClientRect();if(r.top>innerHeight){el.classList.add('pre');el.style.transitionDelay=(i%5)*70+'ms';io.observe(el)}});
+  }
 
   // service tabs
   var tabs=document.querySelectorAll('.svc-tabs [role=tab]');
   tabs.forEach(function(t){t.addEventListener('click',function(){
-    tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;var p=document.getElementById(x.getAttribute('aria-controls'));p.hidden=!on;if(on)p.classList.add('rv','in')});
+    tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;var p=document.getElementById(x.getAttribute('aria-controls'));p.hidden=!on;});
   })});
 
   // profile data (EN 10365 nominal): name,h,b,tw,tf,kg/m
