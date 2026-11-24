@@ -88,6 +88,19 @@
   .code { font-family: var(--font-ui); font-weight: 800; font-size: 30px; letter-spacing: 0.25em; color: var(--gold); }
   .link { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
   .foot { color: var(--muted); font-size: 12px; line-height: 1.4; }
+  .profile { display: grid; gap: 8px; padding: 12px; border-radius: 10px; background: rgba(244, 180, 0, 0.07); border: 1px solid rgba(244, 180, 0, 0.25); }
+  .profile h2 { margin: 4px 0 0; font-family: var(--font-ui); font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .prow { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+  .prow b { font-family: var(--font-display); font-weight: 400; font-size: 20px; color: var(--gold); }
+  .prow span { color: var(--muted); font-size: 14px; }
+  .prow .streak { margin-left: auto; font-family: var(--font-ui); font-weight: 800; letter-spacing: 0.08em; color: #ff8a3d; }
+  .bar { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #f4b400, #ff8a3d); }
+  #missions { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  #missions li { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--fg); }
+  #missions li b { font-family: var(--font-ui); font-weight: 800; color: var(--muted); white-space: nowrap; }
+  #missions li.done span { color: var(--muted); text-decoration: line-through; }
+  #missions li.done b { color: #8ef0e2; }
   #menuBtn {
     position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: max(10px, env(safe-area-inset-right, 0px));
     width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.25);
@@ -104,7 +117,14 @@
     <div class="card" role="dialog" aria-labelledby="ttl">
       <div class="brand">
         <h1 id="ttl">DÜELLO <span>ARENASI</span></h1>
-        <p>7 oyun. Tek başına rekor kır ya da arkadaşınla online kapış.</p>
+        <p>9 oyun. Tek başına rekor kır, görevleri bitir, seviye atla ya da arkadaşınla online kapış.</p>
+      </div>
+
+      <div class="profile">
+        <div class="prow"><b id="lvl">SEVİYE 1</b><span id="xptxt">0 / 60 XP</span><span class="streak" id="streak">SERİ YOK</span></div>
+        <div class="bar"><i id="xpbar"></i></div>
+        <h2>Günlük görevler</h2>
+        <ul id="missions"></ul>
       </div>
 
       <div class="group">
@@ -162,5 +182,7 @@
 <script src="games/renk.js"></script>
 <script src="games/misket.js"></script>
 <script src="games/refleks.js"></script>
+<script src="games/penalti.js"></script>
+<script src="games/basket.js"></script>
 <script src="games/korku.js"></script>
 <script src="app.js"></script>

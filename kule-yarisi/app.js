@@ -25,6 +25,44 @@
   const isOnline = () => cfg.layout === "online";
   const MIX_ROUNDS = 5, MIX_WIN = 3;
 
+  // ---------------- ilerleme: XP/seviye, günlük görevler, seri (yalnız bu cihazda) ----------------
+  const THR = { kule: 400, blok: 600, kelime: 500, renk: 300, misket: 350, refleks: 3200, korku: 300, penalti: 400, basket: 20 };
+  const dayStr = (d) => { d = d || new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); };
+  const meta = (() => { try { const m = JSON.parse(store.get("meta", "") || "null"); if (m && typeof m.xp === "number") return m; } catch (e) {} return { xp: 0, streak: 0, last: "", mDay: "", missions: [] }; })();
+  const saveMeta = () => store.set("meta", JSON.stringify(meta));
+  const levelOf = xp => Math.floor(Math.sqrt(xp / 60)) + 1;
+  const xpFor = lvl => 60 * (lvl - 1) * (lvl - 1);
+  function ensureMissions() {
+    if (meta.mDay === dayStr()) return;
+    meta.mDay = dayStr();
+    const h = K.strHash(meta.mDay), ids = Object.keys(THR).filter(id => K.game(id));
+    const a = ids[Math.abs(h) % ids.length], b = ids[Math.abs(h >> 7) % ids.length] === a ? ids[(Math.abs(h >> 7) + 1) % ids.length] : ids[Math.abs(h >> 7) % ids.length];
+    meta.missions = [
+      { t: "play", n: 3, p: 0, text: "3 oyun bitir" },
+      { t: "score", g: a, n: THR[a], p: 0, text: K.game(a).name + ": " + K.fmt(THR[a]) + " puan yap" },
+      Math.abs(h >> 13) % 2 ? { t: "duel", n: 1, p: 0, text: "1 online maç oyna" } : { t: "score", g: b, n: THR[b], p: 0, text: K.game(b).name + ": " + K.fmt(THR[b]) + " puan yap" },
+    ];
+    saveMeta();
+  }
+  ensureMissions();
+  function award(gid, score, duel) {
+    ensureMissions();
+    const before = levelOf(meta.xp), done = [];
+    let gain = 15 + Math.min(60, Math.round((score / (THR[gid] || 500)) * 30));
+    const today = dayStr(), y = new Date(); y.setDate(y.getDate() - 1);
+    if (meta.last !== today) { meta.streak = meta.last === dayStr(y) ? meta.streak + 1 : 1; meta.last = today; }
+    for (const m of meta.missions) {
+      if (m.p >= m.n) continue;
+      if (m.t === "play") m.p++;
+      else if (m.t === "duel" && duel) m.p++;
+      else if (m.t === "score" && m.g === gid && score >= m.n) m.p = m.n;
+      if (m.p >= m.n) { done.push(m.text); gain += 50; }
+    }
+    meta.xp += gain; saveMeta();
+    return { gain, level: levelOf(meta.xp), up: levelOf(meta.xp) > before, done };
+  }
+  K.meta = meta;
+
   // ---------------- maç durumu ----------------
   const M = {
     mode: "single", gid: null, def: null, inst: null, ph: "lobby", t: 0, timeLeft: null, clock: 0,
@@ -52,6 +90,7 @@
     AU.level = 0; K.setWind(0); dispose();
     if (M.mode === "single") {
       M.newBest = K.saveBest(M.gid, sc);
+      M.award = award(M.gid, sc, false);
       M.ph = "final"; M.t = 0;
       (M.newBest ? SFX.win : SFX.lose)();
       renderLists();
@@ -241,6 +280,7 @@
   }
   function finalize(w) {
     M.ph = "final"; M.t = 0; M.finalWin = w; M.ready = false;
+    M.award = award(M.gid, M.rs.reduce((a, v) => a + (v || 0), 0) / Math.max(1, M.rs.length), true);
     AU.level = 0; K.setWind(0);
     (w === 0 ? SFX.win : w === 1 ? SFX.lose : SFX.click)();
     pushPresence(true);
@@ -356,6 +396,7 @@
           { t: M.newBest ? "YENİ REKOR!" : "OYUN BİTTİ", s: big, f: K.DISP, w: "400", c: M.newBest ? "#ffd34d" : "#f3efe7" },
           { t: K.fmt(M.inst.score) + " puan", s: Math.round(mid * 1.3), f: K.DISP, w: "400" },
           { t: "Rekor: " + K.fmt(K.best(M.gid)), s: small, w: "600", c: "#a3a9b8" },
+          ...awardLines(small),
           { t: canTap ? "TEKRAR İÇİN DOKUN" : " ", s: mid, a: pulse, gap: 1.6, ls: "1px" },
         ], M.newBest ? "#ffd34d" : def.color);
       } else {
@@ -365,12 +406,19 @@
         lines.push({ t: w === 0 ? "MAÇI KAZANDIN!" : w === 1 ? "MAÇI KAYBETTİN" : "BERABERE", s: big, f: K.DISP, w: "400", c: w === 0 ? "#8ef0e2" : w === 1 ? "#ff9aa4" : "#f3efe7" });
         if (M.mt === "mix") lines.push({ t: "SEN " + M.wins[0] + " – " + M.wins[1] + " RAKİP", s: mid, c: "#ffd34d" });
         M.rs.forEach((v, i) => { if (v == null) return; const gg = K.game(M.order[i]); lines.push({ t: gg.name + ":  " + K.fmt(v) + " — " + K.fmt(+M.oppRs[i] || 0), s: small, w: "600", c: "#c9cedb", gap: 1.15 }); });
+        lines.push(...awardLines(small));
         const o = opp();
         lines.push({ t: M.ready ? "HAZIR ✓  RAKİP BEKLENİYOR" : canTap ? "TEKRAR İÇİN DOKUN" : " ", s: mid, a: M.ready ? 1 : pulse, c: M.ready ? "#8ef0e2" : "#f3efe7", gap: 1.6, ls: "1px" });
         if (o && o.ready && !M.ready) lines.push({ t: "Rakip tekrar oynamaya hazır", s: small, w: "600", c: "#8ef0e2" });
         panel(P, lines, w === 0 ? "#8ef0e2" : w === 1 ? "#ff9aa4" : "#f4b400");
       }
     }
+  }
+  function awardLines(small) {
+    const a = M.award; if (!a) return [];
+    const out = [{ t: "+" + a.gain + " XP · SEVİYE " + a.level + (a.up ? "  ▲ SEVİYE ATLADIN!" : ""), s: small, c: a.up ? "#ffd34d" : "#8ef0e2", w: "800", ls: "1px" }];
+    for (const d of a.done) out.push({ t: "GÖREV TAMAM: " + d, s: small, c: "#ffd34d", w: "700", gap: 1.15 });
+    return out;
   }
   // menü arkası: süzülen renkli bloklar
   const floaters = Array.from({ length: 26 }, (_, i) => ({ x: K.hash(i, 1), y: K.hash(i, 2), s: 14 + K.hash(i, 3) * 26, v: 0.01 + K.hash(i, 4) * 0.03, c: ["#ff6a3d", "#3d8bff", "#8c6bff", "#1fc2b0", "#f4b400", "#18c964"][i % 6], r: K.hash(i, 5) * 6 }));
@@ -456,7 +504,18 @@
     const locked = net.room && !net.host;
     for (const b of ml.querySelectorAll(".gcard")) { b.setAttribute("aria-pressed", String(b.dataset.id === cfg.mt)); b.disabled = !!locked && b.dataset.id !== cfg.mt; }
   }
+  function renderProfile() {
+    ensureMissions();
+    const lv = levelOf(meta.xp), a = xpFor(lv), b = xpFor(lv + 1);
+    $("#lvl").textContent = "SEVİYE " + lv;
+    $("#xpbar").style.width = Math.round(((meta.xp - a) / (b - a)) * 100) + "%";
+    $("#xptxt").textContent = (meta.xp - a) + " / " + (b - a) + " XP";
+    $("#streak").textContent = meta.streak > 0 && (meta.last === dayStr() || meta.last === dayStr(new Date(Date.now() - 864e5))) ? "SERİ " + meta.streak + " GÜN" : "SERİ YOK";
+    const ul = $("#missions"); ul.textContent = "";
+    for (const m of meta.missions) { const li = document.createElement("li"); li.className = m.p >= m.n ? "done" : ""; const s1 = document.createElement("span"); s1.textContent = m.text; const s2 = document.createElement("b"); s2.textContent = m.p >= m.n ? "✓ +50 XP" : Math.min(m.p, m.n) + "/" + (m.t === "score" ? 1 : m.n); if (m.t === "score" && m.p < m.n) s2.textContent = "0/1"; li.append(s1, s2); ul.append(li); }
+  }
   function refreshMenu() {
+    renderProfile();
     for (const b of document.querySelectorAll('[data-group="layout"] .opt')) b.setAttribute("aria-pressed", String(cfg.layout === b.dataset.value));
     $("#singleBox").hidden = isOnline();
     $("#onlineBox").hidden = !isOnline();
