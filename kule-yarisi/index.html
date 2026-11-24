@@ -1,0 +1,498 @@
+<title>Kule Yarışı</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#1d2233">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&display=swap">
+<style>
+  /* Tek ekran oyun: tam ekran canvas, ekran ortadan ikiye bölünür, üst yarı 180° döner (karşılıklı oyun). */
+  :root {
+    --bg: #1d2233;
+    --fg: #f4efe4;
+    --p1: #f2a81d;
+    --p2: #2bb3a3;
+    --hazard: #f2c21d;
+    --font-display: "Bungee", Impact, "Arial Black", sans-serif;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #c {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+  }
+</style>
+
+<canvas id="c" aria-label="Kule Yarışı oyun alanı. Alt yarı Oyuncu 1, üst yarı Oyuncu 2."></canvas>
+
+<script>
+(() => {
+  "use strict";
+
+  const cv = document.getElementById("c");
+  const ctx = cv.getContext("2d");
+  const FONT = '"Bungee", Impact, "Arial Black", sans-serif';
+  const FLOOR_M = 3.2;           // bir katın yüksekliği (metre)
+  const BASE_W = 0.5;            // temel genişliği (ekran genişliğinin oranı)
+  const PERFECT = 0.012;         // kusursuz bırakma toleransı
+
+  let W = 0, H = 0, HH = 0, DPR = 1, BH = 20, GROUND = 40;
+
+  function resize() {
+    const r = cv.getBoundingClientRect();
+    DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+    W = Math.max(1, r.width);
+    H = Math.max(1, r.height);
+    cv.width = Math.round(W * DPR);
+    cv.height = Math.round(H * DPR);
+    HH = H / 2;
+    GROUND = Math.max(44, HH * 0.13);
+    BH = Math.max(16, (HH - GROUND) / 10);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  // ---- arka plan verileri ----
+  function rng(seed) { return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
+  const city = [];
+  (() => {
+    const r = rng(7);
+    let x = -0.02;
+    while (x < 1.02) {
+      const w = 0.05 + r() * 0.09;
+      city.push({ x, w, h: 0.25 + r() * 0.7, win: r() > 0.4 });
+      x += w + 0.005;
+    }
+  })();
+  const stars = [];
+  (() => { const r = rng(3); for (let i = 0; i < 40; i++) stars.push({ x: r(), y: r() * 0.8, s: 0.6 + r() * 1.3 }); })();
+
+  // ---- ses ----
+  let ac = null;
+  function ensureAudio() {
+    try {
+      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === "suspended") ac.resume();
+    } catch (e) { ac = null; }
+  }
+  function tone(freq, dur, type, vol, slideTo) {
+    if (!ac) return;
+    try {
+      const t = ac.currentTime;
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type || "square";
+      o.frequency.setValueAtTime(freq, t);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+      g.gain.setValueAtTime(vol || 0.07, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(ac.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  }
+  function buzz(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} }
+
+  // ---- rekor ----
+  let record = 0;
+  try { record = parseInt(localStorage.getItem("kule-rekor") || "0", 10) || 0; } catch (e) {}
+  function saveRecord(n) {
+    if (n > record) { record = n; try { localStorage.setItem("kule-rekor", String(n)); } catch (e) {} }
+  }
+
+  // ---- oyuncular ----
+  const P = [
+    { name: "OYUNCU 1", color: "#f2a81d", dark: "#a8690a", light: "#ffd36b" }, // alt yarı
+    { name: "OYUNCU 2", color: "#2bb3a3", dark: "#16756a", light: "#7ee6d8" }, // üst yarı (ters)
+  ];
+
+  let state = "ready";   // ready | countdown | play | over
+  let countdown = 0;
+  let overAt = 0;
+  let clock = 0;
+
+  function resetPlayer(p) {
+    p.blocks = [{ x: (1 - BASE_W) / 2, w: BASE_W }];
+    p.combo = 0;
+    p.alive = true;
+    p.cam = 0; p.camT = 0;
+    p.debris = [];
+    p.pops = [];
+    p.ready = false;
+    p.shake = 0;
+    spawn(p);
+  }
+  function floors(p) { return p.blocks.length - 1; }
+  function meters(n) { return (n * FLOOR_M).toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+
+  function spawn(p) {
+    const top = p.blocks[p.blocks.length - 1];
+    const n = p.blocks.length;
+    const dir = n % 2 ? 1 : -1;
+    const w = top.w;
+    p.cur = { w, dir, x: dir > 0 ? -w * 0.25 : 1 - w * 0.75 };
+    p.speed = Math.min(1.3, 0.42 + (n - 1) * 0.024);
+  }
+
+  function visibleFloors() { return (HH - GROUND) / BH; }
+
+  function drop(p) {
+    const top = p.blocks[p.blocks.length - 1];
+    const c = p.cur;
+    const n = p.blocks.length;
+    if (Math.abs(c.x - top.x) < PERFECT) {
+      p.combo++;
+      let x = top.x, w = top.w;
+      if (p.combo >= 3 && w < BASE_W) {
+        const g = Math.min(0.03, BASE_W - w);
+        x -= g / 2; w += g;
+      }
+      p.blocks.push({ x, w });
+      p.pops.push({ text: p.combo > 1 ? "KUSURSUZ ×" + p.combo : "KUSURSUZ!", life: 1, x: x + w / 2, y: n + 1 });
+      tone(520 + Math.min(p.combo, 8) * 70, 0.16, "triangle", 0.09);
+      buzz(18);
+    } else {
+      const l = Math.max(c.x, top.x), r = Math.min(c.x + c.w, top.x + top.w);
+      if (r - l <= 0) {
+        p.alive = false;
+        p.debris.push({ x: c.x, w: c.w, y: n, vy: 0, vx: c.dir * 0.15, rot: 0, vr: c.dir * 2.2 });
+        p.shake = 1;
+        tone(220, 0.5, "sawtooth", 0.08, 60);
+        buzz([40, 40, 80]);
+        saveRecord(floors(p));
+        if (P.every(q => !q.alive)) { state = "over"; overAt = clock; P.forEach(q => q.ready = false); setTimeout(() => tone(330, 0.3, "triangle", 0.08, 660), 300); }
+        return;
+      }
+      p.combo = 0;
+      p.blocks.push({ x: l, w: r - l });
+      if (c.x < top.x) p.debris.push({ x: c.x, w: top.x - c.x, y: n, vy: 0, vx: -0.12, rot: 0, vr: -2.5 });
+      else p.debris.push({ x: r, w: c.x + c.w - r, y: n, vy: 0, vx: 0.12, rot: 0, vr: 2.5 });
+      tone(150, 0.12, "square", 0.07, 90);
+    }
+    p.camT = Math.max(0, p.blocks.length + 1 - visibleFloors() * 0.6);
+    saveRecord(floors(p));
+    spawn(p);
+  }
+
+  function tap(p) {
+    ensureAudio();
+    if (state === "ready" || (state === "over" && clock - overAt > 0.9)) {
+      if (!p.ready) { p.ready = true; tone(440, 0.08, "square", 0.05); }
+      if (P.every(q => q.ready)) startCountdown();
+    } else if (state === "play" && p.alive) {
+      drop(p);
+    }
+  }
+
+  let wakeLock = null;
+  function startCountdown() {
+    P.forEach(resetPlayer);
+    state = "countdown";
+    countdown = 3.6;
+    try { navigator.wakeLock && navigator.wakeLock.request("screen").then(l => wakeLock = l).catch(() => {}); } catch (e) {}
+  }
+
+  // ---- giriş ----
+  cv.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    const r = cv.getBoundingClientRect();
+    tap(e.clientY - r.top < HH ? P[1] : P[0]);
+  });
+  cv.addEventListener("contextmenu", e => e.preventDefault());
+  window.addEventListener("keydown", e => {
+    if (e.repeat) return;
+    const k = e.key.toLowerCase();
+    if (k === "l" || k === "enter" || k === "arrowup") { e.preventDefault(); tap(P[0]); }
+    if (k === "a" || k === " ") { e.preventDefault(); tap(P[1]); }
+  });
+
+  // ---- güncelleme ----
+  function update(dt) {
+    clock += dt;
+    if (state === "countdown") {
+      countdown -= dt;
+      if (countdown <= 0.6 && countdown + dt > 0.6) tone(880, 0.25, "square", 0.07);
+      else if (Math.ceil(countdown - 0.6) !== Math.ceil(countdown + dt - 0.6)) tone(440, 0.12, "square", 0.06);
+      if (countdown <= 0.6) state = "play";
+    }
+    if (state === "play" && countdown > 0) countdown -= dt;
+    for (const p of P) {
+      if (!p.blocks) continue;
+      if ((state === "play") && p.alive) {
+        const c = p.cur;
+        c.x += c.dir * p.speed * dt;
+        const min = -c.w * 0.25, max = 1 - c.w * 0.75;
+        if (c.x < min) { c.x = min; c.dir = 1; }
+        if (c.x > max) { c.x = max; c.dir = -1; }
+      }
+      p.cam += (p.camT - p.cam) * Math.min(1, dt * 5);
+      p.shake = Math.max(0, p.shake - dt * 2.5);
+      for (const d of p.debris) {
+        d.vy += 38 * dt;
+        d.y -= d.vy * dt;
+        d.x += d.vx * dt;
+        d.rot += d.vr * dt;
+      }
+      p.debris = p.debris.filter(d => d.y > p.cam - 20);
+      for (const s of p.pops) { s.life -= dt * 0.9; s.y += dt * 0.8; }
+      p.pops = p.pops.filter(s => s.life > 0);
+    }
+  }
+
+  // ---- çizim ----
+  function mix(a, b, t) {
+    const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    const r = Math.round(((pa >> 16) & 255) * (1 - t) + ((pb >> 16) & 255) * t);
+    const g = Math.round(((pa >> 8) & 255) * (1 - t) + ((pb >> 8) & 255) * t);
+    const bl = Math.round((pa & 255) * (1 - t) + (pb & 255) * t);
+    return "rgb(" + r + "," + g + "," + bl + ")";
+  }
+
+  function hazard(x, y, w, h, a, b) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    ctx.fillStyle = a; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = b;
+    const s = h * 1.6;
+    for (let i = -h * 2; i < w + h * 2; i += s * 2) {
+      ctx.beginPath();
+      ctx.moveTo(x + i, y + h); ctx.lineTo(x + i + s, y + h);
+      ctx.lineTo(x + i + s + h, y); ctx.lineTo(x + i + h, y);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawBlock(p, x, y, w, h, isBase, night) {
+    if (isBase) {
+      ctx.fillStyle = "#8d8a84"; ctx.fillRect(x, y, w, h);
+      hazard(x, y + h * 0.62, w, h * 0.28, "#2a2a2a", "#f2c21d");
+      ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fillRect(x, y, w, 2);
+      return;
+    }
+    ctx.fillStyle = p.color; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = p.dark; ctx.fillRect(x, y + h - Math.max(2, h * 0.14), w, Math.max(2, h * 0.14));
+    ctx.fillStyle = "rgba(255,255,255,0.28)"; ctx.fillRect(x, y, w, Math.max(1.5, h * 0.07));
+    // pencereler
+    const ww = h * 0.3, wh = h * 0.42, gap = h * 0.62;
+    const count = Math.floor((w - h * 0.3) / gap);
+    if (count > 0) {
+      const start = x + (w - (count - 1) * gap) / 2 - ww / 2;
+      ctx.fillStyle = night > 0.5 ? "rgba(255,226,150,0.92)" : "rgba(30,40,60,0.45)";
+      for (let i = 0; i < count; i++) ctx.fillRect(start + i * gap, y + h * 0.2, ww, wh);
+    }
+  }
+
+  function text(str, x, y, size, color, align, alpha) {
+    ctx.globalAlpha = alpha == null ? 1 : alpha;
+    ctx.font = size + "px " + FONT;
+    ctx.textAlign = align || "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = color;
+    ctx.fillText(str, x, y);
+    ctx.globalAlpha = 1;
+  }
+
+  function fitSize(str, maxW, size) {
+    ctx.font = size + "px " + FONT;
+    const m = ctx.measureText(str).width;
+    return m > maxW ? Math.floor(size * maxW / m) : size;
+  }
+
+  function panel(lines, accent) {
+    const cx = W / 2, cy = (HH - GROUND) * 0.5;
+    const pw = Math.min(W - 32, 420);
+    const ph = Math.min(HH - GROUND - 24, 40 + lines.reduce((s, l) => s + l.size * 1.35, 0));
+    ctx.fillStyle = "rgba(18,21,33,0.82)";
+    ctx.fillRect(cx - pw / 2, cy - ph / 2, pw, ph);
+    ctx.fillStyle = accent; ctx.fillRect(cx - pw / 2, cy - ph / 2, pw, 4);
+    let y = cy - ph / 2 + 22;
+    for (const l of lines) {
+      const s = fitSize(l.text, pw - 28, l.size);
+      y += l.size * 0.675;
+      text(l.text, cx, y, s, l.color || "#f4efe4", "center", l.alpha);
+      y += l.size * 0.675;
+    }
+  }
+
+  function drawHalf(p, other, flip) {
+    ctx.save();
+    if (flip) { ctx.translate(W, HH); ctx.rotate(Math.PI); } else { ctx.translate(0, HH); }
+    ctx.beginPath(); ctx.rect(0, 0, W, HH); ctx.clip();
+    if (p.shake > 0) ctx.translate((Math.random() - 0.5) * 10 * p.shake, (Math.random() - 0.5) * 6 * p.shake);
+
+    const n = p.blocks ? floors(p) : 0;
+    const night = Math.min(1, n / 35);
+    const camPx = (p.cam || 0) * BH;
+    const groundTop = HH - GROUND + camPx;
+
+    // gökyüzü
+    const g = ctx.createLinearGradient(0, 0, 0, HH);
+    g.addColorStop(0, mix("#6fb2e8", "#0f1433", night));
+    g.addColorStop(1, mix("#ffe0ad", "#4b3d7a", night));
+    ctx.fillStyle = g; ctx.fillRect(-20, -20, W + 40, HH + 40);
+    if (night > 0.4) {
+      ctx.fillStyle = "#ffffff";
+      ctx.globalAlpha = (night - 0.4) / 0.6;
+      for (const s of stars) ctx.fillRect(s.x * W, s.y * (HH - GROUND), s.s, s.s);
+      ctx.globalAlpha = 1;
+    }
+
+    // şehir silueti (paralaks)
+    const cityBase = HH - GROUND + camPx * 0.35;
+    for (const b of city) {
+      const bh = b.h * (HH - GROUND) * 0.55;
+      ctx.fillStyle = mix("#9fb3c8", "#262a4d", night);
+      ctx.fillRect(b.x * W, cityBase - bh, b.w * W, bh + 4);
+      if (b.win && night > 0.5) {
+        ctx.fillStyle = "rgba(255,214,120," + (night - 0.5) + ")";
+        for (let yy = cityBase - bh + 8; yy < cityBase - 8; yy += 12)
+          for (let xx = b.x * W + 5; xx < (b.x + b.w) * W - 6; xx += 9)
+            if (((xx * 7 + yy * 3) | 0) % 5 < 2) ctx.fillRect(xx, yy, 3, 4);
+      }
+    }
+
+    // zemin
+    if (groundTop < HH + 4) {
+      ctx.fillStyle = "#4a3b2c"; ctx.fillRect(0, groundTop, W, HH - groundTop + GROUND);
+      ctx.fillStyle = "#5d4a37"; ctx.fillRect(0, groundTop, W, 6);
+    }
+
+    if (p.blocks) {
+      // kule
+      for (let i = 0; i < p.blocks.length; i++) {
+        const b = p.blocks[i];
+        const y = groundTop - (i + 1) * BH;
+        if (y > HH || y + BH < 0) continue;
+        drawBlock(p, b.x * W, y, b.w * W, BH, i === 0, night);
+      }
+
+      // vinç + hareketli blok
+      if ((state === "play" || state === "countdown") && p.alive) {
+        const c = p.cur;
+        const y = groundTop - (p.blocks.length + 1) * BH;
+        const jibY = Math.max(10, y - BH * 2.2);
+        // kol
+        ctx.strokeStyle = "#f2c21d"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, jibY); ctx.lineTo(W, jibY); ctx.moveTo(0, jibY - 10); ctx.lineTo(W, jibY - 10); ctx.stroke();
+        ctx.beginPath();
+        for (let x = 0; x <= W; x += 14) { ctx.moveTo(x, jibY); ctx.lineTo(x + 7, jibY - 10); ctx.lineTo(x + 14, jibY); }
+        ctx.lineWidth = 1.2; ctx.stroke();
+        // araba ve halat
+        const cx = (c.x + c.w / 2) * W;
+        ctx.fillStyle = "#2a2a2a"; ctx.fillRect(cx - 9, jibY - 2, 18, 7);
+        ctx.strokeStyle = "#1d1d1d"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx, jibY + 5); ctx.lineTo(cx, y - 4);
+        ctx.moveTo(cx, y - 4); ctx.lineTo(c.x * W + 4, y); ctx.moveTo(cx, y - 4); ctx.lineTo((c.x + c.w) * W - 4, y);
+        ctx.stroke();
+        drawBlock(p, c.x * W, y, c.w * W, BH, false, night);
+      }
+
+      // düşen parçalar
+      for (const d of p.debris) {
+        const y = groundTop - (d.y + 1) * BH;
+        ctx.save();
+        ctx.translate((d.x + d.w / 2) * W, y + BH / 2);
+        ctx.rotate(d.rot);
+        drawBlock(p, -d.w * W / 2, -BH / 2, d.w * W, BH, false, night);
+        ctx.restore();
+      }
+
+      // yazı efektleri
+      for (const s of p.pops) {
+        const y = groundTop - (s.y + 1) * BH;
+        text(s.text, Math.min(W - 70, Math.max(70, s.x * W)), y, Math.round(BH * 0.75), p.light, "center", Math.min(1, s.life * 1.5));
+      }
+    }
+
+    // alt bilgi şeridi (oyuncunun kendi kenarı)
+    ctx.fillStyle = "rgba(20,22,32,0.88)"; ctx.fillRect(0, HH - GROUND, W, GROUND);
+    ctx.fillStyle = p.color; ctx.fillRect(0, HH - GROUND, W, 3);
+    const fs = Math.round(Math.min(GROUND * 0.34, W / 18));
+    const midY = HH - GROUND / 2 + 1;
+    text(p.name, 16, midY, fs, p.color, "left");
+    text("KAT " + n, W - 16, midY - fs * 0.45, fs, "#f4efe4", "right");
+    text(meters(n) + " m", W - 16, midY + fs * 0.62, Math.round(fs * 0.62), "rgba(244,239,228,0.7)", "right");
+    if (state === "play" && other.blocks) {
+      text("RAKİP " + floors(other), W / 2, midY, Math.round(fs * 0.7), other.color, "center", 0.9);
+    }
+
+    // durum panelleri
+    const big = Math.round(Math.min(W / 9, HH / 9));
+    const mid = Math.round(big * 0.5);
+    const small = Math.round(big * 0.36);
+    if (state === "ready") {
+      panel([
+        { text: "KULE YARIŞI", size: big, color: p.color },
+        { text: "Blok tam üste gelince dokun.", size: small },
+        { text: "Taşan kısım kesilir, kule incelir.", size: small },
+        { text: p.ready ? "HAZIR ✓  RAKİP BEKLENİYOR" : "HAZIRSAN DOKUN", size: mid, color: p.ready ? p.light : "#f4efe4", alpha: p.ready ? 1 : 0.6 + 0.4 * Math.sin(clock * 5) },
+        { text: record ? "Rekor: " + record + " kat" : "Üst üste 3 kusursuz = blok büyür", size: small, color: "rgba(244,239,228,0.6)" },
+      ], p.color);
+    } else if (state === "countdown" || (state === "play" && countdown > 0)) {
+      const k = Math.ceil(countdown - 0.6);
+      const label = k >= 1 ? String(k) : "BAŞLA!";
+      text(label, W / 2, (HH - GROUND) * 0.42, Math.round(big * 2), "#ffffff", "center", 0.95);
+    } else if (state === "play" && !p.alive) {
+      const ahead = floors(other) > n;
+      panel([
+        { text: "KULE ÇÖKTÜ", size: big, color: p.color },
+        { text: n + " kat · " + meters(n) + " m", size: mid },
+        { text: ahead ? "Rakip seni geçti!" : "Rakibin " + (n - floors(other) + 1) + " kat daha yapmalı", size: small, color: "rgba(244,239,228,0.75)" },
+      ], p.color);
+    } else if (state === "play" && !other.alive && n > floors(other)) {
+      text("ÖNDESİN! DEVAM ET", W / 2, HH - GROUND - mid * 0.8, Math.round(mid * 0.8), p.light, "center", 0.7 + 0.3 * Math.sin(clock * 6));
+    } else if (state === "over") {
+      const a = n, b = floors(other);
+      const res = a > b ? "KAZANDIN!" : a < b ? "KAYBETTİN" : "BERABERE";
+      const col = a > b ? p.light : a < b ? "#e8a7a0" : "#f4efe4";
+      const canTap = clock - overAt > 0.9;
+      panel([
+        { text: res, size: big, color: col },
+        { text: a + " kat — " + b + " kat", size: mid },
+        { text: "Rekor: " + record + " kat", size: small, color: "rgba(244,239,228,0.6)" },
+        { text: p.ready ? "HAZIR ✓  RAKİP BEKLENİYOR" : canTap ? "TEKRAR İÇİN DOKUN" : " ", size: mid, color: p.ready ? p.light : "#f4efe4", alpha: p.ready ? 1 : 0.6 + 0.4 * Math.sin(clock * 5) },
+      ], col);
+    }
+
+    ctx.restore();
+  }
+
+  function render() {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = "#1d2233"; ctx.fillRect(0, 0, W, H);
+    drawHalf(P[0], P[1], false);
+    drawHalf(P[1], P[0], true);
+    // orta ayırıcı
+    hazard(0, HH - 4, W, 8, "#1b1b1b", "#f2c21d");
+  }
+
+  P.forEach(p => { resetPlayer(p); });
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    update(dt);
+    render();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && wakeLock && state === "play") {
+      try { navigator.wakeLock.request("screen").then(l => wakeLock = l).catch(() => {}); } catch (e) {}
+    }
+  });
+})();
+</script>
