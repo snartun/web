@@ -33,11 +33,8 @@ Dosyalar kısaltılmış, ses seviyesi eşitlenmiş ve mono MP3 / küçük JPG o
 ## Dokular (`doku/`)
 | Dosya | Kaynak | Lisans |
 |---|---|---|
-| beton.jpg | Poly Haven — dirty_concrete | CC0 |
-| zemin.jpg | Poly Haven — concrete_floor_02 | CC0 |
 | pas.jpg | Poly Haven — rusty_metal_02 | CC0 |
 | toprak.jpg | Poly Haven — aerial_beach_01 | CC0 |
-| kapi.jpg | ambientCG — Door001 | CC0 |
 
 ## Kelime listesi
 `kelimeler.txt`: dictionary-tr (npm), MIT lisansı © Harun Reşit Zafer — bkz. `kelimeler-LICENSE.txt`.
@@ -47,3 +44,19 @@ Dosyalar kısaltılmış, ses seviyesi eşitlenmiş ve mono MP3 / küçük JPG o
 | Dosya | Kaynak |
 |---|---|
 | doku/yaratik.webp, doku/koridor_yaratik.jpg | ElevenLabs (FLUX.2 Pro) ile üretildi, arka plan BiRefNet ile kaldırıldı |
+
+## Korku oyunu görselleri (`doku/`)
+Kullanıcının Nano Banana Pro ile ürettiği varyasyonlardan seçildi (her türün 4 varyasyonundan en iyisi) ya da ElevenLabs (FLUX.2 Pro + BiRefNet arka plan silme) ile üretildi. Telefona uygun boyuta küçültüldü.
+| Dosya | Kullanım | Kaynak |
+|---|---|---|
+| duvar.jpg | koridor duvarı / tavan | Nano Banana Pro |
+| zemin_karo.jpg | zemin karosu (2×2 hücre) | Nano Banana Pro |
+| cikis_kapi.jpg | çıkış kapısı | Nano Banana Pro |
+| kan_yazi.jpg | "ARKANA BAKMA" kan yazılı duvar | Nano Banana Pro |
+| sayfa.webp | toplanan sayfa (sprite + elde görünüm) | Nano Banana Pro, arka plan silindi |
+| yuruyen.webp | dolaşan/arayan yaratık | Nano Banana Pro, arka plan silindi |
+| kosan.webp | kovalayan yaratık (dört ayak) | ElevenLabs FLUX.2 Pro + BiRefNet |
+| yakalanma.webp | yakalanma / ani fırlama yüzü | Nano Banana Pro, arka plan silindi |
+| kapi_aralik.jpg | 1. sayfadan sonra kapı aralığı sahnesi | Nano Banana Pro |
+| tavan.jpg | 3. sayfadaki karartmadan sonra tavan sahnesi | Nano Banana Pro |
+| omuz.jpg | 4. sayfadan sonra omuz arkası sahnesi | ElevenLabs FLUX.2 Pro |

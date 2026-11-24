@@ -45,34 +45,40 @@
     return d;
   }
 
-  // ---------- duvar yazıları ve izler (çevresel anlatım) ----------
-  function decor(base) {
+  // ---------- duvar izleri (çevresel anlatım) ----------
+  // el izleri gerçek fotoğraftan (kan_yazi.jpg) kırpılır, kenarları yumuşatılıp duvara "multiply" ile işlenir
+  const HANDS = [[0.76, 0.24, 0.14, 0.16], [0.66, 0.62, 0.14, 0.18], [0.16, 0.49, 0.13, 0.19], [0.30, 0.67, 0.14, 0.21]];
+  function decor(base, src) {
     const n = base.width, out = [];
-    const words = ["ARKANA BAKMA", "BURADAYIM", "ÇIKIŞ YOK", "SESSİZ OL", "SENİ GÖRÜYOR"];
     const r = K.rng(4242);
-    const blood = (g, a) => "rgba(" + (70 + (r() * 30 | 0)) + ",0,0," + a + ")";
-    const drip = (g, x, y, len) => { g.fillStyle = blood(g, 0.7); g.fillRect(x, y, 1.3, len); g.beginPath(); g.arc(x + 0.6, y + len, 1.1, 0, Math.PI * 2); g.fill(); };
-    for (let v = 0; v < 7; v++) {
+    const blood = a => "rgba(" + (70 + (r() * 30 | 0)) + ",0,0," + a + ")";
+    const drip = (g, x, y, len, w) => { g.fillStyle = blood(0.55); g.fillRect(x, y, w || 1.2, len); g.beginPath(); g.arc(x + 0.6, y + len, (w || 1.2) * 0.9, 0, Math.PI * 2); g.fill(); };
+    const stamp = (g, h, x, y, size, rot) => {
+      const sw = src.naturalWidth, sh = src.naturalHeight, asp = (h[3] * sh) / (h[2] * sw);
+      const t = document.createElement("canvas"); t.width = 128; t.height = Math.round(128 * asp); const tg = t.getContext("2d");
+      tg.drawImage(src, h[0] * sw, h[1] * sh, h[2] * sw, h[3] * sh, 0, 0, t.width, t.height);
+      tg.globalCompositeOperation = "destination-in";
+      const rg = tg.createRadialGradient(64, t.height / 2, 20, 64, t.height / 2, 66); rg.addColorStop(0, "rgba(0,0,0,1)"); rg.addColorStop(1, "rgba(0,0,0,0)");
+      tg.fillStyle = rg; tg.fillRect(0, 0, t.width, t.height);
+      g.save(); g.translate(x, y); g.rotate(rot); g.globalCompositeOperation = "multiply"; g.drawImage(t, -size / 2, -size * asp / 2, size, size * asp); g.restore();
+    };
+    for (const v of [0, 1, 2, 3, 4]) {
       const c = document.createElement("canvas"); c.width = c.height = n; const g = c.getContext("2d"); g.drawImage(base, 0, 0);
+      g.globalCompositeOperation = "multiply"; // kan/kir dokuya işlesin, üstüne yapıştırılmış gibi durmasın
       const s = n / 64;
-      if (v === 0 || v === 6) { // kanlı el izleri
-        for (let k = 0; k < (v === 6 ? 4 : 2); k++) {
-          const hx = (14 + r() * 36) * s, hy = (14 + r() * 26) * s; g.save(); g.translate(hx, hy); g.rotate((r() - 0.5) * 0.8);
-          g.fillStyle = blood(g, 0.72); g.beginPath(); g.ellipse(0, 0, 4.5 * s, 5.5 * s, 0, 0, Math.PI * 2); g.fill();
-          for (let f = 0; f < 5; f++) { g.beginPath(); g.ellipse((-4 + f * 2.1) * s, (-7 - (f === 0 ? -2 : f === 2 ? 1.5 : 0)) * s, 0.9 * s, 3 * s, (f - 2) * 0.18, 0, Math.PI * 2); g.fill(); }
-          g.restore(); drip(g, hx, hy + 5 * s, (6 + r() * 14) * s);
+      if (v <= 1 || v === 4) { // el izleri: tek, çift, duvardan aşağı kayan üçlü
+        const k = v === 0 ? 1 : v === 1 ? 2 : 3;
+        for (let i = 0; i < k; i++) {
+          const x = v === 4 ? (18 + i * 14 + r() * 4) * s : (16 + r() * 32) * s, y = v === 4 ? (20 + i * 9) * s : (18 + r() * 22) * s;
+          if (src) stamp(g, HANDS[(r() * HANDS.length) | 0], x, y, (17 + r() * 6) * s, (r() - 0.5) * (v === 4 ? 1.1 : 0.6));
         }
-      } else if (v === 1) { // sürüklenme izi
-        g.strokeStyle = blood(g, 0.6); g.lineCap = "round";
-        for (let k = 0; k < 4; k++) { g.lineWidth = (2 + r() * 2) * s; g.beginPath(); g.moveTo(8 * s, (20 + k * 4) * s); g.bezierCurveTo(24 * s, (16 + k * 5) * s, 40 * s, (30 + k * 3) * s, 58 * s, (26 + k * 4) * s); g.stroke(); }
-        for (let k = 0; k < 6; k++) drip(g, (12 + r() * 40) * s, (28 + r() * 8) * s, (4 + r() * 16) * s);
-      } else if (v === 5) { // çentikler
-        g.strokeStyle = "rgba(25,22,18,0.75)"; g.lineWidth = 1.2 * s;
-        for (let k = 0; k < 4; k++) { for (let j = 0; j < 4; j++) { g.beginPath(); g.moveTo((10 + k * 13 + j * 2.4) * s, 18 * s); g.lineTo((10 + k * 13 + j * 2.4) * s, 30 * s); g.stroke(); } g.beginPath(); g.moveTo((8 + k * 13) * s, 28 * s); g.lineTo((20 + k * 13) * s, 20 * s); g.stroke(); }
-      } else { // yazı
-        const w = words[(v - 2) % words.length];
-        g.fillStyle = blood(g, 0.82); g.font = "bold " + Math.round(9 * s) + "px sans-serif"; g.textAlign = "center";
-        const parts = w.split(" "); parts.forEach((p, i) => { let x = n / 2 - g.measureText(p).width / 2; for (const ch of p) { g.save(); g.translate(x, (22 + i * 11) * s + (r() - 0.5) * 2 * s); g.rotate((r() - 0.5) * 0.25); g.textAlign = "left"; g.fillText(ch, 0, 0); g.restore(); if (r() < 0.4) drip(g, x + 2 * s, (23 + i * 11) * s, (3 + r() * 9) * s); x += g.measureText(ch).width + 0.6 * s; } });
+      } else if (v === 2) { // sürüklenme izi: ince, kesik kesik, fırça gibi
+        g.strokeStyle = blood(0.35); g.lineCap = "round";
+        for (let k = 0; k < 7; k++) { g.lineWidth = (0.5 + r() * 1.4) * s; g.beginPath(); const y0 = (26 + k * 1.6 + r()) * s; g.moveTo(6 * s, y0); g.bezierCurveTo(22 * s, y0 - 3 * s, 40 * s, y0 + 4 * s, (50 + r() * 10) * s, y0 + r() * 2 * s); g.stroke(); }
+        for (let k = 0; k < 7; k++) drip(g, (10 + r() * 44) * s, (28 + r() * 6) * s, (4 + r() * 18) * s, (0.5 + r() * 0.8) * s);
+      } else { // tırnak çizikleri: dörtlü paralel oyuklar
+        g.strokeStyle = "rgba(30,26,22,0.7)"; g.lineCap = "round";
+        for (let k = 0; k < 2; k++) { const x0 = (14 + k * 24 + r() * 6) * s, y0 = (14 + r() * 10) * s, dx = (r() - 0.3) * 6 * s; for (let j = 0; j < 4; j++) { g.lineWidth = (0.6 + r() * 0.5) * s; g.beginPath(); g.moveTo(x0 + j * 2.2 * s, y0); g.quadraticCurveTo(x0 + j * 2.2 * s + dx * 0.5, y0 + 14 * s, x0 + j * 2.4 * s + dx, y0 + (24 + r() * 8) * s); g.stroke(); } }
       }
       out.push(c);
     }
@@ -189,28 +195,42 @@
       g.fillStyle = bg; g.beginPath(); g.arc(w / 2, h - 10, 8, 0, Math.PI * 2); g.fill();
     });
     TEX = { wall, wallProc: wall, door, page, thing: thing2, grain, face, locker, body, lamp };
-    TEX.decals = decor(wall);
+    TEX.decals = decor(wall, null);
     return TEX;
   }
 
-  const PHOTO = {};
-  function photo(n) { if (!PHOTO[n]) { const im = new Image(); im.src = "doku/" + n + ".jpg"; PHOTO[n] = im; } const im = PHOTO[n]; return im.complete && im.naturalWidth ? im : null; }
-  ["beton", "zemin", "kapi", "pas"].forEach(photo);
-  const CREA = new Image(); CREA.src = "doku/yaratik.webp";
-  const creaOk = () => CREA.complete && CREA.naturalWidth > 0;
+  // gerçek görseller (doku/): duvar, zemin, kapı, kan yazısı, sayfa, yaratık pozları ve ani korku sahneleri
+  const IMG = {};
+  function img(n) { if (!IMG[n]) { const im = new Image(); im.decoding = "async"; im.src = "doku/" + n; IMG[n] = im; } const im = IMG[n]; return im.complete && im.naturalWidth ? im : null; }
+  const FILES = { wall: "duvar.jpg", floor: "zemin_karo.jpg", door: "cikis_kapi.jpg", blood: "kan_yazi.jpg", rust: "pas.jpg", page: "sayfa.webp", walk: "yuruyen.webp", run: "kosan.webp", face: "yakalanma.webp", peek: "kapi_aralik.jpg", ceil: "tavan.jpg", shoulder: "omuz.jpg" };
+  let preloaded = false;
+  const preload = () => { if (preloaded) return; preloaded = true; for (const k in FILES) img(FILES[k]); };
+  const pic = k => img(FILES[k]);
+  const FS = 256; // zemin/tavan örnekleme boyutu
   function upgradeTextures(T) {
-    if (!T.crea && creaOk()) { const c = document.createElement("canvas"); c.width = 171; c.height = 300; c.getContext("2d").drawImage(CREA, 0, 0, 171, 300); T.thing = c; T.crea = true; }
+    preload();
+    const cv = (w, h, f) => { const c = document.createElement("canvas"); c.width = w; c.height = h; f(c.getContext("2d"), w, h); return c; };
+    const fit = (im, maxH) => { const s = Math.min(1, maxH / im.naturalHeight); return cv(Math.round(im.naturalWidth * s), Math.round(im.naturalHeight * s), (g, w, h) => g.drawImage(im, 0, 0, w, h)); };
+    // yaratık: yürüyen (yandan) + yatay ayna kopyası, dört ayakla koşan (kovalamada)
+    if (!T.walkOk && pic("walk")) { T.thing = fit(pic("walk"), 300); T.thingF = cv(T.thing.width, T.thing.height, (g, w) => { g.translate(w, 0); g.scale(-1, 1); g.drawImage(T.thing, 0, 0); }); T.walkOk = true; }
+    if (!T.runOk && pic("run")) { T.run = fit(pic("run"), 220); T.runOk = true; }
+    if (!T.pageOk && pic("page")) { T.page = fit(pic("page"), 96); T.pageOk = true; }
     if (T.photo) return;
-    const be = photo("beton"), ze = photo("zemin"), ka = photo("kapi"), pa = photo("pas");
-    if (!be || !ze || !ka || !pa) return;
-    const tint = (im, size, col, extra) => { const c = document.createElement("canvas"); c.width = c.height = size; const g = c.getContext("2d"); g.drawImage(im, 0, 0, size, size); g.globalCompositeOperation = "multiply"; g.fillStyle = col; g.fillRect(0, 0, size, size); g.globalCompositeOperation = "source-over"; if (extra) extra(g, size); return c; };
-    const grime = (g, n) => { g.globalAlpha = 0.55; g.drawImage(T.wallProc, 0, 0, n, n); g.globalAlpha = 1; };
-    T.wall = tint(be, 128, "#9a9481", grime);
-    T.rust = tint(pa, 128, "#7a6f62", grime);
-    T.door = tint(ka, 128, "#6b5a46", (g, n) => { g.fillStyle = "rgba(120,10,10,0.8)"; g.font = "bold 16px sans-serif"; g.fillText("ÇIKIŞ", n * 0.3, n * 0.12); });
-    const fc = tint(ze, 128, "#a09888");
-    T.floorPx = fc.getContext("2d").getImageData(0, 0, 128, 128).data;
-    T.decals = decor(T.wall);
+    const wa = pic("wall"), fl = pic("floor"), dr = pic("door"), bl = pic("blood"), ru = pic("rust");
+    if (!wa || !fl || !dr || !bl || !ru) return;
+    // çarpma ile karart/soğut: hastane koridoru yeşilimsi, bayat ışık
+    const tint = (im, size, col, extra) => cv(size, size, (g, n) => { g.drawImage(im, 0, 0, n, n); g.globalCompositeOperation = "multiply"; g.fillStyle = col; g.fillRect(0, 0, n, n); g.globalCompositeOperation = "source-over"; if (extra) extra(g, n); });
+    // duvar dibi: kir ve nem lekesi, alt süpürgelik gölgesi
+    const base = (g, n) => { const gr = g.createLinearGradient(0, 0, 0, n); gr.addColorStop(0, "rgba(0,0,0,0.25)"); gr.addColorStop(0.18, "rgba(0,0,0,0)"); gr.addColorStop(0.8, "rgba(30,22,12,0)"); gr.addColorStop(1, "rgba(30,22,12,0.6)"); g.fillStyle = gr; g.fillRect(0, 0, n, n); g.fillStyle = "rgba(15,18,14,0.55)"; g.fillRect(0, n * 0.9, n, n * 0.012); };
+    T.wall = tint(wa, 256, "#a5ab9c", base);
+    T.rust = tint(ru, 256, "#7a6f62", base);
+    T.door = tint(dr, 256, "#b8b0a2");
+    T.bloodWall = tint(bl, 256, "#b4ae9f", base);
+    const fc = tint(fl, FS, "#9c9486");
+    T.floorPx = fc.getContext("2d").getImageData(0, 0, FS, FS).data;
+    const cc = tint(wa, FS, "#4a4c46");
+    T.ceilPx = cc.getContext("2d").getImageData(0, 0, FS, FS).data;
+    T.decals = decor(T.wall, bl);
     T.photo = true;
   }
 
@@ -282,7 +302,7 @@
       sx: -10, sy: -10, rx: -10, ry: -10, sDir: 0, ai: "dormant", target: null, detect: 0, menace: 0, lastSeen: [1.5, 1.5], lastSeenT: -99, chaseT: 0, searchT: 0, retreatT: 0, stutT: 0, glimpseT: 6, glimpse: null,
       sPath: null, sTimer: 0, sStare: 0, sVisible: false, lastStep: 0, sStepT: 0, running: false, noise: 0, stamina: 1, hidden: false, hideSpotted: false, savedLight: true,
       lightsOutT: 0, hallu: 0, halluT: 30, halluSide: 1, dust: Array.from({ length: 36 }, () => ({ x: Math.random(), y: Math.random(), v: 0.01 + Math.random() * 0.03, s: 0.6 + Math.random() * 1.4 })),
-      joy: null, look: null, hints: 2, hintT: 0, hintA: 0, hintD: 0, clock: 0, bob: 0, heartT: 0, breathT: 3, eventT: 8, scare: 0, glitch: 0, msg: "", msgT: 0, R: null, A: null, started: false, endT: 0,
+      joy: null, look: null, scene: null, pageView: 0, ceilArmed: false, hints: 2, hintT: 0, hintA: 0, hintD: 0, clock: 0, bob: 0, heartT: 0, breathT: 3, eventT: 8, scare: 0, glitch: 0, msg: "", msgT: 0, R: null, A: null, started: false, endT: 0,
     };
     // başlangıç yönü: en uzun açık koridora bak
     { let best = -1; for (const [a, dx, dy] of [[0, 1, 0], [Math.PI / 2, 0, 1], [Math.PI, -1, 0], [-Math.PI / 2, 0, -1]]) { let n = 0, x = 1, y = 1; while (!m[y + dy][x + dx]) { x += dx; y += dy; n++; } if (n > best) { best = n; g.pa = a; } } }
@@ -342,6 +362,8 @@
       update(dt, active) {
         g.clock += dt; g.msgT = Math.max(0, g.msgT - dt); g.glitch = Math.max(0, g.glitch - dt * 2); g.hallu = Math.max(0, g.hallu - dt);
         if (g.pop > 0) g.pop = Math.max(0, g.pop - dt);
+        if (g.scene) { g.scene.t -= dt; if (g.scene.t <= 0) g.scene = null; }
+        if (g.pageView > 0) g.pageView = Math.max(0, g.pageView - dt);
         if (g.over) { g.endT += dt; g.scare = Math.max(0, g.scare - dt * 0.9); return; }
         if (!active) return;
         const A = audio();
@@ -389,10 +411,14 @@
         // sayfalar
         for (const p of g.pages) if (!p.got && !g.hidden && Math.hypot(p.x - g.px, p.y - g.py) < 0.55) {
           p.got = true; g.got++; g.score += 150; g.menace = Math.min(1, g.menace + 0.15);
-          if (A) A.page(); buzz(40); g.glitch = 0.6;
+          if (A) A.page(); buzz(40); g.glitch = 0.6; g.pageView = 1.8;
+          // 1. sayfadan sonra: kapı aralığından biri bakıyor (sessiz, kısa)
+          if (g.got === 1) setTimeout(() => { if (!g.over && g.ai !== "chase") startScene("peek"); }, 5500 + map.rand() * 4000);
+          if (g.got === 3) g.ceilArmed = true; // ışıklar geri gelince ilk fener açılışında: tavanda
           g.msg = g.got >= PAGES ? "Tüm sayfalar. ÇIKIŞ KAPISINI BUL." : g.got + " / " + PAGES; g.msgT = 2.5;
           if (g.ai === "dormant") { g.ai = "roam"; spawnFar(7); }
-          if ((g.got === 2 || g.got === 4) && jumpOn) setTimeout(() => { if (!g.over && !g.hidden) { g.pop = 0.75; const A2 = audio(); if (A2) { A2.silence(1.5); A2.scream(); } buzz([80, 30, 120]); g.glitch = 1; } }, 1400 + map.rand() * 1500);
+          if (g.got === 4 && jumpOn) setTimeout(() => { if (!g.over && !g.hidden && !startScene("shoulder")) g.pop = 0.75; }, 1600 + map.rand() * 1500);
+          if (g.got === 2 && jumpOn) setTimeout(() => { if (!g.over && !g.hidden) { g.pop = 0.75; const A2 = audio(); if (A2) { A2.silence(1.5); A2.scream(); } buzz([80, 30, 120]); g.glitch = 1; } }, 1400 + map.rand() * 1500);
           if (g.got === 3) { g.lightsOutT = 7; g.lightOn = false; if (A) { A.silence(2.5); setTimeout(() => { if (g.A && !g.over) { const ra = -Math.PI / 2; g.A.distant(Math.sin(ra) * 0.8, -Math.cos(ra) * 0.8, 2); } }, 1800); } g.msg = "…"; }
           if (g.got >= PAGES && g.ai !== "chase") { g.ai = "search"; g.target = [Math.floor(g.px), Math.floor(g.py)]; }
         }
@@ -506,7 +532,7 @@
         const R = g.R; if (!R || g.over) return;
         if (type === "down") {
           const fb = flashBtn(R), hb = hideBtn(R);
-          if (x >= fb.x && x <= fb.x + fb.w && y >= fb.y && y <= fb.y + fb.h) { if (g.battery > 0 && !g.hidden && g.lightsOutT <= 0) { g.lightOn = !g.lightOn; const A = audio(); if (A) A.click(); } return; }
+          if (x >= fb.x && x <= fb.x + fb.w && y >= fb.y && y <= fb.y + fb.h) { if (g.battery > 0 && !g.hidden && g.lightsOutT <= 0) { g.lightOn = !g.lightOn; const A = audio(); if (A) A.click(); if (g.lightOn && g.ceilArmed) { g.ceilArmed = false; setTimeout(() => startScene("ceil"), 350); } } return; }
           const ib = hintBtn(R);
           if (x >= ib.x && x <= ib.x + ib.w && y >= ib.y && y <= ib.y + ib.h) { if (g.hints > 0 && g.hintT <= 0 && !g.hidden) { g.hints--; g.hintT = 5; const A = audio(); if (A) A.distant(0, -0.5, 2); } return; }
           const lk = nearLocker();
@@ -528,7 +554,7 @@
         ctx.save(); ctx.beginPath(); ctx.rect(R.x, R.y, R.w, R.h); ctx.clip();
         // düşük çözünürlüklü sahne (performans + bulanık, kirli görüntü)
         upgradeTextures(T);
-        const FP = T.floorPx;
+        const FP = T.floorPx, CP = T.ceilPx || T.floorPx;
         const RW = 300, RH = Math.max(160, Math.round((RW * R.h) / R.w));
         if (!g.buf || g.buf.width !== RW || g.buf.height !== RH) { g.buf = document.createElement("canvas"); g.buf.width = RW; g.buf.height = RH; g.bctx = g.buf.getContext("2d"); g.zb = new Float32Array(RW); }
         const b = g.bctx, zb = g.zb;
@@ -550,9 +576,11 @@
             const fx = wx - Math.floor(wx), fz = wy - Math.floor(wy);
             let base, cr = 1.05, cgr = 1, cb = 0.86;
             if (FP) {
-              const ti = (((fz * 127) | 0) * 128 + ((fx * 127) | 0)) * 4, seam = fx < 0.03 || fz < 0.03 ? 0.6 : 1;
-              const f2 = (floor ? 1.05 : 0.6) * seam;
-              base = 1; cr = FP[ti] * f2; cgr = FP[ti + 1] * f2; cb = FP[ti + 2] * f2;
+              // zemin karosu 2x2 hücreye yayılır (gerçek karo boyu); tavan: lekeli sıva, hücre başına
+              const P = floor ? FP : CP, u = floor ? wx * 0.5 - Math.floor(wx * 0.5) : fx, w2 = floor ? wy * 0.5 - Math.floor(wy * 0.5) : fz;
+              const ti = (((w2 * (FS - 1)) | 0) * FS + ((u * (FS - 1)) | 0)) * 4, seam = !floor && (fx < 0.02 || fz < 0.02) ? 0.55 : 1;
+              const f2 = (floor ? 1.05 : 0.9) * seam;
+              base = 1; cr = P[ti] * f2; cgr = P[ti + 1] * f2; cb = P[ti + 2] * f2;
             } else if (floor) {
               const grout = fx < 0.04 || fz < 0.04 ? 0.55 : 1;
               const n = hash(Math.floor(wx * 8), Math.floor(wy * 8)) * 0.25 + 0.75;
@@ -576,7 +604,7 @@
           const ca = (i / RW - 0.5) * FOV, a = g.pa + ca, r = rayCast(a);
           const dist = r.dist * Math.cos(ca); zb[i] = dist;
           const h = Math.min(RH * 3, RH / dist);
-          const tex = r.door ? T.door : r.deco > 0.8 && T.decals ? T.decals[Math.floor((r.deco - 0.8) * 5 * T.decals.length) % T.decals.length] : r.rust && T.rust ? T.rust : T.wall, tx = Math.floor(r.wx * tex.width);
+          const tex = r.door ? T.door : r.deco > 0.955 && T.bloodWall ? T.bloodWall : r.deco > 0.82 && T.decals ? T.decals[Math.floor((r.deco - 0.82) / 0.135 * T.decals.length) % T.decals.length] : r.rust && T.rust ? T.rust : T.wall, tx = Math.floor(r.wx * tex.width);
           b.drawImage(tex, tx, 0, 1, tex.height, i, horizon - h / 2, 1, h);
           const cone = Math.max(0, 1 - Math.abs(ca) / (FOV * 0.42));
           let lum = 0.03 + light * cone * clamp(2.1 / (dist * dist * 0.3 + 0.6), 0, 1.15) + light * 0.08 / (dist + 0.5);
@@ -588,8 +616,13 @@
         // nesneler (sayfalar, varlık)
         const sprites = [];
         for (const p of g.pages) if (!p.got) sprites.push({ x: p.x, y: p.y, tex: T.page, scale: 0.32, lift: -0.18, glow: true });
-        if (g.ai !== "dormant" && g.ai !== "retreat") sprites.push({ x: g.rx, y: g.ry, tex: T.thing, scale: 1.42, lift: 0, thing: true });
-        if (g.glimpse) sprites.push({ x: g.glimpse.x, y: g.glimpse.y, tex: T.thing, scale: 1.42, lift: 0, thing: true });
+        if (g.ai !== "dormant" && g.ai !== "retreat") {
+          // kovalarken dört ayak üstünde (alçak, hızlı); yoksa yürür — yürüdüğü yöne bakar
+          const running = g.ai === "chase" && T.runOk;
+          const right = Math.sin(g.sDir - g.pa) > 0;
+          sprites.push({ x: g.rx, y: g.ry, tex: running ? T.run : right && T.thingF ? T.thingF : T.thing, scale: running ? 0.78 : 1.32, lift: 0, thing: true });
+        }
+        if (g.glimpse) sprites.push({ x: g.glimpse.x, y: g.glimpse.y, tex: T.thing, scale: 1.32, lift: 0, thing: true });
         for (const l of map.lockers) sprites.push({ x: l.x, y: l.y, tex: T.locker, scale: 0.92, lift: 0 });
         for (const bd of map.bodies) sprites.push({ x: bd.x, y: bd.y, tex: T.body, scale: 0.32, lift: 0 });
         for (const l of map.lamps) sprites.push({ x: l.x, y: l.y, tex: T.lamp, scale: 0.5, lift: -0.5, lamp: l });
@@ -672,9 +705,21 @@
         }
         // ani fırlama (oyun içi): yaratık ekrana doğru atılır
         if (g.pop > 0 && !g.over) lunge(ctx, R, 1 - g.pop / 0.75, false);
+        // ani korku sahnesi (kapı aralığı / tavan / omuz arkası): tam ekran, sarsıntılı kamera kaydı
+        if (g.scene && !g.over) scene(ctx, R);
+        // sayfa alındı: elde tutulan sayfa bir an görünür
+        if (g.pageView > 0 && !g.over && pic("page")) {
+          const im = pic("page"), k = g.pageView / 1.8, a = Math.min(1, k * 4, (1 - k) * 8);
+          const h = R.h * 0.62, w = h * im.naturalWidth / im.naturalHeight;
+          ctx.save(); ctx.globalAlpha = a * 0.95; ctx.translate(R.x + R.w / 2, R.y + R.h * 0.52 + (1 - k) * 12); ctx.rotate(-0.05 + Math.sin(g.clock * 1.3) * 0.015);
+          ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(-R.w, -R.h, R.w * 2, R.h * 2);
+          ctx.drawImage(im, -w / 2, -h / 2, w, h);
+          const vg2 = ctx.createRadialGradient(0, 0, h * 0.2, 0, 0, h * 0.75); vg2.addColorStop(0, "rgba(0,0,0,0)"); vg2.addColorStop(1, "rgba(0,0,0,0.75)"); ctx.fillStyle = vg2; ctx.fillRect(-w, -h, w * 2, h * 2);
+          ctx.restore();
+        }
         // son: yakalanma / kaçış
         if (g.over) {
-          if (g.caught && g.scare > 0 && creaOk()) lunge(ctx, R, 1 - g.scare, true);
+          if (g.caught && g.scare > 0 && pic("face")) lunge(ctx, R, 1 - g.scare, true);
           else if (g.caught && g.scare > 0) {
             const k = 1 - g.scare, sc = 0.55 + Math.min(1, k * 3) * 0.9 + k * 0.25, cx = R.x + R.w / 2, cy = R.y + R.h * 0.46;
             ctx.fillStyle = "#000"; ctx.fillRect(R.x, R.y, R.w, R.h);
@@ -697,14 +742,14 @@
     };
     // gerçekçi yaratık görseli ekrana fırlar: hızlı büyüme, sarsıntı, kırmızı titreme, tarama bozulması
     function lunge(ctx, R, k, full) {
-      if (!creaOk()) return;
+      const CREA = pic("face"); if (!CREA) return;
       const e = 1 - Math.pow(1 - Math.min(1, k * 3.2), 3); // ilk ~0,25 sn'de yüze gelir
       const cx = R.x + R.w / 2, iw = CREA.naturalWidth, ih = CREA.naturalHeight;
-      const scale = (R.h / ih) * (0.6 + e * 2.9) * (1 + k * 0.15);
+      const scale = (Math.max(R.w, R.h * 0.75) / iw) * (0.35 + e * 1.25) * (1 + k * 0.12);
       const w = iw * scale, h = ih * scale;
       const jx = (Math.random() - 0.5) * 26 * (1 - k * 0.5), jy = (Math.random() - 0.5) * 26 * (1 - k * 0.5);
-      const headY = R.y + R.h * (0.5 - e * 0.08); // baş (görselin ~%12'si) ekran ortasına gelsin
-      const x = cx - w / 2 + jx, y = headY - h * 0.12 + jy;
+      const headY = R.y + R.h * (0.46 - e * 0.04); // yüz (görselin ~%27'si) ekran ortasına gelsin
+      const x = cx - w / 2 + jx, y = headY - h * 0.27 + jy;
       ctx.fillStyle = full ? "#000" : "rgba(0,0,0," + (0.55 + e * 0.4) + ")"; ctx.fillRect(R.x, R.y, R.w, R.h);
       ctx.globalAlpha = 0.5; ctx.globalCompositeOperation = "lighter"; ctx.drawImage(CREA, x - 10 * (1 - k), y, w, h); ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
       ctx.drawImage(CREA, x, y, w, h);
@@ -712,6 +757,35 @@
       ctx.fillStyle = "rgba(140,0,0," + (0.12 + 0.18 * Math.random()) + ")"; ctx.fillRect(R.x, R.y, R.w, R.h);
       const gr2 = T.grain[(g.clock * 30 | 0) % 4]; ctx.globalAlpha = 0.28; for (let yy = R.y; yy < R.y + R.h; yy += 128) for (let xx = R.x; xx < R.x + R.w; xx += 128) ctx.drawImage(gr2, xx, yy); ctx.globalAlpha = 1;
       const vg = ctx.createRadialGradient(cx, R.y + R.h / 2, R.h * 0.25, cx, R.y + R.h / 2, R.h * 0.8); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.85)"); ctx.fillStyle = vg; ctx.fillRect(R.x, R.y, R.w, R.h);
+    }
+    // tam ekran sahne: görseli ekrana "cover" sığdır, odak noktası ortada; yavaş itme, sarsıntı, tarama bozulması
+    const SCENES = { peek: { fx: 0.66, fy: 0.45, dur: 1.7 }, ceil: { fx: 0.5, fy: 0.42, dur: 1.5 }, shoulder: { fx: 0.5, fy: 0.4, dur: 1.6 } };
+    function scene(ctx, R) {
+      const sc = g.scene, cfg = SCENES[sc.k], im = pic(sc.k);
+      if (!im) { g.scene = null; return; }
+      const k = 1 - sc.t / cfg.dur, inA = Math.min(1, k * 9), outA = Math.min(1, sc.t * 3);
+      const s0 = Math.max(R.w / im.naturalWidth, R.h / im.naturalHeight) * (1.04 + k * 0.1);
+      const w = im.naturalWidth * s0, h = im.naturalHeight * s0;
+      const sh = (sc.k === "peek" ? 4 : 14) * (1 - k * 0.6);
+      let x = R.x + R.w / 2 - w * cfg.fx + (Math.random() - 0.5) * sh, y = R.y + R.h / 2 - h * cfg.fy + (Math.random() - 0.5) * sh;
+      x = Math.min(R.x, Math.max(R.x + R.w - w, x)); y = Math.min(R.y, Math.max(R.y + R.h - h, y));
+      ctx.save(); ctx.globalAlpha = inA * outA;
+      ctx.fillStyle = "#000"; ctx.fillRect(R.x, R.y, R.w, R.h);
+      ctx.drawImage(im, x, y, w, h);
+      for (let i = 0; i < 5; i++) { const sy = R.y + Math.random() * R.h, sh2 = 3 + Math.random() * 16, off = (Math.random() - 0.5) * 40 * (1 - k); const srcY = ((sy - y) / h) * im.naturalHeight; if (srcY < 0 || srcY > im.naturalHeight) continue; ctx.drawImage(im, 0, srcY, im.naturalWidth, (sh2 / h) * im.naturalHeight, x + off, sy, w, sh2); }
+      ctx.fillStyle = "rgba(0,0,0,0.14)"; for (let yy = R.y; yy < R.y + R.h; yy += 3) ctx.fillRect(R.x, yy, R.w, 1);
+      const gr2 = T.grain[(g.clock * 30 | 0) % 4]; ctx.globalAlpha = 0.22 * inA * outA; ctx.globalCompositeOperation = "overlay"; for (let yy = R.y; yy < R.y + R.h; yy += 128) for (let xx = R.x; xx < R.x + R.w; xx += 128) ctx.drawImage(gr2, xx, yy);
+      ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = inA * outA;
+      const vg = ctx.createRadialGradient(R.x + R.w / 2, R.y + R.h / 2, R.h * 0.25, R.x + R.w / 2, R.y + R.h / 2, R.h * 0.8); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.8)"); ctx.fillStyle = vg; ctx.fillRect(R.x, R.y, R.w, R.h);
+      ctx.restore();
+    }
+    function startScene(k) {
+      if (!jumpOn || g.over || g.hidden || !pic(k)) return false;
+      g.scene = { k, t: SCENES[k].dur };
+      const A = audio();
+      if (A) { A.silence(SCENES[k].dur + 0.4); if (k === "peek") { A.sting(); A.distant(0.6, -0.4, 2); } else { A.scream(); } }
+      buzz(k === "peek" ? [40, 40, 40] : [90, 30, 160]); g.glitch = 1;
+      return true;
     }
     const hintBtn = R => ({ x: R.x + R.w - 122, y: R.y + 44, w: 110, h: 40 });
     const flashBtn = R => ({ x: R.x + R.w - 132, y: R.y + R.h - 64, w: 120, h: 48 });
