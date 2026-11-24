@@ -3,21 +3,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#0d1018">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kule Yarışı">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600&display=swap">
 <style>
-  /* Tek ekran oyun. Canvas tüm alanı kaplar; menü canvas'ın üstünde ortalanmış bir kart. Bilerek tek (koyu) tema. */
+  /* Tek ekran oyun: tam ekran canvas; menü canvas'ın üstünde ortalanmış kart. Bilerek tek (koyu) tema. */
   :root {
     --bg: #0d1018;
-    --panel: rgba(16, 19, 28, 0.9);
+    --panel: rgba(16, 19, 28, 0.92);
     --panel-line: rgba(255, 255, 255, 0.09);
     --fg: #f3efe7;
     --muted: #a3a9b8;
     --crane: #f4b400;
-    --p1: #ff6a3d;
-    --p2: #1fc2b0;
-    --danger: #ff4d5e;
     --font-display: "Archivo Black", "Arial Black", Impact, sans-serif;
     --font-ui: "Barlow Condensed", "Arial Narrow", sans-serif;
     --font-body: "Barlow", system-ui, sans-serif;
@@ -42,21 +43,23 @@
 
   #menu {
     position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
     padding-block: 16px;
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
-    background: linear-gradient(180deg, rgba(8, 10, 16, 0.25), rgba(8, 10, 16, 0.7));
+    background: linear-gradient(180deg, rgba(8, 10, 16, 0.2), rgba(8, 10, 16, 0.72));
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
   .card {
-    width: 100%; max-width: 440px;
+    width: 100%; max-width: 460px;
     margin: auto;
     background: var(--panel);
     border: 1px solid var(--panel-line);
     border-radius: 14px;
-    padding: 22px 20px 20px;
-    display: grid; gap: 18px;
+    padding: 20px 18px 18px;
+    display: grid; gap: 16px;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
@@ -67,39 +70,33 @@
     font-family: var(--font-display);
     font-size: clamp(30px, 9vw, 42px);
     line-height: 0.95;
-    letter-spacing: 0.01em;
     text-wrap: balance;
   }
   .brand h1 span { color: var(--crane); }
-  .brand p { margin: 0; color: var(--muted); font-size: 15px; }
+  .brand p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.4; }
   .group { display: grid; gap: 8px; }
   .group h2 {
     margin: 0;
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
+    font-family: var(--font-ui); font-weight: 700; font-size: 13px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
   }
-  .seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+  .seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .opt {
-    appearance: none;
-    text-align: left;
+    appearance: none; text-align: left;
     border: 1px solid var(--panel-line);
     background: rgba(255, 255, 255, 0.04);
     color: var(--fg);
     border-radius: 10px;
     padding: 10px 12px;
-    display: grid; gap: 2px;
-    cursor: pointer;
-    min-width: 0;
-    font: inherit;
+    min-height: 44px;
+    display: grid; gap: 2px; align-content: start;
+    cursor: pointer; min-width: 0; font: inherit;
   }
   .opt b { font-family: var(--font-ui); font-weight: 800; font-size: 19px; letter-spacing: 0.02em; text-transform: uppercase; }
   .opt small { color: var(--muted); font-size: 13px; line-height: 1.25; }
   .opt[aria-pressed="true"] { border-color: var(--crane); background: rgba(244, 180, 0, 0.12); }
   .opt[aria-pressed="true"] b { color: var(--crane); }
+  .opt[disabled] { opacity: 0.45; cursor: not-allowed; }
   .opt:focus-visible, .btn:focus-visible, #menuBtn:focus-visible, input:focus-visible { outline: 2px solid var(--crane); outline-offset: 2px; }
 
   .online { display: grid; gap: 10px; padding: 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); border: 1px dashed var(--panel-line); }
@@ -109,13 +106,12 @@
     flex: 1 1 110px;
     font-family: var(--font-ui); font-weight: 800; font-size: 22px; letter-spacing: 0.3em; text-transform: uppercase;
     background: rgba(0, 0, 0, 0.35); color: var(--fg);
-    border: 1px solid var(--panel-line); border-radius: 8px; padding: 8px 10px;
+    border: 1px solid var(--panel-line); border-radius: 8px; padding: 8px 10px; min-height: 44px; box-sizing: border-box;
   }
   .btn {
     appearance: none; cursor: pointer;
-    font-family: var(--font-ui); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
-    font-size: 17px;
-    border-radius: 8px; padding: 10px 14px;
+    font-family: var(--font-ui); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 17px;
+    border-radius: 8px; padding: 10px 14px; min-height: 44px;
     border: 1px solid var(--panel-line);
     background: rgba(255, 255, 255, 0.07); color: var(--fg);
   }
@@ -125,9 +121,9 @@
     font-family: var(--font-display); letter-spacing: 0.04em;
   }
   .btn[disabled] { opacity: 0.4; cursor: not-allowed; }
-  .status { margin: 0; font-size: 15px; color: var(--muted); line-height: 1.4; }
-  .status strong { color: var(--fg); }
+  .status { margin: 0; font-size: 15px; color: var(--muted); line-height: 1.4; overflow-wrap: anywhere; }
   .code { font-family: var(--font-ui); font-weight: 800; font-size: 30px; letter-spacing: 0.25em; color: var(--crane); }
+  .link { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
   .foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; color: var(--muted); font-size: 13px; }
   .foot span { font-variant-numeric: tabular-nums; }
 
@@ -140,7 +136,7 @@
     cursor: pointer; z-index: 5;
     display: grid; place-items: center;
   }
-  @media (prefers-reduced-motion: reduce) { .card { backdrop-filter: none; } }
+  @media (prefers-reduced-motion: reduce) { .card { backdrop-filter: none; -webkit-backdrop-filter: none; } }
 </style>
 
 <div id="stage">
@@ -151,20 +147,13 @@
     <div class="card" role="dialog" aria-labelledby="ttl">
       <div class="brand">
         <h1 id="ttl">KULE <span>YARIŞI</span></h1>
-        <p>İki vinç, tek gökyüzü. Bloğu tam üste bırak, kuleni rakibinden yükseğe çık.</p>
+        <p>Vinç bloğu sallıyor. Doğru anda dokun, blok düşsün ve kulenin tam üstüne otursun.</p>
       </div>
 
       <div class="group">
-        <h2>Oyun</h2>
-        <div class="seg" data-group="mode">
-          <button class="opt" type="button" id="opt-classic" data-value="classic"><b>Klasik</b><small>Kule çökene kadar</small></button>
-          <button class="opt" type="button" id="opt-timed" data-value="timed"><b>60 Saniye</b><small>Süre bitince en yüksek kazanır</small></button>
-        </div>
-      </div>
-
-      <div class="group">
-        <h2>Nasıl oynuyorsunuz?</h2>
+        <h2>Kim oynuyor?</h2>
         <div class="seg" data-group="layout">
+          <button class="opt" type="button" id="opt-single" data-value="single"><b>Tek kişi</b><small>Rekorunu kır</small></button>
           <button class="opt" type="button" id="opt-face" data-value="face"><b>Karşılıklı</b><small>Telefon masada, iki uçta</small></button>
           <button class="opt" type="button" id="opt-side" data-value="side"><b>Yan yana</b><small>Telefon yatay, ikiniz düz</small></button>
           <button class="opt" type="button" id="opt-online" data-value="online"><b>Online</b><small>İki ayrı telefon</small></button>
@@ -178,14 +167,34 @@
           <button class="btn" type="button" id="joinRoom">Katıl</button>
         </div>
         <p class="status" id="roomStatus">Bir oda kur ve kodu arkadaşına söyle, ya da onun kodunu yazıp katıl.</p>
+        <div class="row" id="shareRow" hidden>
+          <button class="btn" type="button" id="shareBtn">Davet linki gönder</button>
+          <span class="link" id="shareUrl"></span>
+        </div>
         <button class="btn" type="button" id="leaveRoom" hidden>Odadan çık</button>
+      </div>
+
+      <div class="group">
+        <h2>Oyun</h2>
+        <div class="seg" data-group="mode">
+          <button class="opt" type="button" id="opt-classic" data-value="classic"><b>Klasik</b><small>3 can, kule bitene kadar</small></button>
+          <button class="opt" type="button" id="opt-timed" data-value="timed"><b>60 Saniye</b><small>Süre bitince en çok puan</small></button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Ses</h2>
+        <div class="seg">
+          <button class="opt" type="button" id="sfxBtn"><b>Efektler</b><small id="sfxLbl">Açık</small></button>
+          <button class="opt" type="button" id="musicBtn"><b>Müzik</b><small id="musicLbl">Açık</small></button>
+        </div>
       </div>
 
       <button class="btn primary" type="button" id="play">OYNA</button>
 
       <div class="foot">
         <span id="recordLine">Rekor: —</span>
-        <span>5 kusursuz = rakibin vinci hızlanır</span>
+        <span>5 kusursuz üst üste = saldırı</span>
       </div>
     </div>
   </div>
@@ -196,26 +205,33 @@
   "use strict";
 
   // =====================================================================
-  //  Ayarlar
+  //  Sabitler (oyun dünyası birimleri: x = görünüm genişliği oranı, y = kat)
   // =====================================================================
-  const FLOOR_M = 3.2;            // bir katın yüksekliği (m)
-  const BASE_W = 0.5;             // temel genişliği (görünüm genişliğinin oranı)
-  const PERFECT = 0.012;          // kusursuz bırakma toleransı
-  const ATTACK_EVERY = 5;         // kaç kusursuzda bir saldırı
-  const BOOST_TIME = 4;           // saldırı süresi (sn)
-  const BOOST_MUL = 1.7;          // saldırıda vinç hız çarpanı
+  const BHW = 0.1;           // bir katın yüksekliği, genişlik biriminde
+  const BW = 0.3;            // blok genişliği
+  const BASE_W = 0.42;       // temel genişliği
+  const ROPE = 4.2;          // ip uzunluğu (kat)
+  const DROP_H = 2.0;        // asılı bloğun altı ile kule tepesi arası (kat, açı 0'da)
+  const G = 20;              // yerçekimi (kat/s²) → 2 kat düşüş ≈ 0,45 s
+  const PERFECT = 0.1;       // kusursuz: blok genişliğinin %10'u
+  const STEP = 1 / 120;      // sabit fizik adımı
+  const ATTACK_EVERY = 5;
   const TIMED_SECONDS = 60;
+  const LIVES = 3;
+  const FLOOR_M = 3.2;
+  const PLANE_FLOORS = [3, 7, 12, 18, 24, 31, 40, 52];
   const DISP = '"Archivo Black", "Arial Black", Impact, sans-serif';
   const COND = '"Barlow Condensed", "Arial Narrow", sans-serif';
+  const IN_CLAUDE = !!(window.claude && window.claude.use);
 
   const $ = s => document.querySelector(s);
   const cv = $("#c");
-  const ctx = cv.getContext("2d");
+  const ctx = cv.getContext("2d", { alpha: false });
 
   let W = 1, H = 1, DPR = 1;
   function resize() {
     const r = cv.getBoundingClientRect();
-    DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
     W = Math.max(1, r.width); H = Math.max(1, r.height);
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
     placeMenuBtn();
@@ -230,50 +246,37 @@
     h = Math.imul(h ^ (h >>> 13), 1274126177);
     return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
   }
+  function strHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h | 0; }
   function rng(seed) { return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const easeOut = t => 1 - Math.pow(1 - clamp(t, 0, 1), 3);
   function hex(c) { const n = parseInt(c.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
   function mixRGB(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
   function css(c, a) { return "rgba(" + (c[0] | 0) + "," + (c[1] | 0) + "," + (c[2] | 0) + "," + (a == null ? 1 : a) + ")"; }
   function ramp(stops, t) {
-    t = Math.max(0, Math.min(1, t));
-    for (let i = 1; i < stops.length; i++) {
-      if (t <= stops[i][0]) {
-        const a = stops[i - 1], b = stops[i];
-        return mixRGB(a[1], b[1], (t - a[0]) / (b[0] - a[0]));
-      }
-    }
+    t = clamp(t, 0, 1);
+    for (let i = 1; i < stops.length; i++) if (t <= stops[i][0]) { const a = stops[i - 1], b = stops[i]; return mixRGB(a[1], b[1], (t - a[0]) / (b[0] - a[0])); }
     return stops[stops.length - 1][1];
   }
   const meters = n => (n * FLOOR_M).toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  function rr(x, y, w, h, r) {
-    ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
-    else ctx.rect(x, y, w, h);
-  }
+  const fmtScore = n => n.toLocaleString("tr-TR");
+  function rr(x, y, w, h, r) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
   function hazard(x, y, w, h, a, b) {
-    ctx.save();
-    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
-    ctx.fillStyle = a; ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = b;
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    ctx.fillStyle = a; ctx.fillRect(x, y, w, h); ctx.fillStyle = b;
     const s = Math.max(4, h * 1.4);
-    for (let i = -h * 2; i < w + h * 2; i += s * 2) {
-      ctx.beginPath();
-      ctx.moveTo(x + i, y + h); ctx.lineTo(x + i + s, y + h);
-      ctx.lineTo(x + i + s + h, y); ctx.lineTo(x + i + h, y);
-      ctx.fill();
-    }
+    for (let i = -h * 2; i < w + h * 2; i += s * 2) { ctx.beginPath(); ctx.moveTo(x + i, y + h); ctx.lineTo(x + i + s, y + h); ctx.lineTo(x + i + s + h, y); ctx.lineTo(x + i + h, y); ctx.fill(); }
     ctx.restore();
   }
   function txt(str, x, y, size, color, o) {
     o = o || {};
-    ctx.globalAlpha = o.a == null ? 1 : o.a;
+    ctx.globalAlpha = o.a == null ? 1 : clamp(o.a, 0, 1);
     ctx.font = (o.w || "800") + " " + size + "px " + (o.f || COND);
-    ctx.textAlign = o.align || "center";
-    ctx.textBaseline = o.base || "middle";
+    ctx.textAlign = o.align || "center"; ctx.textBaseline = o.base || "middle";
     if ("letterSpacing" in ctx) ctx.letterSpacing = o.ls || "0px";
     if (o.stroke) { ctx.lineJoin = "round"; ctx.lineWidth = o.stroke; ctx.strokeStyle = "rgba(8,10,18,0.75)"; ctx.strokeText(str, x, y); }
-    ctx.fillStyle = color;
-    ctx.fillText(str, x, y);
+    ctx.fillStyle = color; ctx.fillText(str, x, y);
     ctx.globalAlpha = 1;
     if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
   }
@@ -282,37 +285,15 @@
     const m = ctx.measureText(str).width;
     return m > maxW ? Math.max(9, Math.floor(size * maxW / m)) : size;
   }
-
-  // =====================================================================
-  //  Ses ve titreşim
-  // =====================================================================
-  let ac = null;
-  function ensureAudio() {
-    try {
-      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-      if (ac.state === "suspended") ac.resume();
-    } catch (e) { ac = null; }
+  function heart(x, y, s, fill) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + s * 0.3);
+    ctx.bezierCurveTo(x, y, x - s * 0.5, y, x - s * 0.5, y + s * 0.3);
+    ctx.bezierCurveTo(x - s * 0.5, y + s * 0.6, x, y + s * 0.8, x, y + s);
+    ctx.bezierCurveTo(x, y + s * 0.8, x + s * 0.5, y + s * 0.6, x + s * 0.5, y + s * 0.3);
+    ctx.bezierCurveTo(x + s * 0.5, y, x, y, x, y + s * 0.3);
+    ctx.fillStyle = fill; ctx.fill();
   }
-  function tone(freq, dur, type, vol, slideTo, delay) {
-    if (!ac) return;
-    try {
-      const t = ac.currentTime + (delay || 0);
-      const o = ac.createOscillator(), g = ac.createGain();
-      o.type = type || "square";
-      o.frequency.setValueAtTime(freq, t);
-      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(vol || 0.06, t + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g).connect(ac.destination);
-      o.start(t); o.stop(t + dur + 0.03);
-    } catch (e) {}
-  }
-  function thud() { tone(140, 0.14, "triangle", 0.12, 70); tone(90, 0.1, "square", 0.03, 50); }
-  function ding(k) { tone(660 + Math.min(k, 8) * 60, 0.18, "triangle", 0.08); tone(990 + Math.min(k, 8) * 90, 0.22, "sine", 0.04, null, 0.05); }
-  function crash() { tone(200, 0.6, "sawtooth", 0.07, 45); }
-  function alarm() { tone(880, 0.12, "square", 0.05); tone(660, 0.12, "square", 0.05, null, 0.14); tone(880, 0.12, "square", 0.05, null, 0.28); }
-  function buzz(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
 
   // =====================================================================
   //  Kalıcı tercihler (yalnız bu tarayıcı)
@@ -321,19 +302,184 @@
     get(k, d) { try { const v = localStorage.getItem("kule-" + k); return v == null ? d : v; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem("kule-" + k, String(v)); } catch (e) {} },
   };
-  const records = { classic: parseInt(store.get("rekor", "0"), 10) || 0, timed: parseInt(store.get("rekor-60", "0"), 10) || 0 };
-  function saveRecord(n) {
-    const k = cfg.mode;
-    if (n > records[k]) { records[k] = n; store.set(k === "classic" ? "rekor" : "rekor-60", n); }
-  }
-
   const cfg = {
     mode: store.get("mode", "classic") === "timed" ? "timed" : "classic",
-    layout: ["face", "side", "online"].includes(store.get("layout", "face")) ? store.get("layout", "face") : "face",
+    layout: ["single", "face", "side", "online"].includes(store.get("layout", "single")) ? store.get("layout", "single") : "single",
   };
+  const recKey = () => "best-" + cfg.mode;
+  function best() { return parseInt(store.get(recKey(), "0"), 10) || 0; }
+  function saveBest(score) { if (score > best()) { store.set(recKey(), score); return true; } return false; }
 
   // =====================================================================
-  //  Sahne verileri (şehir, bulutlar, yıldızlar)
+  //  Ses motoru (Web Audio, dosyasız: tüm sesler kodla üretilir)
+  // =====================================================================
+  const AU = {
+    ctx: null, master: null, sfx: null, mus: null, noise: null, windGain: null, windFilt: null, timer: null,
+    sfxOn: store.get("sfx", "1") === "1", musicOn: store.get("music", "1") === "1",
+    SFX_VOL: 0.45, MUS_VOL: 0.085, level: 0,
+  };
+  function auInit() {
+    if (AU.ctx) { if (AU.ctx.state === "suspended") AU.ctx.resume().catch(() => {}); return; }
+    try {
+      const C = window.AudioContext || window.webkitAudioContext;
+      AU.ctx = new C({ latencyHint: "interactive" });
+    } catch (e) { AU.ctx = null; return; }
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+    const c = AU.ctx;
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2;
+    comp.connect(c.destination);
+    AU.master = c.createGain(); AU.master.gain.value = 0.9; AU.master.connect(comp);
+    AU.sfx = c.createGain(); AU.sfx.gain.value = AU.sfxOn ? AU.SFX_VOL : 0; AU.sfx.connect(AU.master);
+    AU.mus = c.createGain(); AU.mus.gain.value = AU.musicOn ? AU.MUS_VOL : 0; AU.mus.connect(AU.master);
+    const buf = c.createBuffer(1, c.sampleRate, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    AU.noise = buf;
+    // rüzgâr ambiyansı: döngülü filtreli gürültü
+    const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+    AU.windFilt = c.createBiquadFilter(); AU.windFilt.type = "bandpass"; AU.windFilt.frequency.value = 500; AU.windFilt.Q.value = 0.6;
+    AU.windGain = c.createGain(); AU.windGain.gain.value = 0;
+    src.connect(AU.windFilt).connect(AU.windGain).connect(AU.sfx);
+    src.start();
+    if (c.state === "suspended") c.resume().catch(() => {});
+    MUS.next = c.currentTime + 0.15;
+    AU.timer = setInterval(musicSchedule, 90);
+  }
+  const auOK = () => AU.ctx && AU.ctx.state === "running";
+  const now = () => AU.ctx.currentTime;
+  const vary = (v, pct) => v * (1 + (Math.random() * 2 - 1) * pct);
+  function env(g, t, a, peak, d) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + a + d);
+  }
+  function osc(type, f, t, dur, peak, dest, a, slide) {
+    const c = AU.ctx, o = c.createOscillator(), g = c.createGain();
+    a = a || 0.005;
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + a + dur);
+    env(g, t, a, peak, dur);
+    o.connect(g).connect(dest || AU.sfx);
+    o.start(t); o.stop(t + a + dur + 0.05);
+  }
+  function noise(t, dur, peak, ftype, freq, q, dest, a, freqEnd) {
+    const c = AU.ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    a = a || 0.002;
+    s.buffer = AU.noise;
+    f.type = ftype; f.frequency.setValueAtTime(freq, t);
+    if (freqEnd) f.frequency.exponentialRampToValueAtTime(freqEnd, t + a + dur);
+    f.Q.value = q || 0.7;
+    env(g, t, a, peak, dur);
+    s.connect(f).connect(g).connect(dest || AU.sfx);
+    s.start(t, Math.random() * 0.4); s.stop(t + a + dur + 0.05);
+  }
+  function duck(amount, hold) {
+    if (!AU.ctx || !AU.musicOn) return;
+    const t = now(), g = AU.mus.gain;
+    g.cancelScheduledValues(t);
+    g.setTargetAtTime(AU.MUS_VOL * amount, t, 0.02);
+    g.setTargetAtTime(AU.MUS_VOL, t + (hold || 0.25), 0.18);
+  }
+  function bell(f, t, v) {
+    v = v || 1;
+    osc("sine", f, t, 0.9, 0.32 * v, null, 0.004);
+    osc("sine", f * 2.01, t, 0.5, 0.11 * v);
+    osc("sine", f * 3.02, t, 0.25, 0.045 * v);
+  }
+  const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26, 28, 31];
+  const SFX = {
+    thud(k) { if (!auOK()) return; k = k || 1; const t = now();
+      osc("sine", vary(150, 0.05), t, 0.22, 0.85 * k, null, 0.003, 48);
+      noise(t, 0.09, vary(0.45, 0.15) * k, "lowpass", vary(1200, 0.12), 0.7);
+      noise(t, 0.014, 0.22 * k, "highpass", 3200, 0.7);
+      duck(0.6, 0.15); },
+    perfect(streak) { if (!auOK()) return; const t = now();
+      const i = Math.min(Math.max(0, streak - 1), PENTA.length - 1);
+      const f = 523.25 * Math.pow(2, PENTA[i] / 12);
+      bell(f, t); osc("triangle", f * 2, t + 0.03, 0.22, 0.05);
+      duck(0.5, 0.3); },
+    release() { if (!auOK()) return; const t = now();
+      osc("square", vary(1700, 0.05), t, 0.025, 0.05);
+      noise(t, 0.03, 0.08, "highpass", 4500); },
+    whoosh() { if (!auOK()) return; const t = now(); noise(t, 0.3, 0.2, "bandpass", 350, 1.4, null, 0.05, 1500); },
+    winch() { if (!auOK()) return; const t = now(); osc("sawtooth", 70, t, 0.32, 0.018, null, 0.05, 110); },
+    topple() { if (!auOK()) return; const t = now();
+      noise(t, 0.45, 0.28, "bandpass", 900, 2.5, null, 0.02, 280);
+      osc("sawtooth", 120, t, 0.4, 0.04, null, 0.01, 55); },
+    crash() { if (!auOK()) return; const t = now();
+      noise(t, 0.9, 0.55, "lowpass", 2600, 0.6, null, 0.003, 280);
+      osc("sine", 95, t, 0.5, 0.75, null, 0.003, 32);
+      noise(t + 0.07, 0.45, 0.18, "highpass", 3200, 0.5);
+      duck(0.35, 0.5); },
+    fall() { if (!auOK()) return; const t = now(); osc("sine", 720, t, 0.6, 0.07, null, 0.01, 170); },
+    lifeLost() { if (!auOK()) return; const t = now(); osc("triangle", 440, t, 0.14, 0.14); osc("triangle", 311, t + 0.15, 0.3, 0.14); },
+    milestone() { if (!auOK()) return; const t = now(); [0, 4, 7, 12, 16].forEach((s, i) => bell(523.25 * Math.pow(2, s / 12), t + i * 0.08, 0.8)); duck(0.4, 0.6); },
+    attackSend() { if (!auOK()) return; const t = now(); osc("sawtooth", 220, t, 0.35, 0.07, null, 0.01, 880); osc("square", 440, t + 0.05, 0.3, 0.035, null, 0.01, 1760); },
+    attackIn() { if (!auOK()) return; const t = now(); for (let i = 0; i < 3; i++) osc("square", i % 2 ? 660 : 880, t + i * 0.14, 0.1, 0.06); },
+    blocked() { if (!auOK()) return; const t = now(); bell(1046.5, t, 0.7); bell(1568, t + 0.08, 0.7); },
+    click() { if (!auOK()) return; osc("triangle", 1400, now(), 0.035, 0.08); },
+    beep(go) { if (!auOK()) return; osc("square", go ? 988 : 660, now(), go ? 0.35 : 0.12, 0.08); },
+    tick() { if (!auOK()) return; osc("square", 1500, now(), 0.035, 0.04); },
+    win() { if (!auOK()) return; const t = now(); [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => { const f = 392 * Math.pow(2, s / 12); osc("triangle", f, t + i * 0.09, i === 6 ? 0.8 : 0.16, 0.12); osc("sine", f * 2, t + i * 0.09, 0.12, 0.04); }); duck(0.2, 1.2); },
+    lose() { if (!auOK()) return; const t = now(); [7, 3, 0, -5].forEach((s, i) => osc("triangle", 392 * Math.pow(2, s / 12), t + i * 0.16, i === 3 ? 0.7 : 0.18, 0.12)); duck(0.2, 1.2); },
+  };
+  function setWindSound(level) {
+    if (!AU.ctx || !AU.windGain) return;
+    const t = now();
+    AU.windGain.gain.setTargetAtTime(level * 0.22, t, 0.3);
+    AU.windFilt.frequency.setTargetAtTime(380 + level * 420 + Math.sin(t * 0.9) * 120, t, 0.3);
+  }
+  function setSfx(on) { AU.sfxOn = on; store.set("sfx", on ? "1" : "0"); if (AU.sfx) AU.sfx.gain.setTargetAtTime(on ? AU.SFX_VOL : 0, now(), 0.05); }
+  function setMusic(on) { AU.musicOn = on; store.set("music", on ? "1" : "0"); if (AU.mus) { AU.mus.gain.cancelScheduledValues(now()); AU.mus.gain.setTargetAtTime(on ? AU.MUS_VOL : 0, now(), 0.1); } }
+  document.addEventListener("visibilitychange", () => {
+    if (!AU.ctx) return;
+    if (document.visibilityState === "hidden") AU.ctx.suspend().catch(() => {});
+    else AU.ctx.resume().catch(() => {});
+  });
+
+  // Üretken müzik: 92 BPM, C–G–Am–F; her 8 ölçüde yeni melodi; yükseklikle yoğunlaşır.
+  const MUS = { bpm: 92, step: 0, next: 0, prog: [[0, 4, 7], [7, 11, 14], [9, 12, 16], [5, 9, 12]] };
+  function musicSchedule() {
+    const c = AU.ctx;
+    if (!c || c.state !== "running") return;
+    const spb = 60 / MUS.bpm / 2;
+    if (MUS.next < c.currentTime) MUS.next = c.currentTime + 0.05;
+    while (MUS.next < c.currentTime + 0.35) { if (AU.musicOn) playStep(MUS.step, MUS.next, spb); MUS.step++; MUS.next += spb; }
+  }
+  function playStep(s, t, spb) {
+    const c = AU.ctx, bar = Math.floor(s / 8), pos = s % 8, chord = MUS.prog[bar % 4];
+    const lvl = AU.level;
+    if (pos === 0) {
+      const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900 + lvl * 400;
+      const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 0.35); g.gain.linearRampToValueAtTime(0.0001, t + spb * 8 + 0.4);
+      lp.connect(g).connect(AU.mus);
+      for (const n of chord) for (const det of [-6, 6]) {
+        const o = c.createOscillator(); o.type = "triangle"; o.frequency.value = 261.63 * Math.pow(2, n / 12); o.detune.value = det;
+        o.connect(lp); o.start(t); o.stop(t + spb * 8 + 0.5);
+      }
+    }
+    const root = 65.41 * Math.pow(2, chord[0] / 12);
+    if (pos === 0 || pos === 4) osc("sine", root, t, spb * 3, 0.3, AU.mus, 0.01);
+    if (pos === 6 && lvl > 0) osc("sine", root * 1.5, t, spb, 0.18, AU.mus, 0.01);
+    const phrase = Math.floor(bar / 8);
+    const r = hash(phrase * 977 + 13, s % 16);
+    if (r < (lvl > 0 ? 0.5 : 0.3)) {
+      const pool = [0, 2, 4, 7, 9, 12, 14, 16];
+      const note = pool[Math.floor(hash(phrase, s % 16 + 100) * pool.length)];
+      const f = 523.25 * Math.pow(2, note / 12);
+      osc("triangle", f, t, spb * 1.6, 0.07, AU.mus, 0.004);
+      osc("sine", f * 2, t, spb * 0.8, 0.02, AU.mus, 0.004);
+    }
+    if (lvl > 0 && pos % 2 === 1) noise(t, 0.03, 0.035, "highpass", 8000, 0.7, AU.mus);
+    if (lvl > 0 && (pos === 2 || pos === 6)) noise(t, 0.08, 0.05, "bandpass", 1800, 0.8, AU.mus);
+    if (lvl > 1) { const a = [0, 7, 12, 16][pos % 4]; osc("square", 523.25 * Math.pow(2, (chord[0] + a) / 12), t, spb * 0.5, 0.012, AU.mus); }
+  }
+
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  // =====================================================================
+  //  Sahne verileri
   // =====================================================================
   function makeCity(seed, minH, maxH) {
     const r = rng(seed), out = [];
@@ -343,19 +489,16 @@
       const b = { x, w, h: minH + r() * (maxH - minH), cap: r(), wins: [] };
       const cols = Math.max(1, Math.floor(w / 0.018)), rows = Math.floor(b.h / 0.035);
       for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) if (r() < 0.32) b.wins.push([(i + 0.5) / cols, (j + 0.6) / (rows + 0.4)]);
-      out.push(b);
-      x += w + 0.004 + r() * 0.01;
+      out.push(b); x += w + 0.004 + r() * 0.01;
     }
     return out;
   }
-  const cityFar = makeCity(11, 0.12, 0.42);
-  const cityNear = makeCity(29, 0.06, 0.3);
-  const stars = []; (() => { const r = rng(5); for (let i = 0; i < 70; i++) stars.push({ x: r(), y: r(), s: 0.5 + r() * 1.4, tw: r() * 6 }); })();
-  const clouds = []; (() => { const r = rng(17); for (let k = 0; k < 40; k++) clouds.push({ alt: 3 + k * 4.2 + r() * 2, x: r(), s: 0.6 + r() * 0.8, v: 0.004 + r() * 0.01, sp: r() < 0.5 ? 0 : 1 }); })();
-
+  const cityFar = makeCity(11, 0.12, 0.42), cityNear = makeCity(29, 0.06, 0.3);
+  const stars = []; (() => { const r = rng(5); for (let i = 0; i < 90; i++) stars.push({ x: r(), y: r(), s: 0.5 + r() * 1.4, tw: r() * 6 }); })();
+  const clouds = []; (() => { const r = rng(17); for (let k = 0; k < 40; k++) clouds.push({ alt: 3 + k * 1.1 + r() * 0.8, x: r(), s: 0.6 + r() * 0.8, v: 0.004 + r() * 0.01, sp: r() < 0.5 ? 0 : 1 }); })();
   const cloudSprites = [0, 1].map(k => {
     const c = document.createElement("canvas"); c.width = 320; c.height = 140;
-    const g = c.getContext("2d"); const r = rng(41 + k * 7);
+    const g = c.getContext("2d"), r = rng(41 + k * 7);
     for (let i = 0; i < 14; i++) {
       const x = 50 + r() * 220, y = 70 + (r() - 0.3) * 40, rad = 26 + r() * 36;
       const gr = g.createRadialGradient(x, y, 0, x, y, rad);
@@ -364,33 +507,32 @@
     }
     return c;
   });
-
-  const SKY_TOP = [[0, hex("#3f86d6")], [0.35, hex("#4d74b8")], [0.62, hex("#2c2d66")], [1, hex("#060a1c")]];
-  const SKY_BOT = [[0, hex("#cfe7f7")], [0.35, hex("#ffc98c")], [0.62, hex("#ef7f66")], [1, hex("#1f2a52")]];
-  const FAR_TINT = [[0, hex("#8aa3c0")], [0.35, hex("#9b8fa8")], [0.62, hex("#5a4c7a")], [1, hex("#141a36")]];
-  const NEAR_TINT = [[0, hex("#5d728e")], [0.35, hex("#5f5371")], [0.62, hex("#352c52")], [1, hex("#0b1026")]];
+  // 7 duraklı gökyüzü: gündüz → ikindi → altın saat → gün batımı → alacakaranlık → gece → uzay
+  const SKY_TOP = [[0, hex("#3f86d6")], [0.18, hex("#4a7fcc")], [0.33, hex("#4d6fb3")], [0.47, hex("#3a3878")], [0.6, hex("#1f2257")], [0.78, hex("#070b1f")], [1, hex("#020208")]];
+  const SKY_BOT = [[0, hex("#cfe7f7")], [0.18, hex("#e3e6dc")], [0.33, hex("#ffc98c")], [0.47, hex("#f07f66")], [0.6, hex("#6b4a86")], [0.78, hex("#1c2650")], [1, hex("#0b0a1c")]];
+  const FAR_TINT = [[0, hex("#8aa3c0")], [0.33, hex("#9b8fa8")], [0.47, hex("#5a4c7a")], [0.78, hex("#141a36")], [1, hex("#0a0a18")]];
+  const NEAR_TINT = [[0, hex("#5d728e")], [0.33, hex("#5f5371")], [0.47, hex("#352c52")], [0.78, hex("#0b1026")], [1, hex("#05050e")]];
+  const SKY_FLOORS = 60;
 
   // =====================================================================
-  //  Oyuncular
+  //  Oyuncular ve oyun durumu
   // =====================================================================
   const PLAYERS = [
-    { name: "OYUNCU 1", accent: "#ff6a3d", light: "#ffb89c", g0: "#ffd9bd", g1: "#e98a62", g2: "#8a3f27" },
-    { name: "OYUNCU 2", accent: "#1fc2b0", light: "#8ef0e2", g0: "#c4f3ea", g1: "#3ba99c", g2: "#1a5b60" },
+    { name: "OYUNCU 1", accent: "#ff6a3d", light: "#ffb89c", g0: "#ffd9bd", g1: "#e98a62", g2: "#8a3f27", wall: "#f3d2bd", wallD: "#c98d6e" },
+    { name: "OYUNCU 2", accent: "#1fc2b0", light: "#8ef0e2", g0: "#c4f3ea", g1: "#3ba99c", g2: "#1a5b60", wall: "#cdeee8", wallD: "#77b8ad" },
   ];
   const P = PLAYERS.map(d => Object.assign({}, d));
 
-  let screen = "menu";    // menu | game
-  let state = "ready";    // ready | countdown | play | over
-  let countdown = 0, overAt = 0, clock = 0, timeLeft = TIMED_SECONDS, overNote = "";
+  let screen = "menu";   // menu | game
+  let state = "ready";   // ready | countdown | play | over
+  let countdown = 0, overAt = 0, clock = 0, timeLeft = TIMED_SECONDS, overNote = "", roundSeed = 1, newBest = false;
 
-  function resetPlayer(p) {
-    p.blocks = [{ x: (1 - BASE_W) / 2, w: BASE_W }];
-    p.combo = 0; p.alive = true; p.cam = 0; p.vf = 9;
-    p.debris = []; p.pops = []; p.parts = []; p.rings = []; p.streaks = [];
-    p.ready = false; p.shake = 0; p.boostT = 0; p.sway = 0; p.atk = 0; p.attackFlash = 0;
-    spawn(p);
-  }
+  const isSingle = () => cfg.layout === "single";
+  const isOnline = () => cfg.layout === "online";
+  const activePlayers = () => (isSingle() ? [P[0]] : P);
+  const other = p => (p === P[0] ? P[1] : P[0]);
   const floors = p => (p.blocks ? p.blocks.length - 1 : 0);
+  const topSurface = p => p.blocks.length;
 
   function windAt(i) {
     const zones = [[8, 12, 1], [18, 23, -1], [29, 35, 1]];
@@ -399,146 +541,339 @@
     return null;
   }
 
-  function speedOf(p) {
+  // Sarkaç parametreleri (iamkun/tower_game değerlerinden uyarlandı): genlik 30°/60°/80°, periyot ≈1,26/1,57/1,8/1,7 s
+  function swingFor(p, i, storm) {
+    const baseA = i <= 1 ? 14 : i < 10 ? 30 : i < 20 ? 60 : 80;
+    let amp = baseA + hash(p.seed, i * 2) * 5;
+    let period = i < 10 ? 1.26 : i < 20 ? 1.57 : i < 30 ? 1.8 : 1.7;
+    if (storm) { amp = Math.min(86, amp + 25); period *= 0.7; }
+    const sign = hash(p.seed, i * 2 + 1) < 0.5 ? -1 : 1;
+    return { amp: amp * Math.PI / 180 * sign, period };
+  }
+
+  function resetPlayer(p, seed) {
+    p.seed = seed | 0;
+    p.blocks = [{ x: 0.5, w: BASE_W, perfect: false }];
+    p.score = 0; p.streak = 0; p.lives = LIVES; p.alive = true;
+    p.cam = 0; p.vf = 9;
+    p.phase = "lower"; p.phaseT = 0; p.t = 0; p.swing = swingFor(p, 1, false); p.storm = false;
+    p.fall = null; p.topple = null; p.retract = 0;
+    p.swayT = 0; p.swayAmp = 0;
+    p.incoming = 0; p.atk = 0; p.misses = 0;
+    p.debris = []; p.pops = []; p.parts = []; p.rings = []; p.streaks = []; p.planes = []; p.birds = []; p.meteors = [];
+    p.trauma = 0; p.freeze = 0; p.squash = 0; p.flash = 0; p.attackFlash = 0;
+    p.ready = false; p.remote = false;
+  }
+
+  function ropeLen(p) { return p.phase === "lower" ? ROPE * lerp(0.25, 1, easeOut(p.phaseT / 0.42)) : ROPE; }
+  function pivotY(p) { return topSurface(p) + DROP_H + 1 + ROPE; }
+  function hookAngle(p) {
+    const w = windAt(p.blocks.length);
+    const bias = w ? w.dir * w.s * 0.1 : 0;
+    return p.swing.amp * Math.sin(2 * Math.PI * p.t / p.swing.period) + bias;
+  }
+  function swayAt(p, i) {
+    const S = p.swayAmp * Math.sin(2 * Math.PI * p.swayT / 2.6);
+    return S * Math.pow(clamp(i / 20, 0, 1), 1.2);
+  }
+  function updateSwayAmp(p) {
     const n = floors(p);
-    return Math.min(1.25, 0.4 + n * 0.022) * (p.boostT > 0 ? BOOST_MUL : 1);
+    let mis = 0, k = 0;
+    for (let i = Math.max(1, p.blocks.length - 8); i < p.blocks.length; i++) { mis += Math.abs(p.blocks[i].x - p.blocks[i - 1].x); k++; }
+    const avg = k ? mis / k : 0;
+    p.swayAmp = (n >= 5 ? Math.min(0.06, 0.003 * (n - 4)) : 0) + Math.min(0.04, avg * 0.5);
   }
 
-  function spawn(p) {
-    const top = p.blocks[p.blocks.length - 1];
-    const dir = p.blocks.length % 2 ? 1 : -1;
-    p.cur = { w: top.w, dir, x: dir > 0 ? -top.w * 0.25 : 1 - top.w * 0.75 };
+  function spawnNext(p) {
+    const i = p.blocks.length;
+    let storm = false;
+    if (p.incoming > 0) { p.incoming--; storm = true; p.attackFlash = 1; SFX.attackIn(); buzz([30, 40, 30]); p.pops.push({ text: "FIRTINA BLOĞU!", life: 1.3, x: 0.5, y: i + 3.5, c: "#ff6b78" }); }
+    p.storm = storm;
+    p.swing = swingFor(p, i, storm);
+    p.t = 0; p.phase = "lower"; p.phaseT = 0;
+    SFX.winch();
   }
 
-  function other(p) { return p === P[0] ? P[1] : P[0]; }
+  function popText(p, text, c, dy) { p.pops.push({ text, life: 1.1, x: 0.5, y: topSurface(p) + (dy || 1.2), c }); }
 
-  function addDust(p, b, idx) {
+  function addDust(p, x, w, y) {
     for (let s = 0; s < 2; s++) {
-      const ex = s ? b.x + b.w : b.x;
-      for (let i = 0; i < 7; i++) p.parts.push({ x: ex, y: idx, vx: (s ? 1 : -1) * (0.05 + Math.random() * 0.12), vy: Math.random() * 0.8, life: 0.5 + Math.random() * 0.4, size: 2 + Math.random() * 3 });
+      const ex = s ? x + w / 2 : x - w / 2;
+      for (let i = 0; i < 7; i++) p.parts.push({ x: ex, y, vx: (s ? 1 : -1) * (0.05 + Math.random() * 0.12), vy: Math.random() * 0.8, life: 0.5 + Math.random() * 0.4, size: 2 + Math.random() * 3, c: "225,215,200" });
     }
+  }
+  function confetti(p) {
+    const cols = ["255,106,61", "31,194,176", "244,180,0", "255,255,255", "140,120,255"];
+    for (let i = 0; i < 40; i++) p.parts.push({ x: 0.5 + (Math.random() - 0.5) * 0.6, y: topSurface(p) + 3 + Math.random() * 2, vx: (Math.random() - 0.5) * 0.4, vy: 1 + Math.random() * 2, life: 1.2 + Math.random() * 0.6, size: 2 + Math.random() * 2.5, c: cols[i % cols.length], sq: true });
+  }
+
+  function tryDrop(p) {
+    if (p.phase !== "swing") return;
+    const a = hookAngle(p);
+    const py = pivotY(p);
+    p.fall = { x: 0.5 + Math.sin(a) * ROPE * BHW, y: py - Math.cos(a) * ROPE - 1, vy: 0, rot: a, drift: 0 };
+    p.phase = "drop"; p.retract = 0.3;
+    SFX.release(); SFX.whoosh();
   }
 
   function sendAttack(from) {
     const to = other(from);
-    from.pops.push({ text: "SALDIRI GÖNDERİLDİ", life: 1.3, x: 0.5, y: from.blocks.length + 1.5, c: "#ffd34d" });
-    tone(300, 0.25, "sawtooth", 0.05, 900);
-    if (cfg.layout === "online") { from.atk++; pushPresence(true); }
-    else receiveAttack(to);
-  }
-  function receiveAttack(p) {
-    p.boostT = BOOST_TIME; p.attackFlash = 1;
-    p.pops.push({ text: "VİNÇ HIZLANDI!", life: 1.3, x: 0.5, y: p.blocks.length + 1.5, c: "#ff6b78" });
-    alarm(); buzz([30, 40, 30]);
+    if (from.incoming > 0) {
+      from.incoming--;
+      popText(from, "SALDIRI ENGELLENDİ", "#8ef0e2", 2.2);
+      SFX.blocked();
+      return;
+    }
+    popText(from, "SALDIRI GÖNDERİLDİ", "#ffd34d", 2.2);
+    SFX.attackSend();
+    if (isOnline()) { from.atk++; pushPresence(true); }
+    else if (!isSingle()) { to.incoming = Math.min(3, to.incoming + 1); to.attackFlash = 0.6; }
   }
 
-  function drop(p) {
-    const top = p.blocks[p.blocks.length - 1];
-    const c = p.cur;
-    const n = p.blocks.length;
-    if (Math.abs(c.x - top.x) < PERFECT) {
-      p.combo++;
-      let x = top.x, w = top.w;
-      if (p.combo >= 3 && w < BASE_W) { const g = Math.min(0.03, BASE_W - w); x -= g / 2; w += g; }
-      p.blocks.push({ x, w });
-      p.rings.push({ x: x + w / 2, w, y: n, life: 1 });
-      p.pops.push({ text: p.combo > 1 ? "KUSURSUZ ×" + p.combo : "KUSURSUZ", life: 1, x: x + w / 2, y: n + 1.2, c: p.light });
-      ding(p.combo); buzz(15);
-      addDust(p, { x, w }, n);
-      if (p.combo % ATTACK_EVERY === 0) sendAttack(p);
+  function land(p) {
+    const f = p.fall, top = p.blocks[p.blocks.length - 1];
+    const ti = p.blocks.length - 1;
+    const topX = top.x + swayAt(p, ti);
+    const d = f.x - topX, ad = Math.abs(d);
+    const y = topSurface(p);
+    if (ad <= PERFECT * BW) {
+      const ni = p.blocks.length;
+      p.blocks.push({ x: topX - swayAt(p, ni), w: BW, perfect: true });
+      p.streak++;
+      const gain = 25 + 25 * p.streak;
+      p.score += gain;
+      p.rings.push({ x: topX, w: BW, y, life: 1 });
+      p.pops.push({ text: (p.streak > 1 ? "KUSURSUZ ×" + p.streak : "KUSURSUZ") + "  +" + gain, life: 1.1, x: topX, y: y + 1.4, c: "#ffd34d" });
+      p.freeze = 0.06; p.trauma = Math.min(1, p.trauma + 0.18); p.squash = 1;
+      SFX.thud(0.7); SFX.perfect(p.streak); buzz(15);
+      addDust(p, topX, BW, y);
+      if (p.streak % ATTACK_EVERY === 0 && !isSingle()) sendAttack(p);
+      afterLanding(p);
+    } else if (ad <= 0.5 * BW) {
+      const ni = p.blocks.length;
+      p.blocks.push({ x: f.x - swayAt(p, ni), w: BW, perfect: false });
+      p.streak = 0;
+      p.score += 25;
+      p.pops.push({ text: "+25", life: 0.9, x: f.x, y: y + 1.3, c: "#ffffff" });
+      p.trauma = Math.min(1, p.trauma + 0.3); p.squash = 1;
+      SFX.thud(1); buzz(10);
+      addDust(p, f.x, BW, y);
+      afterLanding(p);
+    } else if (ad < BW) {
+      const side = d > 0 ? 1 : -1;
+      p.topple = { side, px: topX + side * BW / 2, bx: f.x, y, th: 0, w: 0 };
+      p.phase = "topple"; p.fall = null;
+      SFX.thud(0.6); SFX.topple();
     } else {
-      const l = Math.max(c.x, top.x), r = Math.min(c.x + c.w, top.x + top.w);
-      if (r - l <= 0) { miss(p); return; }
-      p.combo = 0;
-      p.blocks.push({ x: l, w: r - l });
-      if (c.x < top.x) p.debris.push({ x: c.x, w: top.x - c.x, y: n, vy: 0, vx: -0.1, rot: 0, vr: -2.4 });
-      else p.debris.push({ x: r, w: c.x + c.w - r, y: n, vy: 0, vx: 0.1, rot: 0, vr: 2.4 });
-      thud();
-      addDust(p, { x: l, w: r - l }, n);
+      p.debris.push({ x: f.x, y: f.y, w: BW, vy: f.vy, vx: 0, rot: 0, vr: (Math.random() - 0.5) * 2, perfect: false });
+      p.fall = null;
+      SFX.fall();
+      loseLife(p);
     }
-    saveRecord(floors(p));
-    spawn(p);
-    if (cfg.layout === "online") pushPresence(true);
   }
 
-  function miss(p) {
-    const c = p.cur, n = p.blocks.length;
-    p.debris.push({ x: c.x, w: c.w, y: n, vy: 0, vx: c.dir * 0.12, rot: 0, vr: c.dir * 2.2 });
-    p.shake = 1; p.combo = 0;
-    crash(); buzz([40, 40, 90]);
-    if (cfg.mode === "timed") {
-      const lose = Math.min(2, floors(p));
-      for (let i = 0; i < lose; i++) {
-        const b = p.blocks.pop();
-        p.debris.push({ x: b.x, w: b.w, y: p.blocks.length, vy: -1 - i, vx: (Math.random() - 0.5) * 0.2, rot: 0, vr: (Math.random() - 0.5) * 4 });
-      }
-      p.pops.push({ text: lose ? "−" + lose + " KAT" : "ISKA", life: 1.2, x: 0.5, y: p.blocks.length + 1.5, c: "#ff6b78" });
-      spawn(p);
-    } else {
-      p.alive = false;
-      saveRecord(floors(p));
+  function afterLanding(p) {
+    p.fall = null;
+    p.phase = "settle"; p.phaseT = 0;
+    updateSwayAmp(p);
+    const n = floors(p);
+    if (n > 0 && n % 10 === 0) {
+      p.flash = 0.15; confetti(p);
+      p.pops.push({ text: n + ". KAT!", life: 1.6, x: 0.5, y: topSurface(p) + 3.2, c: "#ffffff", big: true });
+      setTimeout(() => SFX.milestone(), 120);
     }
-    if (cfg.layout === "online") pushPresence(true);
-    else checkLocalOver();
+    if (PLANE_FLOORS.includes(n)) { const dir = Math.random() < 0.5 ? 1 : -1; p.planes.push({ dir, x: dir > 0 ? -0.4 : 1.4, y: topSurface(p) + 4.5 + Math.random() * 2 }); }
+    if (isOnline() && p === me()) pushPresence(true);
+  }
+
+  function loseLife(p) {
+    p.streak = 0; p.misses++;
+    p.trauma = Math.min(1, p.trauma + 0.6);
+    buzz([40, 40, 90]);
+    setTimeout(() => SFX.crash(), 250);
+    if (cfg.mode === "classic") {
+      p.lives--;
+      if (p.lives > 0) { SFX.lifeLost(); popText(p, p.lives + " CAN KALDI", "#ff6b78", 2.4); }
+    } else popText(p, "ISKA", "#ff6b78", 2.4);
+    if (cfg.mode === "classic" && p.lives <= 0) {
+      p.alive = false; p.phase = "dead";
+      if (isOnline()) pushPresence(true);
+      else checkLocalOver();
+    } else {
+      p.phase = "settle"; p.phaseT = -0.35;
+      if (isOnline()) pushPresence(true);
+    }
   }
 
   function checkLocalOver() {
-    if (cfg.mode === "classic" && P.every(q => !q.alive)) endGame("");
+    if (cfg.mode === "classic" && activePlayers().every(q => !q.alive)) endGame("");
   }
 
   function endGame(note) {
     if (state === "over") return;
     state = "over"; overAt = clock; overNote = note || "";
-    P.forEach(q => { q.ready = false; saveRecord(floors(q)); });
-    tone(392, 0.2, "triangle", 0.07); tone(523, 0.2, "triangle", 0.07, null, 0.15); tone(784, 0.35, "triangle", 0.07, null, 0.3);
-    if (cfg.layout === "online") { me().ready = false; pushPresence(true); }
+    P.forEach(q => { q.ready = false; });
+    newBest = false;
+    for (const q of activePlayers()) if (!q.remote && saveBest(q.score)) newBest = true;
+    if (isSingle()) { if (newBest) SFX.win(); else SFX.lose(); }
+    else {
+      const meP = isOnline() ? me() : null;
+      if (meP) { const o = other(meP); (meP.score >= o.score ? SFX.win : SFX.lose)(); } else SFX.win();
+    }
+    AU.level = 0;
+    if (isOnline()) { me().ready = false; pushPresence(true); }
     updateRecordLine();
   }
 
   let wakeLock = null;
-  function keepAwake() {
-    try { navigator.wakeLock && navigator.wakeLock.request("screen").then(l => { wakeLock = l; }).catch(() => {}); } catch (e) {}
-  }
+  function keepAwake() { try { if (navigator.wakeLock) navigator.wakeLock.request("screen").then(l => { wakeLock = l; }).catch(() => {}); } catch (e) {} }
 
-  function startRound() {
-    P.forEach(resetPlayer);
-    state = "countdown"; countdown = 3.6; timeLeft = TIMED_SECONDS; overNote = "";
+  function startRound(seed) {
+    roundSeed = seed | 0;
+    P.forEach(p => resetPlayer(p, roundSeed));
+    if (isOnline()) P[1].remote = true;
+    state = "countdown"; countdown = 3.6; timeLeft = TIMED_SECONDS; overNote = ""; newBest = false;
+    AU.level = 1;
     keepAwake();
   }
 
   function tap(p) {
-    ensureAudio();
+    auInit();
     if (screen !== "game") return;
     if (state === "ready" || (state === "over" && clock - overAt > 0.9)) {
-      if (cfg.layout === "online") {
-        if (!me().ready) { me().ready = true; tone(440, 0.08, "square", 0.05); pushPresence(true); }
-        return;
-      }
-      if (!p.ready) { p.ready = true; tone(440, 0.08, "square", 0.05); }
-      if (P.every(q => q.ready)) startRound();
+      if (isOnline()) { if (!me().ready) { me().ready = true; SFX.click(); pushPresence(true); } return; }
+      if (!p.ready) { p.ready = true; SFX.click(); }
+      if (activePlayers().every(q => q.ready)) startRound((Math.random() * 2147483646) | 0);
     } else if (state === "play" && p.alive && !p.remote && !(cfg.mode === "timed" && timeLeft <= 0)) {
-      drop(p);
+      tryDrop(p);
     }
   }
 
   // =====================================================================
-  //  Online (claude.ai "room" yeteneği)
+  //  Fizik adımı (sabit 1/120 s)
   // =====================================================================
-  const net = { api: null, apiP: null, room: null, code: "", host: false, r: 0, lastAtk: 0, oppSeen: 0, lastSend: 0, doneAt: 0, prevN: 0, prevSt: "" };
+  function stepPlayer(p, dt) {
+    if (!p.blocks) return;
+    p.swayT += dt;
+    if (p.freeze > 0) { p.freeze -= dt; return; }
+    const playing = state === "play" && !(cfg.mode === "timed" && timeLeft <= 0);
+    if (!p.remote && p.alive) {
+      if (p.phase === "lower") { p.phaseT += dt; p.t += dt; if (p.phaseT >= 0.42) { p.phase = "swing"; } }
+      else if (p.phase === "swing") { if (playing) p.t += dt; }
+      else if (p.phase === "drop") {
+        const f = p.fall;
+        f.vy += G * dt; f.y -= f.vy * dt;
+        f.rot *= Math.exp(-10 * dt);
+        const w = windAt(p.blocks.length);
+        if (w) { const dx = w.dir * w.s * 0.1 * dt; if (Math.abs(f.drift + dx) <= 0.15 * BW) { f.drift += dx; f.x += dx; } }
+        if (f.y <= topSurface(p)) { f.y = topSurface(p); land(p); }
+      } else if (p.phase === "topple") {
+        const tp = p.topple;
+        tp.w += 9 * dt; tp.th += tp.w * dt;
+        if (tp.th > 1.3) {
+          // dönen bloğu serbest düşen parçaya çevir
+          const phi = -tp.side * tp.th;
+          const dx = tp.bx - tp.px, dyu = 0.5 * BHW;
+          const cx = tp.px + dx * Math.cos(phi) - dyu * Math.sin(phi);
+          const cy = tp.y + (dx * Math.sin(phi) + dyu * Math.cos(phi)) / BHW;
+          p.debris.push({ x: cx, y: cy - 0.5, w: BW, vy: 1.5, vx: tp.side * 0.18, rot: tp.side * tp.th, vr: tp.side * tp.w, perfect: false });
+          p.topple = null;
+          loseLife(p);
+        }
+      } else if (p.phase === "settle") {
+        p.phaseT += dt;
+        if (p.phaseT >= 0.25 && playing) spawnNext(p);
+      }
+    }
+    p.retract = Math.max(0, p.retract - dt);
+  }
+
+  function fxPlayer(p, dt) {
+    if (!p.blocks) return;
+    const camT = Math.max(0, topSurface(p) - p.vf * 0.28);
+    p.cam += (camT - p.cam) * Math.min(1, dt * 4);
+    p.trauma = Math.max(0, p.trauma - dt * 1.6);
+    p.squash = Math.max(0, p.squash - dt * 7);
+    p.flash = Math.max(0, p.flash - dt);
+    p.attackFlash = Math.max(0, p.attackFlash - dt * 0.8);
+    for (const d of p.debris) { d.vy += G * dt; d.y -= d.vy * dt; d.x += d.vx * dt; d.rot += d.vr * dt; }
+    p.debris = p.debris.filter(d => d.y > p.cam - 15);
+    for (const s of p.pops) { s.life -= dt * 0.8; s.y += dt * 0.9; }
+    p.pops = p.pops.filter(s => s.life > 0);
+    for (const q of p.parts) { q.x += q.vx * dt; q.y += q.vy * dt; q.vy -= (q.sq ? 2.5 : 1.2) * dt; q.vx *= 0.97; q.life -= dt; }
+    p.parts = p.parts.filter(q => q.life > 0);
+    for (const g of p.rings) g.life -= dt * 1.6;
+    p.rings = p.rings.filter(g => g.life > 0);
+    for (const pl of p.planes) pl.x += pl.dir * 0.22 * dt;
+    p.planes = p.planes.filter(pl => pl.x > -0.6 && pl.x < 1.6);
+    // kuşlar (alçak irtifa) ve meteorlar (uzay)
+    const n = floors(p);
+    if (n < 20 && p.birds.length < 2 && Math.random() < dt * 0.12) {
+      const dir = Math.random() < 0.5 ? 1 : -1;
+      const flock = []; const k = 3 + (Math.random() * 3 | 0);
+      for (let i = 0; i < k; i++) flock.push({ ox: -i * 0.04 * dir, oy: (i % 2 ? 1 : -1) * i * 0.18, ph: Math.random() * 6 });
+      p.birds.push({ dir, x: dir > 0 ? -0.2 : 1.2, y: p.cam + 3 + Math.random() * Math.max(2, p.vf - 5), v: 0.12 + Math.random() * 0.06, flock });
+    }
+    for (const b of p.birds) b.x += b.dir * b.v * dt;
+    p.birds = p.birds.filter(b => b.x > -0.5 && b.x < 1.5);
+    if (n >= 42 && Math.random() < dt * 0.5) p.meteors.push({ x: Math.random() * 1.2, y: p.cam + p.vf * (0.5 + Math.random() * 0.5), life: 0.8 });
+    for (const m of p.meteors) { m.x -= 0.6 * dt; m.y -= 3 * dt; m.life -= dt; }
+    p.meteors = p.meteors.filter(m => m.life > 0);
+    const wind = windAt(p.blocks.length);
+    if (wind && p.alive && state === "play") {
+      if (p.streaks.length < 18 * wind.s && Math.random() < dt * 22 * wind.s) p.streaks.push({ x: wind.dir > 0 ? -0.2 : 1.2, y: Math.random(), l: 0.06 + Math.random() * 0.12, v: (0.6 + Math.random() * 0.6) * wind.dir * (0.6 + wind.s), a: 0.15 + Math.random() * 0.25 });
+    }
+    for (const s of p.streaks) s.x += s.v * dt;
+    p.streaks = p.streaks.filter(s => s.x > -0.4 && s.x < 1.4);
+  }
+
+  let acc = 0;
+  function update(dt) {
+    clock += dt;
+    if (screen === "game") {
+      if (state === "countdown") {
+        const before = Math.ceil(countdown - 0.6);
+        countdown -= dt;
+        const after = Math.ceil(countdown - 0.6);
+        if (after !== before) SFX.beep(after < 1);
+        if (countdown <= 0.6) state = "play";
+      } else if (state === "play" && countdown > 0) countdown -= dt;
+      if (state === "play" && cfg.mode === "timed" && timeLeft > 0) {
+        const before = Math.ceil(timeLeft);
+        timeLeft = Math.max(0, timeLeft - dt);
+        if (Math.ceil(timeLeft) !== before && timeLeft <= 5 && timeLeft > 0) SFX.tick();
+        if (timeLeft <= 0 && !isOnline()) endGame("Süre doldu");
+      }
+      if (isOnline()) onlineTick();
+    }
+    acc += dt;
+    while (acc >= STEP) { if (screen === "game") for (const p of P) if (!p.remote) stepPlayer(p, STEP); acc -= STEP; }
+    for (const p of P) { if (p.remote) remoteAdvance(p, dt); fxPlayer(p, dt); }
+    // müzik yoğunluğu ve rüzgâr sesi
+    if (screen === "game" && state === "play") {
+      const top = Math.max(...activePlayers().map(floors));
+      AU.level = top >= 20 ? 2 : 1;
+      let wl = 0;
+      for (const p of activePlayers()) { const w = p.alive && windAt(p.blocks.length); if (w) wl = Math.max(wl, w.s); }
+      setWindSound(wl);
+    } else setWindSound(0);
+  }
+
+  // =====================================================================
+  //  Online (claude.ai "room" veya PeerJS)
+  // =====================================================================
+  const net = { api: null, apiP: null, room: null, code: "", host: false, r: 0, lastAtk: 0, oppSeen: 0, lastSend: 0, doneAt: 0, lastPr: null };
   const me = () => P[0];
   const ROOM_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
   function getRoomApi() {
     if (!net.apiP) {
-      const use = window.claude && window.claude.use;
-      net.apiP = use ? Promise.resolve(window.claude.use("room")).catch(() => null) : Promise.resolve(null);
+      net.apiP = IN_CLAUDE ? Promise.resolve(window.claude.use("room")).catch(() => null) : Promise.resolve(null);
       net.apiP.then(a => { net.api = a; });
     }
     return net.apiP;
   }
-
-  // İki taşıma yolu: claude.ai içinde "room" yeteneği, normal web sitesinde PeerJS (WebRTC, hesap gerekmez).
-  function canPeer() { return !(window.claude && window.claude.use) && typeof RTCPeerConnection !== "undefined"; }
+  function canPeer() { return !IN_CLAUDE && typeof RTCPeerConnection !== "undefined"; }
   function newCode() { let c = ""; for (let i = 0; i < 4; i++) c += ROOM_CHARS[Math.floor(Math.random() * ROOM_CHARS.length)]; return c; }
 
   function wrapRoom(nr) {
@@ -546,13 +881,8 @@
       kind: "room",
       send(d) { nr.presence(d).catch(() => {}); },
       opp() {
-        let peers;
-        try { peers = nr.peers(); } catch (e) { return null; }
-        for (const p of peers) {
-          if (p.sameTab || p.kind !== "viewer") continue;
-          const pr = p.presence;
-          if (pr && pr.v === 1) return pr;
-        }
+        let peers; try { peers = nr.peers(); } catch (e) { return null; }
+        for (const p of peers) { if (p.sameTab || p.kind !== "viewer") continue; const pr = p.presence; if (pr && pr.v === 2) return pr; }
         return null;
       },
       leave() { return nr.leave(); },
@@ -573,7 +903,6 @@
     });
     return peerLibP;
   }
-
   async function peerTransport(code, host) {
     await loadPeerJS();
     const hostId = "kule-yarisi-" + code.toLowerCase();
@@ -586,13 +915,13 @@
         leave() { t.closed = true; try { peer.destroy(); } catch (e) {} },
       };
       let settled = false;
-      const fail = code => { if (settled) return; settled = true; try { peer.destroy(); } catch (e) {} reject({ code }); };
+      const fail = code2 => { if (settled) return; settled = true; try { peer.destroy(); } catch (e) {} reject({ code: code2 }); };
       function attach(conn) {
         if (t.conn && t.conn !== conn) { try { t.conn.close(); } catch (e) {} }
         t.conn = conn;
         conn.on("open", () => { if (!settled) { settled = true; resolve(t); } pushPresence(true); updateRoomStatus(); });
         conn.on("data", d => {
-          if (!d || typeof d !== "object" || d.v !== 1) return;
+          if (!d || typeof d !== "object" || d.v !== 2) return;
           const first = !t.opp();
           t.last = d; t.lastAt = performance.now();
           if (first) updateRoomStatus();
@@ -610,7 +939,6 @@
       peer.on("disconnected", () => { if (!t.closed) { try { peer.reconnect(); } catch (e) {} } });
     });
   }
-
   function joinError(e) {
     const c = (e && (e.code || e.type)) || "error";
     if (c === "peer-unavailable" || c === "timeout") return "Bu kodla açık bir oda bulunamadı. Kodu kontrol et; odayı kuranın oyunu açık olmalı.";
@@ -620,7 +948,6 @@
     if (c === "browser-incompatible") return "Bu tarayıcı online modu desteklemiyor. Chrome ya da Safari'nin güncel sürümünü dene.";
     return "Odaya bağlanılamadı (" + c + "). Biraz sonra tekrar dene.";
   }
-
   async function joinRoom(code, host, retried) {
     code = (code || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
     if (code.length !== 4) { setRoomStatus("Kod 4 karakter olmalı."); return; }
@@ -630,7 +957,7 @@
       const api = await getRoomApi();
       if (api) net.room = wrapRoom(await api.join("kule-" + code.toLowerCase()));
       else if (canPeer()) net.room = await peerTransport(code, host);
-      else { setRoomStatus("Online mod bu görünümde kullanılamıyor. Oyunu web adresinden (github.io) aç ya da claude.ai'de giriş yapmış olarak aç."); refreshMenu(); return; }
+      else { setRoomStatus("Online mod bu görünümde kullanılamıyor. Oyunu web adresinden aç ya da claude.ai'de giriş yapmış olarak aç."); refreshMenu(); return; }
       net.code = code; net.host = host; net.r = 0; net.lastAtk = 0;
       me().ready = false;
       pushPresence(true);
@@ -649,13 +976,11 @@
     setRoomStatus("Bir oda kur ve kodu arkadaşına söyle, ya da onun kodunu yazıp katıl.");
     refreshMenu();
   }
-
   function oppPeer() { return net.room ? net.room.opp() : null; }
   setInterval(() => { if (net.room && net.room.kind === "peer") pushPresence(true); }, 500);
 
   function stName() {
-    if (screen !== "game") return "lobby";
-    if (state === "ready") return "lobby";
+    if (screen !== "game" || state === "ready") return "lobby";
     if (state === "countdown") return "cd";
     if (state === "over") return "over";
     if (cfg.mode === "classic" && !me().alive) return "dead";
@@ -665,177 +990,124 @@
 
   function pushPresence(force) {
     if (!net.room) return;
-    const now = performance.now();
-    if (!force && now - net.lastSend < 66) return;
-    net.lastSend = now;
+    const t = performance.now();
+    if (!force && t - net.lastSend < 66) return;
+    net.lastSend = t;
     const p = me();
     const blocks = p.blocks || [];
-    const off = Math.max(0, blocks.length - 26);
+    const off = Math.max(0, blocks.length - 24);
     const r4 = v => Math.round(v * 10000) / 10000;
     const data = {
-      v: 1, st: stName(), ready: !!p.ready, r: net.r, mode: cfg.mode, host: net.host,
-      n: floors(p), off, b: blocks.slice(off).map(b => [r4(b.x), r4(b.w)]),
-      cx: p.cur ? r4(p.cur.x) : 0, cw: p.cur ? r4(p.cur.w) : BASE_W,
-      combo: p.combo | 0, atk: p.atk | 0, tl: Math.max(0, Math.round(timeLeft * 10) / 10),
+      v: 2, st: stName(), ready: !!p.ready, r: net.r, mode: cfg.mode, host: net.host,
+      sc: p.score | 0, lv: p.lives | 0, stk: p.streak | 0, inc: p.incoming | 0, atk: p.atk | 0, ms: p.misses | 0,
+      off, b: blocks.slice(off).map(b => [r4(b.x), b.perfect ? 1 : 0]),
+      ph: p.phase, pt: r4(p.phaseT || 0), A: r4(p.swing ? p.swing.amp : 0), P: r4(p.swing ? p.swing.period : 1), ht: r4(p.t || 0),
+      fx: p.fall ? r4(p.fall.x) : 0, fy: p.fall ? r4(p.fall.y) : 0, fv: p.fall ? r4(p.fall.vy) : 0,
+      tp: p.topple ? [p.topple.side, r4(p.topple.px), r4(p.topple.bx), r4(p.topple.th)] : null,
+      swA: r4(p.swayAmp || 0), swT: r4(p.swayT || 0), tl: Math.round(timeLeft * 10) / 10,
     };
     net.room.send(data);
   }
 
+  // Uzak oyuncu: alınan durumdan yeniden kurulur, arada yerel olarak ilerletilir.
   function applyRemote(pr) {
     const o = P[1];
     o.remote = true;
-    if (!pr) { o.present = false; return; }
-    o.present = true;
-    o.ready = !!pr.ready; o.st = pr.st; o.r = pr.r | 0; o.combo = pr.combo | 0;
-    if (!net.host && pr.host && (pr.mode === "classic" || pr.mode === "timed") && pr.mode !== cfg.mode && (state === "ready" || state === "over")) {
-      cfg.mode = pr.mode; refreshMenu();
-    }
-    const sameRound = o.r === net.r && (state === "countdown" || state === "play" || state === "over");
-    if (!sameRound) { if (!o.blocks || (state === "ready" && o.blocks.length > 1)) resetPlayer(o); o.remote = true; o.ready = !!pr.ready; return; }
-    const n = Math.max(0, pr.n | 0);
-    const blocks = new Array(n + 1).fill(null);
-    (Array.isArray(pr.b) ? pr.b : []).forEach((bb, i) => {
-      const idx = (pr.off | 0) + i;
-      if (idx <= n && Array.isArray(bb)) blocks[idx] = { x: +bb[0] || 0, w: Math.max(0, +bb[1] || 0) };
-    });
-    if (!blocks[0]) blocks[0] = { x: (1 - BASE_W) / 2, w: BASE_W };
-    const prevN = o.blocks ? o.blocks.length - 1 : 0;
-    if (state === "play" && o.blocks) {
-      if (n === prevN + 1) {
-        const top = o.blocks[prevN], nb = blocks[n];
-        if (top && nb) {
-          if (nb.w < top.w - 1e-4) {
-            const cut = top.w - nb.w;
-            if (nb.x > top.x + 1e-4) o.debris.push({ x: nb.x + nb.w, w: cut, y: n, vy: 0, vx: 0.1, rot: 0, vr: 2.4 });
-            else o.debris.push({ x: nb.x - cut, w: cut, y: n, vy: 0, vx: -0.1, rot: 0, vr: -2.4 });
-          } else {
-            o.rings.push({ x: nb.x + nb.w / 2, w: nb.w, y: n, life: 1 });
-            o.pops.push({ text: "KUSURSUZ", life: 1, x: nb.x + nb.w / 2, y: n + 1.2, c: o.light });
-          }
-          addDust(o, nb, n);
-        }
-      } else if (n < prevN) {
-        for (let i = n + 1; i <= prevN; i++) { const b = o.blocks[i]; if (b) o.debris.push({ x: b.x, w: b.w, y: i - 1, vy: -1, vx: (Math.random() - 0.5) * 0.2, rot: 0, vr: (Math.random() - 0.5) * 4 }); }
-        o.shake = 1;
+    o.present = !!pr;
+    if (!pr) return;
+    o.ready = !!pr.ready;
+    if (!net.host && pr.host && (pr.mode === "classic" || pr.mode === "timed") && pr.mode !== cfg.mode && (state === "ready" || state === "over")) { cfg.mode = pr.mode; refreshMenu(); }
+    const sameRound = (pr.r | 0) === net.r && (state === "countdown" || state === "play" || state === "over");
+    if (!sameRound) return;
+    if (pr === net.lastPr) return;
+    net.lastPr = pr;
+    const blocks = [];
+    const len = (pr.off | 0) + (Array.isArray(pr.b) ? pr.b.length : 0);
+    for (let i = 0; i < len; i++) blocks.push(null);
+    (Array.isArray(pr.b) ? pr.b : []).forEach((bb, i) => { if (Array.isArray(bb)) blocks[(pr.off | 0) + i] = { x: +bb[0] || 0.5, w: BW, perfect: !!bb[1] }; });
+    if (!blocks.length) blocks.push(null);
+    if (!blocks[0]) blocks[0] = { x: 0.5, w: BASE_W, perfect: false };
+    else blocks[0].w = BASE_W;
+    const prevLen = o.blocks ? o.blocks.length : 1;
+    if (state === "play" && blocks.length === prevLen + 1) {
+      const nb = blocks[blocks.length - 1];
+      if (nb) {
+        const y = blocks.length - 1;
+        if (nb.perfect) { o.rings.push({ x: nb.x, w: BW, y, life: 1 }); o.pops.push({ text: "KUSURSUZ", life: 1, x: nb.x, y: y + 1.4, c: "#ffd34d" }); }
+        addDust(o, nb.x, BW, y); o.squash = 1; o.trauma = Math.min(1, o.trauma + 0.2);
+        if (PLANE_FLOORS.includes(y)) { const dir = Math.random() < 0.5 ? 1 : -1; o.planes.push({ dir, x: dir > 0 ? -0.4 : 1.4, y: y + 5 }); }
       }
     }
-    const wasAlive = o.alive;
-    o.alive = pr.st !== "dead";
-    if (wasAlive && !o.alive && o.cur) { o.debris.push({ x: o.cur.x, w: o.cur.w, y: n + 1, vy: 0, vx: 0.1, rot: 0, vr: 2.2 }); o.shake = 1; }
+    if ((pr.ms | 0) > (o.misses | 0) && state === "play") {
+      const fx = o.fall ? o.fall.x : 0.5, fy = o.fall ? o.fall.y : blocks.length;
+      if (!o.topple) o.debris.push({ x: fx, y: fy, w: BW, vy: 2, vx: 0, rot: 0, vr: 1.5, perfect: false });
+      o.trauma = Math.min(1, o.trauma + 0.5);
+    }
+    o.misses = pr.ms | 0;
     o.blocks = blocks;
-    o.cur = { x: +pr.cx || 0, w: +pr.cw || BASE_W, dir: 1 };
-    if ((pr.atk | 0) > net.lastAtk) { const k = (pr.atk | 0) - net.lastAtk; net.lastAtk = pr.atk | 0; if (state === "play" && me().alive) for (let i = 0; i < Math.min(k, 1); i++) receiveAttack(me()); }
+    o.score = pr.sc | 0; o.lives = pr.lv | 0; o.streak = pr.stk | 0; o.incoming = pr.inc | 0;
+    o.alive = pr.st !== "dead";
+    o.phase = pr.ph || "swing"; o.phaseT = +pr.pt || 0;
+    o.swing = { amp: +pr.A || 0, period: Math.max(0.3, +pr.P || 1) };
+    o.t = +pr.ht || 0;
+    o.fall = o.phase === "drop" ? { x: +pr.fx || 0.5, y: +pr.fy || 0, vy: +pr.fv || 0, rot: 0, drift: 0 } : null;
+    o.topple = Array.isArray(pr.tp) && o.phase === "topple" ? { side: pr.tp[0] > 0 ? 1 : -1, px: +pr.tp[1], bx: +pr.tp[2], y: o.blocks.length, th: +pr.tp[3] || 0, w: 3 } : null;
+    o.swayAmp = +pr.swA || 0; o.swayT = +pr.swT || 0;
+    if ((pr.atk | 0) > net.lastAtk) {
+      const k = (pr.atk | 0) - net.lastAtk; net.lastAtk = pr.atk | 0;
+      if (state === "play" && me().alive) { me().incoming = Math.min(3, me().incoming + k); me().attackFlash = 0.6; SFX.attackIn(); }
+    }
+  }
+  function remoteAdvance(o, dt) {
+    if (!o.blocks || state !== "play") return;
+    o.swayT += dt;
+    if (o.phase === "lower") { o.phaseT += dt; o.t += dt; if (o.phaseT > 0.42) o.phase = "swing"; }
+    else if (o.phase === "swing") o.t += dt;
+    else if (o.phase === "drop" && o.fall) { o.fall.vy += G * dt; o.fall.y = Math.max(o.blocks.length, o.fall.y - o.fall.vy * dt); }
+    else if (o.phase === "topple" && o.topple) { o.topple.w += 9 * dt; o.topple.th = Math.min(1.3, o.topple.th + o.topple.w * dt); }
   }
 
   function onlineTick() {
     const pr = oppPeer();
     if (pr) net.oppSeen = clock;
     applyRemote(pr);
-    const m = me(), o = P[1];
+    const m = me();
     if (state === "ready" || (state === "over" && clock - overAt > 0.9)) {
       if (m.ready && pr && pr.ready) {
         const oppIdle = pr.st === "lobby" || pr.st === "over";
         const oppStarted = (pr.st === "cd" || pr.st === "play") && (pr.r | 0) > net.r;
         if (oppIdle || oppStarted) {
           net.r = oppIdle ? Math.max(net.r, pr.r | 0) + 1 : (pr.r | 0);
-          net.lastAtk = 0; net.doneAt = 0;
-          startRound();
-          P[1].remote = true;
+          net.lastAtk = 0; net.doneAt = 0; net.lastPr = null;
+          startRound(strHash(net.code + ":" + net.r));
           me().ready = true;
           pushPresence(true);
         }
       }
     }
     if (state === "countdown" || state === "play") {
-      if (!pr && clock - net.oppSeen > 5) endGame("Rakibin bağlantısı koptu");
+      if (!pr && clock - net.oppSeen > 6) endGame("Rakibin bağlantısı koptu");
       if (state === "play" && pr && (pr.r | 0) === net.r) {
         const oppEnded = pr.st === "dead" || pr.st === "done" || pr.st === "over";
         if (cfg.mode === "classic" && !m.alive && oppEnded) endGame("");
-        if (cfg.mode === "timed" && timeLeft <= 0) {
-          if (!net.doneAt) net.doneAt = clock;
-          if (oppEnded || clock - net.doneAt > 3) endGame("");
-        }
+        if (cfg.mode === "timed" && timeLeft <= 0) { if (!net.doneAt) net.doneAt = clock; if (oppEnded || clock - net.doneAt > 3) endGame(""); }
       }
     }
     pushPresence(false);
   }
 
   // =====================================================================
-  //  Güncelleme
-  // =====================================================================
-  function update(dt) {
-    clock += dt;
-    if (screen === "game") {
-      if (state === "countdown") {
-        const before = Math.ceil(countdown - 0.6);
-        countdown -= dt;
-        const after = Math.ceil(countdown - 0.6);
-        if (after !== before) { if (after >= 1) tone(440, 0.12, "square", 0.05); else tone(880, 0.3, "square", 0.06); }
-        if (countdown <= 0.6) state = "play";
-      } else if (state === "play" && countdown > 0) countdown -= dt;
-
-      if (state === "play" && cfg.mode === "timed" && timeLeft > 0) {
-        const before = Math.ceil(timeLeft);
-        timeLeft = Math.max(0, timeLeft - dt);
-        if (Math.ceil(timeLeft) !== before && timeLeft <= 5 && timeLeft > 0) tone(1200, 0.06, "square", 0.04);
-        if (timeLeft <= 0 && cfg.layout !== "online") endGame("Süre doldu");
-      }
-      if (cfg.layout === "online") onlineTick();
-    }
-
-    for (const p of P) {
-      if (!p.blocks) continue;
-      const placing = p.blocks.length;
-      const wind = windAt(placing);
-      if (p.alive && p.cur) {
-        if (wind) {
-          const gust = 0.55 + 0.45 * Math.sin(clock * 2.1 + placing) * Math.sin(clock * 0.7 + 1.3);
-          p.sway += ((wind.dir * wind.s * gust * 0.11) - p.sway) * Math.min(1, dt * 3);
-          if (state === "play" && !p.remote) p.cur.x += wind.dir * wind.s * gust * 0.09 * dt;
-        } else p.sway *= Math.max(0, 1 - dt * 3);
-        if (state === "play" && !p.remote && !(cfg.mode === "timed" && timeLeft <= 0)) {
-          const c = p.cur;
-          c.x += c.dir * speedOf(p) * dt;
-          const min = -c.w * 0.25, max = 1 - c.w * 0.75;
-          if (c.x < min) { c.x = min; c.dir = 1; }
-          if (c.x > max) { c.x = max; c.dir = -1; }
-        }
-      }
-      p.boostT = Math.max(0, p.boostT - dt);
-      p.attackFlash = Math.max(0, p.attackFlash - dt * 0.8);
-      const camT = Math.max(0, p.blocks.length + 2 - p.vf * 0.62);
-      p.cam += (camT - p.cam) * Math.min(1, dt * 4.5);
-      p.shake = Math.max(0, p.shake - dt * 2.5);
-      for (const d of p.debris) { d.vy += 36 * dt; d.y -= d.vy * dt; d.x += d.vx * dt; d.rot += d.vr * dt; }
-      p.debris = p.debris.filter(d => d.y > p.cam - 14);
-      for (const s of p.pops) { s.life -= dt * 0.85; s.y += dt * 0.9; }
-      p.pops = p.pops.filter(s => s.life > 0);
-      for (const q of p.parts) { q.x += q.vx * dt; q.y += q.vy * dt; q.vy -= 1.2 * dt; q.vx *= 0.96; q.life -= dt; }
-      p.parts = p.parts.filter(q => q.life > 0);
-      for (const g of p.rings) g.life -= dt * 1.6;
-      p.rings = p.rings.filter(g => g.life > 0);
-      // rüzgâr çizgileri
-      if (wind && p.alive) {
-        if (p.streaks.length < 18 * wind.s && Math.random() < dt * 22 * wind.s) p.streaks.push({ x: wind.dir > 0 ? -0.2 : 1.2, y: Math.random(), l: 0.06 + Math.random() * 0.12, v: (0.6 + Math.random() * 0.6) * wind.dir * (0.6 + wind.s), a: 0.15 + Math.random() * 0.25 });
-      }
-      for (const s of p.streaks) s.x += s.v * dt;
-      p.streaks = p.streaks.filter(s => s.x > -0.4 && s.x < 1.4);
-    }
-  }
-
-  // =====================================================================
   //  Çizim
   // =====================================================================
   function views() {
+    if (isSingle()) return [{ p: P[0], x: 0, y: 0, w: W, h: H, flip: false }];
     if (cfg.layout === "side") return [{ p: P[0], x: 0, y: 0, w: W / 2, h: H, flip: false }, { p: P[1], x: W / 2, y: 0, w: W / 2, h: H, flip: false }];
-    if (cfg.layout === "online") {
-      const oh = Math.round(H * 0.4);
-      return [{ p: P[0], x: 0, y: oh, w: W, h: H - oh, flip: false }, { p: P[1], x: 0, y: 0, w: W, h: oh, flip: false, remote: true }];
-    }
+    if (isOnline()) { const oh = Math.round(H * 0.38); return [{ p: P[0], x: 0, y: oh, w: W, h: H - oh, flip: false }, { p: P[1], x: 0, y: 0, w: W, h: oh, flip: false, remote: true }]; }
     return [{ p: P[0], x: 0, y: H / 2, w: W, h: H / 2, flip: false }, { p: P[1], x: 0, y: 0, w: W, h: H / 2, flip: true }];
   }
 
-  function drawFloor(p, x, y, w, h, idx, night) {
+  // Kat çizimi: 3 cephe tipi (konut / ofis / gökdelen), kusursuz katlar altın.
+  function drawFloor(p, x, y, w, h, idx, night, perfect) {
     if (w < 0.5) return;
     if (idx === 0) {
       const g = ctx.createLinearGradient(0, y, 0, y + h);
@@ -848,83 +1120,105 @@
       hazard(x, y + h * 0.78, w, h * 0.16, "#22252b", "#f4b400");
       return;
     }
+    const style = idx < 10 ? 0 : idx < 20 ? 1 : 2;
     const slab = Math.max(2, h * 0.2), gh = h - slab;
-    const g = ctx.createLinearGradient(0, y, 0, y + gh);
-    g.addColorStop(0, p.g0); g.addColorStop(0.5, p.g1); g.addColorStop(1, p.g2);
-    ctx.fillStyle = g; ctx.fillRect(x, y, w, gh);
-    if (night > 0) { ctx.fillStyle = "rgba(6,10,28," + (night * 0.62) + ")"; ctx.fillRect(x, y, w, gh); }
-    // gökyüzü yansıması
-    ctx.save();
-    ctx.beginPath(); ctx.rect(x, y, w, gh); ctx.clip();
-    const rx = x + (hash(idx, 7) * 1.4 - 0.2) * w;
-    ctx.fillStyle = "rgba(255,255,255," + (0.16 * (1 - night * 0.6)) + ")";
-    ctx.beginPath(); ctx.moveTo(rx, y + gh); ctx.lineTo(rx + gh * 0.7, y); ctx.lineTo(rx + gh * 0.7 + w * 0.08, y); ctx.lineTo(rx + w * 0.08, y + gh); ctx.fill();
-    ctx.restore();
-    // paneller
-    const nP = Math.max(1, Math.round(w / Math.max(8, h * 0.62)));
-    const step = w / nP;
-    if (night > 0.25) {
-      for (let i = 0; i < nP; i++) {
-        if (hash(idx, i) < 0.5) {
-          ctx.fillStyle = "rgba(255,212,140," + Math.min(0.9, (night - 0.25) * 1.4) + ")";
-          ctx.fillRect(x + i * step + 1.5, y + 1.5, step - 3, gh - 3);
-        }
+    const gold = perfect;
+    if (style === 0) {
+      // konut: düz duvar, ayrık pencereler, küçük balkon korkulukları
+      ctx.fillStyle = gold ? "#f6e2a8" : p.wall; ctx.fillRect(x, y, w, gh);
+      if (night > 0) { ctx.fillStyle = "rgba(6,10,28," + (night * 0.55) + ")"; ctx.fillRect(x, y, w, gh); }
+      const nW = Math.max(1, Math.round(w / (h * 0.9)));
+      const step = w / nW, ww = step * 0.46, wh = gh * 0.56;
+      for (let i = 0; i < nW; i++) {
+        const wx = x + i * step + (step - ww) / 2, wy = y + gh * 0.18;
+        const lit = night > 0.25 && hash(idx, i) < 0.55;
+        ctx.fillStyle = lit ? "rgba(255,212,140," + Math.min(0.95, (night - 0.25) * 1.5) + ")" : css(mixRGB(hex(gold ? "#c9a54a" : p.g1), hex("#1b2238"), night * 0.7));
+        ctx.fillRect(wx, wy, ww, wh);
+        ctx.fillStyle = "rgba(255,255,255,0.25)"; ctx.fillRect(wx, wy, ww, 1.5);
+        if (hash(idx, i + 50) < 0.4) { ctx.fillStyle = gold ? "#a07a1a" : p.wallD; ctx.fillRect(wx - 2, wy + wh - 1, ww + 4, 2); for (let k = 0; k <= 3; k++) ctx.fillRect(wx - 2 + (ww + 4) * k / 3, wy + wh * 0.72, 1, wh * 0.28); }
       }
+    } else {
+      // ofis (cam cephe) ve gökdelen (koyu cam + dikey kanatlar)
+      const g = ctx.createLinearGradient(0, y, 0, y + gh);
+      if (gold) { g.addColorStop(0, "#fff1c4"); g.addColorStop(0.5, "#e7b94a"); g.addColorStop(1, "#8c6416"); }
+      else if (style === 1) { g.addColorStop(0, p.g0); g.addColorStop(0.5, p.g1); g.addColorStop(1, p.g2); }
+      else { g.addColorStop(0, p.g1); g.addColorStop(0.6, p.g2); g.addColorStop(1, "#11161f"); }
+      ctx.fillStyle = g; ctx.fillRect(x, y, w, gh);
+      if (night > 0) { ctx.fillStyle = "rgba(6,10,28," + (night * 0.6) + ")"; ctx.fillRect(x, y, w, gh); }
+      ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, gh); ctx.clip();
+      const rx = x + (hash(idx, 7) * 1.4 - 0.2) * w;
+      ctx.fillStyle = "rgba(255,255,255," + (0.16 * (1 - night * 0.6)) + ")";
+      ctx.beginPath(); ctx.moveTo(rx, y + gh); ctx.lineTo(rx + gh * 0.7, y); ctx.lineTo(rx + gh * 0.7 + w * 0.08, y); ctx.lineTo(rx + w * 0.08, y + gh); ctx.fill();
+      ctx.restore();
+      const nP = Math.max(1, Math.round(w / Math.max(8, h * (style === 1 ? 0.62 : 0.4))));
+      const step = w / nP;
+      if (night > 0.25) for (let i = 0; i < nP; i++) if (hash(idx, i) < 0.5) { ctx.fillStyle = "rgba(255,212,140," + Math.min(0.9, (night - 0.25) * 1.4) + ")"; ctx.fillRect(x + i * step + 1.5, y + 1.5, step - 3, gh - 3); }
+      ctx.fillStyle = style === 1 ? "rgba(10,18,28,0.38)" : "rgba(200,220,240,0.35)";
+      for (let i = 1; i < nP; i++) ctx.fillRect(x + i * step - 0.75, y, style === 1 ? 1.5 : 2, gh);
+      if (style === 1) { ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(x, y + gh * 0.64, w, 1); }
     }
-    ctx.fillStyle = "rgba(10,18,28,0.38)";
-    for (let i = 1; i < nP; i++) ctx.fillRect(x + i * step - 0.75, y, 1.5, gh);
-    ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(x, y + gh * 0.64, w, 1);
     // döşeme
-    ctx.fillStyle = css(mixRGB(hex("#ece7dd"), hex("#4b4f63"), night * 0.7)); ctx.fillRect(x, y + gh, w, slab);
-    ctx.fillStyle = p.accent; ctx.fillRect(x, y + gh, w, Math.max(1.5, slab * 0.34));
+    ctx.fillStyle = css(mixRGB(hex(gold ? "#f8e7b0" : "#ece7dd"), hex("#4b4f63"), night * 0.7)); ctx.fillRect(x, y + gh, w, slab);
+    ctx.fillStyle = gold ? "#f4b400" : p.accent; ctx.fillRect(x, y + gh, w, Math.max(1.5, slab * 0.34));
     ctx.fillStyle = "rgba(0,0,0,0.22)"; ctx.fillRect(x, y + h - 1, w, 1);
-    // kenar gölgeleri
     const ew = Math.max(1.5, Math.min(4, w * 0.012));
     ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.fillRect(x + w - ew, y, ew, gh);
     ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fillRect(x, y, ew, gh);
     const sg = ctx.createLinearGradient(0, y, 0, y + gh * 0.3);
     sg.addColorStop(0, "rgba(0,0,0,0.28)"); sg.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = sg; ctx.fillRect(x, y, w, gh * 0.3);
+    if (gold) { ctx.fillStyle = "rgba(255,240,190,0.35)"; ctx.fillRect(x, y, w, 1.5); }
+  }
+
+  function drawRoof(p, x, y, w, h, night) {
+    ctx.fillStyle = css(mixRGB(hex("#5a606e"), hex("#262a36"), night)); ctx.fillRect(x + w * 0.06, y - h * 0.35, w * 0.88, h * 0.35);
+    ctx.fillStyle = p.accent; ctx.fillRect(x + w * 0.06, y - h * 0.35, w * 0.88, 2);
+    ctx.fillStyle = "#9aa1ad"; ctx.fillRect(x + w * 0.2, y - h * 0.75, w * 0.2, h * 0.4);
+    ctx.strokeStyle = "#c8ccd4"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + w * 0.7, y - h * 0.35); ctx.lineTo(x + w * 0.7, y - h * 1.6); ctx.stroke();
+    ctx.fillStyle = (Math.sin(clock * 4) > 0) ? "#ff3b3b" : "#5a1010"; ctx.beginPath(); ctx.arc(x + w * 0.7, y - h * 1.6, 3, 0, Math.PI * 2); ctx.fill();
   }
 
   function lattice(x1, y1, x2, y2, depth, vertical) {
-    // iki paralel kiriş ve zikzak dikmeler
     ctx.beginPath();
     if (vertical) {
-      ctx.moveTo(x1 - depth / 2, y1); ctx.lineTo(x1 - depth / 2, y2);
-      ctx.moveTo(x1 + depth / 2, y1); ctx.lineTo(x1 + depth / 2, y2);
-      let s = 0;
-      for (let y = y1; y < y2; y += depth) { ctx.moveTo(x1 + (s ? depth : -depth) / 2, y); ctx.lineTo(x1 + (s ? -depth : depth) / 2, Math.min(y2, y + depth)); s ^= 1; }
+      ctx.moveTo(x1 - depth / 2, y1); ctx.lineTo(x1 - depth / 2, y2); ctx.moveTo(x1 + depth / 2, y1); ctx.lineTo(x1 + depth / 2, y2);
+      let s = 0; for (let y = y1; y < y2; y += depth) { ctx.moveTo(x1 + (s ? depth : -depth) / 2, y); ctx.lineTo(x1 + (s ? -depth : depth) / 2, Math.min(y2, y + depth)); s ^= 1; }
     } else {
-      ctx.moveTo(x1, y1 - depth); ctx.lineTo(x2, y1 - depth);
-      ctx.moveTo(x1, y1); ctx.lineTo(x2, y1);
-      let s = 0;
-      for (let x = x1; x < x2; x += depth) { ctx.moveTo(x, s ? y1 - depth : y1); ctx.lineTo(Math.min(x2, x + depth), s ? y1 : y1 - depth); s ^= 1; }
+      ctx.moveTo(x1, y1 - depth); ctx.lineTo(x2, y1 - depth); ctx.moveTo(x1, y1); ctx.lineTo(x2, y1);
+      let s = 0; for (let x = x1; x < x2; x += depth) { ctx.moveTo(x, s ? y1 - depth : y1); ctx.lineTo(Math.min(x2, x + depth), s ? y1 : y1 - depth); s ^= 1; }
     }
     ctx.stroke();
   }
 
-  function panel(V, lines, accent, area) {
-    const VW = V.w;
-    const pw = Math.min(VW - 24, 400);
-    let total = 0;
-    for (const l of lines) total += l.s * (l.gap || 1.32);
-    const ph = total + 34;
-    const cx = VW / 2, cy = area * 0.48;
-    const x = cx - pw / 2, y = Math.max(8, cy - ph / 2);
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
-    ctx.fillStyle = "rgba(14,17,26,0.9)"; rr(x, y, pw, ph, 14); ctx.fill();
+  function plane(x, y, s, dir, night) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(dir * s, s);
+    ctx.fillStyle = night > 0.5 ? "#c9cfdc" : "#ffffff";
+    ctx.beginPath(); ctx.ellipse(0, 0, 30, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(-14, 14); ctx.lineTo(-6, 14); ctx.lineTo(8, 0); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-24, -2); ctx.lineTo(-30, -12); ctx.lineTo(-25, -12); ctx.lineTo(-18, -2); ctx.fill();
+    ctx.fillStyle = "#f4b400"; ctx.fillRect(-20, -1, 40, 2);
+    ctx.fillStyle = "#2b3644"; for (let i = -14; i < 22; i += 5) ctx.fillRect(i, -2.5, 2.5, 2);
+    if (night > 0.3) { ctx.fillStyle = Math.sin(clock * 6) > 0 ? "#ff4040" : "#40ff60"; ctx.beginPath(); ctx.arc(-12, 13, 1.8, 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
+    // pankart
+    ctx.save(); ctx.translate(x - dir * s * 34, y);
+    ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-dir * 14 * s, 0); ctx.stroke();
+    ctx.fillStyle = "#f4b400"; const bw = 70 * s, bh = 14 * s; ctx.fillRect(dir > 0 ? -14 * s - bw : 14 * s, -bh / 2, bw, bh);
+    txt("YÜKSEL!", dir > 0 ? -14 * s - bw / 2 : 14 * s + bw / 2, 0.5, Math.round(10 * s), "#1b1400", { ls: "1px" });
+    ctx.restore();
+  }
+
+  function panel(V, lines, accent, area) {
+    const pw = Math.min(V.w - 24, 400);
+    let total = 0; for (const l of lines) total += l.s * (l.gap || 1.32);
+    const ph = total + 34, cx = V.w / 2, cy = area * 0.46;
+    const x = cx - pw / 2, y = Math.max(8, cy - ph / 2);
+    ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
+    ctx.fillStyle = "rgba(14,17,26,0.9)"; rr(x, y, pw, ph, 14); ctx.fill(); ctx.restore();
     ctx.strokeStyle = "rgba(255,255,255,0.08)"; ctx.lineWidth = 1; rr(x + 0.5, y + 0.5, pw - 1, ph - 1, 14); ctx.stroke();
     ctx.fillStyle = accent; rr(x + 18, y, pw - 36, 3, 2); ctx.fill();
     let yy = y + 17;
-    for (const l of lines) {
-      const h = l.s * (l.gap || 1.32);
-      const size = fit(l.t, pw - 32, l.s, l.f, l.w);
-      txt(l.t, cx, yy + h / 2, size, l.c || "#f3efe7", { f: l.f, w: l.w, a: l.a, ls: l.ls });
-      yy += h;
-    }
+    for (const l of lines) { const h = l.s * (l.gap || 1.32); txt(l.t, cx, yy + h / 2, fit(l.t, pw - 32, l.s, l.f, l.w), l.c || "#f3efe7", { f: l.f, w: l.w, a: l.a, ls: l.ls }); yy += h; }
   }
 
   function drawView(V) {
@@ -934,101 +1228,108 @@
     ctx.translate(V.x, V.y);
     if (V.flip) { ctx.translate(VW, VH); ctx.rotate(Math.PI); }
     ctx.beginPath(); ctx.rect(0, 0, VW, VH); ctx.clip();
-    if (p.shake > 0) ctx.translate((Math.random() - 0.5) * 10 * p.shake, (Math.random() - 0.5) * 6 * p.shake);
 
-    const HUD = Math.round(Math.max(54, Math.min(80, VH * 0.12)));
-    const BH = Math.max(14, (VH - HUD) / 10.5);
+    const HUD = Math.round(clamp(VH * 0.11, 56, 82));
+    const playH = VH - HUD;
+    const s = Math.min(VW, playH / (BHW * 8.5));     // px / dünya genişlik birimi
+    const ox = (VW - s) / 2;
+    const BH = BHW * s;
     const site = BH * 0.9;
-    const base0 = VH - HUD - site;              // kamera 0'da zemin yüzeyi
+    const base0 = playH - site;
     p.vf = base0 / BH;
-    const n = floors(p);
+    const sx = x => ox + x * s;
     const camPx = (p.cam || 0) * BH;
-    const groundY = base0 + camPx;
-    const t = Math.min(1, (p.cam || 0) / 34);   // irtifa → gün batımı → gece
-    const night = Math.max(0, Math.min(1, (t - 0.45) / 0.45));
-    const area = VH - HUD;
+    const sy = y => base0 - y * BH + camPx;          // dünya y (kat) → ekran y
+    const n = floors(p);
+    const alt = (p.cam || 0) / SKY_FLOORS;
+    const night = clamp((alt - 0.4) / 0.35, 0, 1);
+
+    // sarsıntı (trauma² modeli)
+    const sh = p.trauma * p.trauma;
+    if (sh > 0.001) {
+      ctx.translate(VW / 2, playH / 2);
+      ctx.rotate((Math.random() * 2 - 1) * 0.02 * sh);
+      ctx.translate(-VW / 2 + (Math.random() * 2 - 1) * 14 * sh, -playH / 2 + (Math.random() * 2 - 1) * 10 * sh);
+    }
 
     // --- gökyüzü
-    const top = ramp(SKY_TOP, t), bot = ramp(SKY_BOT, t);
-    const g = ctx.createLinearGradient(0, 0, 0, area);
+    const top = ramp(SKY_TOP, alt), bot = ramp(SKY_BOT, alt);
+    const g = ctx.createLinearGradient(0, 0, 0, playH);
     g.addColorStop(0, css(top)); g.addColorStop(1, css(bot));
-    ctx.fillStyle = g; ctx.fillRect(-20, -20, VW + 40, VH + 40);
-
-    if (night > 0) {
-      for (const s of stars) {
-        const a = night * (0.55 + 0.45 * Math.sin(clock * 1.5 + s.tw));
-        ctx.fillStyle = "rgba(255,255,255," + a + ")";
-        ctx.fillRect(s.x * VW, s.y * area * 0.85, s.s, s.s);
-      }
-    }
-    // güneş / ay
-    const sunY = area * (0.16 + t * 1.05), sunX = VW * 0.8, sr = Math.max(14, Math.min(VW, VH) * 0.06);
-    if (sunY < area + sr) {
+    ctx.fillStyle = g; ctx.fillRect(-30, -30, VW + 60, VH + 60);
+    if (night > 0) for (const st of stars) { ctx.fillStyle = "rgba(255,255,255," + night * (0.55 + 0.45 * Math.sin(clock * 1.5 + st.tw)) + ")"; ctx.fillRect(st.x * VW, st.y * playH * 0.9, st.s, st.s); }
+    const sr = Math.max(14, Math.min(VW, VH) * 0.06);
+    const sunY = playH * (0.14 + alt * 1.6), sunX = VW * 0.8;
+    if (sunY < playH + sr) {
       const sg = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sr * 4);
       sg.addColorStop(0, "rgba(255,240,200,0.55)"); sg.addColorStop(1, "rgba(255,200,120,0)");
       ctx.fillStyle = sg; ctx.fillRect(sunX - sr * 4, sunY - sr * 4, sr * 8, sr * 8);
-      ctx.fillStyle = css(mixRGB(hex("#fff6dc"), hex("#ff9a5c"), Math.min(1, t * 1.6)));
-      ctx.beginPath(); ctx.arc(sunX, sunY, sr, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = css(mixRGB(hex("#fff6dc"), hex("#ff9a5c"), clamp(alt * 2.5, 0, 1))); ctx.beginPath(); ctx.arc(sunX, sunY, sr, 0, Math.PI * 2); ctx.fill();
     }
     if (night > 0.2) {
-      const mx = VW * 0.2, my = area * 0.14;
+      const mx = VW * 0.2, my = playH * 0.14;
       ctx.globalAlpha = Math.min(1, (night - 0.2) * 1.6);
       ctx.fillStyle = "#f4f1e6"; ctx.beginPath(); ctx.arc(mx, my, sr * 0.8, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = css(top); ctx.beginPath(); ctx.arc(mx + sr * 0.35, my - sr * 0.15, sr * 0.7, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = 1;
     }
+    if (alt > 0.85) { // uzayda dünya ufku
+      const a = clamp((alt - 0.85) / 0.15, 0, 1);
+      const eg = ctx.createRadialGradient(VW / 2, playH + VW * 1.4, VW * 1.4, VW / 2, playH + VW * 1.4, VW * 1.6);
+      eg.addColorStop(0, "rgba(70,140,255," + 0.5 * a + ")"); eg.addColorStop(1, "rgba(70,140,255,0)");
+      ctx.fillStyle = eg; ctx.fillRect(0, playH * 0.5, VW, playH * 0.5);
+    }
+    for (const m of p.meteors) {
+      const mx = m.x * VW, my = sy(m.y);
+      const mg = ctx.createLinearGradient(mx, my, mx + 40, my - 60);
+      mg.addColorStop(0, "rgba(255,255,255," + m.life + ")"); mg.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.strokeStyle = mg; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + 40, my - 60); ctx.stroke();
+    }
 
     // --- şehir siluetleri (paralaks)
     const farBase = base0 + camPx * 0.12, nearBase = base0 + camPx * 0.28;
-    const farC = mixRGB(bot, ramp(FAR_TINT, t), 0.55), nearC = mixRGB(bot, ramp(NEAR_TINT, t), 0.85);
+    const farC = mixRGB(bot, ramp(FAR_TINT, alt), 0.55), nearC = mixRGB(bot, ramp(NEAR_TINT, alt), 0.85);
     function skyline(list, baseY, col, scale, lit) {
-      if (baseY - area * 0.5 > VH) return;
+      if (baseY - playH * 0.5 > VH) return;
       ctx.fillStyle = css(col);
-      for (const b of list) {
-        const bh = b.h * area * scale, bx = b.x * VW, bw = b.w * VW;
-        ctx.fillRect(bx, baseY - bh, bw, bh + 2);
-        if (b.cap > 0.75) ctx.fillRect(bx + bw * 0.4, baseY - bh - bh * 0.12, bw * 0.2, bh * 0.12);
-      }
-      if (lit > 0) {
-        ctx.fillStyle = "rgba(255,206,120," + lit + ")";
-        for (const b of list) {
-          const bh = b.h * area * scale, bx = b.x * VW, bw = b.w * VW;
-          for (const w of b.wins) ctx.fillRect(bx + w[0] * bw - 1, baseY - bh + w[1] * bh, 2, 2.5);
-        }
-      }
+      for (const b of list) { const bh = b.h * playH * scale, bx = b.x * VW, bw = b.w * VW; ctx.fillRect(bx, baseY - bh, bw, bh + 2); if (b.cap > 0.75) ctx.fillRect(bx + bw * 0.4, baseY - bh - bh * 0.12, bw * 0.2, bh * 0.12); }
+      if (lit > 0) { ctx.fillStyle = "rgba(255,206,120," + lit + ")"; for (const b of list) { const bh = b.h * playH * scale, bx = b.x * VW, bw = b.w * VW; for (const w of b.wins) ctx.fillRect(bx + w[0] * bw - 1, baseY - bh + w[1] * bh, 2, 2.5); } }
     }
     skyline(cityFar, farBase, farC, 0.9, night * 0.5);
-    // atmosfer pusu
-    const hz = ctx.createLinearGradient(0, farBase - area * 0.35, 0, farBase);
+    const hz = ctx.createLinearGradient(0, farBase - playH * 0.35, 0, farBase);
     hz.addColorStop(0, css(bot, 0)); hz.addColorStop(1, css(bot, 0.35));
-    ctx.fillStyle = hz; ctx.fillRect(0, farBase - area * 0.35, VW, area * 0.35);
+    ctx.fillStyle = hz; ctx.fillRect(0, farBase - playH * 0.35, VW, playH * 0.35);
     skyline(cityNear, nearBase, nearC, 0.85, night * 0.85);
 
-    // --- bulutlar (irtifaya bağlı)
+    // --- bulutlar
     for (const c of clouds) {
-      const cy = base0 - c.alt * BH + camPx * 0.85;
-      if (cy < -80 || cy > area + 40) continue;
-      const spr = cloudSprites[c.sp];
-      const cw = VW * 0.45 * c.s, ch = cw * spr.height / spr.width;
-      let cx = ((c.x + clock * c.v) % 1.4) - 0.2;
-      ctx.globalAlpha = 0.75 * (1 - night * 0.75);
+      const cy = base0 - c.alt * BH * 2.2 + camPx * 0.85;
+      if (cy < -80 || cy > playH + 40) continue;
+      const spr = cloudSprites[c.sp], cw = VW * 0.45 * c.s, ch = cw * spr.height / spr.width;
+      const cx = ((c.x + clock * c.v) % 1.4) - 0.2;
+      ctx.globalAlpha = 0.75 * (1 - night * 0.8);
       ctx.drawImage(spr, cx * VW - cw / 2, cy - ch / 2, cw, ch);
     }
     ctx.globalAlpha = 1;
+    // kuşlar
+    ctx.strokeStyle = night > 0.5 ? "rgba(220,225,240,0.7)" : "rgba(30,35,45,0.75)"; ctx.lineWidth = 1.4;
+    for (const b of p.birds) for (const f of b.flock) {
+      const bx = sx(b.x + f.ox), by = sy(b.y + f.oy), wv = Math.sin(clock * 10 + f.ph) * 4;
+      ctx.beginPath(); ctx.moveTo(bx - 6, by - wv); ctx.quadraticCurveTo(bx - 3, by - 2, bx, by); ctx.quadraticCurveTo(bx + 3, by - 2, bx + 6, by - wv); ctx.stroke();
+    }
+    for (const pl of p.planes) plane(sx(pl.x), sy(pl.y), Math.max(0.7, s / 420), pl.dir, night);
 
     // --- şantiye zemini
+    const groundY = sy(0);
     if (groundY < VH) {
       const gg = ctx.createLinearGradient(0, groundY, 0, groundY + site + HUD);
       gg.addColorStop(0, css(mixRGB(hex("#7a6248"), hex("#2a2330"), night))); gg.addColorStop(1, css(mixRGB(hex("#4b3a2a"), hex("#15121b"), night)));
       ctx.fillStyle = gg; ctx.fillRect(0, groundY, VW, site + HUD + 4);
-      // perde duvar
       const hoardH = BH * 0.55;
       ctx.fillStyle = css(mixRGB(hex("#34495a"), hex("#1a2130"), night)); ctx.fillRect(0, groundY - hoardH, VW, hoardH);
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
-      for (let x = 0; x < VW; x += Math.max(24, VW / 12)) ctx.fillRect(x, groundY - hoardH, 1, hoardH);
+      ctx.fillStyle = "rgba(255,255,255,0.08)"; for (let x = 0; x < VW; x += Math.max(24, VW / 12)) ctx.fillRect(x, groundY - hoardH, 1, hoardH);
       hazard(0, groundY - hoardH, VW, Math.max(3, hoardH * 0.16), "#1c1f24", "#f4b400");
-      // dubalar
-      for (const cx of [VW * 0.12, VW * 0.9]) {
+      for (const cx of [VW * 0.08, VW * 0.92]) {
         const ch = BH * 0.5, cwid = ch * 0.7, cy = groundY + site * 0.55;
         ctx.fillStyle = "#ff6f1a"; ctx.beginPath(); ctx.moveTo(cx - cwid / 2, cy); ctx.lineTo(cx, cy - ch); ctx.lineTo(cx + cwid / 2, cy); ctx.fill();
         ctx.fillStyle = "#fff"; ctx.fillRect(cx - cwid * 0.25, cy - ch * 0.55, cwid * 0.5, ch * 0.14);
@@ -1036,222 +1337,225 @@
       }
     }
 
-    // --- kule
     if (p.blocks) {
-      for (let i = 0; i < p.blocks.length; i++) {
+      // --- kule (salınımlı)
+      const last = p.blocks.length - 1;
+      for (let i = 0; i <= last; i++) {
         const b = p.blocks[i];
         if (!b) continue;
-        const y = groundY - (i + 1) * BH;
+        const y = sy(i + 1);
         if (y > VH || y + BH < -BH) continue;
-        drawFloor(p, b.x * VW, y, b.w * VW, BH, i, night);
+        const bx = b.x + swayAt(p, i);
+        if (i === last && p.squash > 0 && i > 0) {
+          const sq = p.squash;
+          const wpx = b.w * s * (1 + 0.06 * sq), hpx = BH * (1 - 0.1 * sq);
+          drawFloor(p, sx(bx) - wpx / 2, y + (BH - hpx), wpx, hpx, i, night, b.perfect);
+        } else drawFloor(p, sx(bx - b.w / 2), y, b.w * s, BH, i, night, b.perfect);
       }
-      // kulenin zemine düşen gölgesi
-      if (groundY < VH) {
-        const b0 = p.blocks[0];
-        ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.beginPath();
-        ctx.ellipse((b0.x + b0.w / 2) * VW, groundY + 2, b0.w * VW * 0.6, 4, 0, 0, Math.PI * 2); ctx.fill();
-      }
+      if ((!p.alive || state === "over") && last > 0 && p.blocks[last]) { const b = p.blocks[last]; drawRoof(p, sx(b.x + swayAt(p, last) - b.w / 2), sy(last + 1), b.w * s, BH, night); }
+      if (groundY < VH) { ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.beginPath(); ctx.ellipse(sx(0.5), groundY + 2, BASE_W * s * 0.6, 4, 0, 0, Math.PI * 2); ctx.fill(); }
 
-      // --- vinç + asılı blok
-      const showCrane = p.cur && p.alive && (state !== "over");
-      if (showCrane) {
-        const c = p.cur;
-        const blockY = groundY - (p.blocks.length + 1) * BH;
-        const jibY = blockY - BH * 2.5;
-        const mastX = Math.max(14, VW * 0.07), mastW = Math.max(9, Math.min(18, VW * 0.032));
-        const jd = Math.max(7, BH * 0.36);
-        const lw = Math.max(1, VW / 420);
-        const crane = css(mixRGB(hex("#f4b400"), hex("#8a6a1a"), night * 0.6));
+      // --- vinç (sarkaç) ve asılı blok
+      const showHook = p.alive && state !== "over" && (p.phase === "lower" || p.phase === "swing" || p.retract > 0 || state === "countdown" || state === "ready");
+      const pvx = sx(0.5), pvy = sy(pivotY(p));
+      const crane = css(mixRGB(hex("#f4b400"), hex("#8a6a1a"), night * 0.6));
+      const jd = Math.max(7, BH * 0.36), lw = Math.max(1, s / 420);
+      if (pvy > -jd * 2) {
         ctx.strokeStyle = crane; ctx.lineWidth = lw;
-        lattice(mastX, jibY - jd, mastX, Math.min(VH, groundY), mastW, true);
-        lattice(mastX - VW * 0.16, jibY, VW + 4, jibY, jd, false);
-        // tepe ve gergi halatları
-        const apexY = jibY - jd - BH * 1.25;
-        ctx.beginPath(); ctx.moveTo(mastX - mastW / 2, jibY - jd); ctx.lineTo(mastX, apexY); ctx.lineTo(mastX + mastW / 2, jibY - jd); ctx.stroke();
-        ctx.strokeStyle = "rgba(30,30,30,0.6)";
-        ctx.beginPath(); ctx.moveTo(mastX, apexY); ctx.lineTo(VW * 0.62, jibY - jd); ctx.moveTo(mastX, apexY); ctx.lineTo(mastX - VW * 0.15, jibY - jd); ctx.stroke();
-        // karşı ağırlık ve kabin
-        ctx.fillStyle = css(mixRGB(hex("#6f7480"), hex("#2d3140"), night)); ctx.fillRect(mastX - VW * 0.15, jibY - jd * 0.3, VW * 0.07, jd * 1.6);
-        ctx.fillStyle = crane; rr(mastX + mastW / 2, jibY + 1, mastW * 1.6, jd * 1.2, 2); ctx.fill();
-        ctx.fillStyle = night > 0.4 ? "#ffe3a0" : "#2f4a63"; ctx.fillRect(mastX + mastW / 2 + 3, jibY + 3, mastW * 1.6 - 6, jd * 0.6);
-        if (night > 0.3) { ctx.fillStyle = (Math.sin(clock * 4) > 0) ? "#ff3b3b" : "#5a1010"; ctx.beginPath(); ctx.arc(VW - 6, jibY - jd, 2.5, 0, Math.PI * 2); ctx.fill(); }
-        // araba
-        const tx = (c.x + c.w / 2) * VW;
-        ctx.fillStyle = "#2a2d33"; rr(tx - 10, jibY - 2, 20, 7, 2); ctx.fill();
-        // salınım
-        const hookY = blockY - BH * 0.7;
-        const sw = p.sway || 0;
-        const hx = tx + Math.sin(sw) * (hookY - jibY);
-        ctx.strokeStyle = "#1c1f24"; ctx.lineWidth = Math.max(1, lw * 1.2);
-        ctx.beginPath(); ctx.moveTo(tx - 3, jibY + 5); ctx.lineTo(hx - 3, hookY); ctx.moveTo(tx + 3, jibY + 5); ctx.lineTo(hx + 3, hookY); ctx.stroke();
-        ctx.fillStyle = "#f4b400"; rr(hx - 7, hookY - 3, 14, 8, 2); ctx.fill();
+        lattice(-4, pvy, VW + 4, pvy, jd, false);
+        ctx.fillStyle = "#2a2d33"; rr(pvx - 12, pvy - 3, 24, 8, 2); ctx.fill();
+        ctx.fillStyle = crane; ctx.fillRect(pvx - 3, pvy - jd - 4, 6, 4);
+        if (night > 0.3) { ctx.fillStyle = Math.sin(clock * 4) > 0 ? "#ff3b3b" : "#5a1010"; ctx.beginPath(); ctx.arc(VW - 8, pvy - jd, 2.5, 0, Math.PI * 2); ctx.fill(); }
+      }
+      if (showHook && p.swing) {
+        const hanging = p.phase === "lower" || p.phase === "swing" || state === "countdown" || state === "ready";
+        const a = hanging ? hookAngle(p) : 0;
+        let L = (hanging ? ropeLen(p) : ROPE * (0.3 + 0.7 * (p.retract / 0.3))) * BH;
         ctx.save();
-        ctx.translate(hx, hookY + 5);
-        ctx.rotate(sw);
-        const bw = c.w * VW, by = BH * 0.7 - 5;
-        ctx.strokeStyle = "rgba(20,20,20,0.75)"; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-bw / 2 + 4, by); ctx.moveTo(0, 0); ctx.lineTo(bw / 2 - 4, by); ctx.stroke();
-        if (p.boostT > 0) { ctx.shadowColor = "rgba(255,60,80,0.9)"; ctx.shadowBlur = 14; }
-        drawFloor(p, -bw / 2, by, bw, BH, p.blocks.length, night);
+        ctx.translate(pvx, pvy + 4);
+        ctx.rotate(-a);
+        ctx.strokeStyle = "#1c1f24"; ctx.lineWidth = Math.max(1, lw * 1.3);
+        ctx.beginPath(); ctx.moveTo(-3, 0); ctx.lineTo(-3, L - BH * 0.5); ctx.moveTo(3, 0); ctx.lineTo(3, L - BH * 0.5); ctx.stroke();
+        ctx.fillStyle = "#f4b400"; rr(-8, L - BH * 0.55, 16, 9, 2); ctx.fill();
+        if (hanging) {
+          const bwp = BW * s;
+          ctx.strokeStyle = "rgba(20,20,20,0.75)"; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(0, L - BH * 0.5 + 8); ctx.lineTo(-bwp / 2 + 4, L); ctx.moveTo(0, L - BH * 0.5 + 8); ctx.lineTo(bwp / 2 - 4, L); ctx.stroke();
+          if (p.storm) { ctx.shadowColor = "rgba(255,60,80,0.9)"; ctx.shadowBlur = 16; }
+          drawFloor(p, -bwp / 2, L, bwp, BH, p.blocks.length, night, false);
+        }
         ctx.restore();
       }
-
-      // --- düşen parçalar
+      // düşen blok
+      if (p.phase === "drop" && p.fall) {
+        const f = p.fall;
+        ctx.save();
+        ctx.translate(sx(f.x), sy(f.y + 0.5));
+        ctx.rotate(-f.rot);
+        if (p.storm) { ctx.shadowColor = "rgba(255,60,80,0.9)"; ctx.shadowBlur = 16; }
+        drawFloor(p, -BW * s / 2, -BH / 2, BW * s, BH, p.blocks.length, night, false);
+        ctx.restore();
+        ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(sx(f.x - BW / 2), sy(topSurface(p)) - 2, BW * s, 2);
+      }
+      // devrilen blok
+      if (p.phase === "topple" && p.topple) {
+        const tp = p.topple;
+        ctx.save();
+        ctx.translate(sx(tp.px), sy(tp.y));
+        ctx.rotate(tp.side * tp.th);
+        drawFloor(p, (tp.bx - BW / 2 - tp.px) * s, -BH, BW * s, BH, p.blocks.length, night, false);
+        ctx.restore();
+      }
+      // enkaz
       for (const d of p.debris) {
-        const y = groundY - (d.y + 1) * BH;
-        ctx.save();
-        ctx.translate((d.x + d.w / 2) * VW, y + BH / 2);
-        ctx.rotate(d.rot);
-        drawFloor(p, -d.w * VW / 2, -BH / 2, d.w * VW, BH, 3, night);
+        ctx.save(); ctx.translate(sx(d.x), sy(d.y + 0.5)); ctx.rotate(d.rot);
+        drawFloor(p, -d.w * s / 2, -BH / 2, d.w * s, BH, 3, night, d.perfect);
         ctx.restore();
       }
-      // --- toz
+      // toz / konfeti
       for (const q of p.parts) {
-        ctx.fillStyle = "rgba(225,215,200," + Math.max(0, q.life) * 0.7 + ")";
-        ctx.beginPath(); ctx.arc(q.x * VW, groundY - q.y * BH, q.size * (1.4 - q.life * 0.6), 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(" + q.c + "," + Math.max(0, Math.min(1, q.life)) * (q.sq ? 1 : 0.7) + ")";
+        if (q.sq) ctx.fillRect(sx(q.x), sy(q.y), q.size * 1.6, q.size);
+        else { ctx.beginPath(); ctx.arc(sx(q.x), sy(q.y), q.size * (1.4 - q.life * 0.6), 0, Math.PI * 2); ctx.fill(); }
       }
-      // --- kusursuz halkası
+      // kusursuz halkası
       for (const r of p.rings) {
-        const y = groundY - (r.y + 0.5) * BH;
-        const grow = (1 - r.life) * BH * 1.2;
-        ctx.strokeStyle = "rgba(255,255,255," + r.life + ")"; ctx.lineWidth = 2;
-        rr(r.x * VW - r.w * VW / 2 - grow, y - BH / 2 - grow * 0.5, r.w * VW + grow * 2, BH + grow, 4); ctx.stroke();
+        const y = sy(r.y + 0.5), grow = (1 - r.life) * BH * 1.2;
+        ctx.strokeStyle = "rgba(255,226,120," + r.life + ")"; ctx.lineWidth = 2;
+        rr(sx(r.x) - r.w * s / 2 - grow, y - BH / 2 - grow * 0.5, r.w * s + grow * 2, BH + grow, 4); ctx.stroke();
       }
-      // --- yazılar
-      for (const s of p.pops) {
-        const y = groundY - (s.y + 1) * BH;
-        const size = Math.round(Math.max(15, BH * 0.62));
-        const x = Math.min(VW - 60, Math.max(60, s.x * VW));
-        txt(s.text, x, y, fit(s.text, VW - 24, size), s.c || "#fff", { a: Math.min(1, s.life * 1.6), stroke: 4, ls: "1px" });
+      // yazılar
+      for (const q of p.pops) {
+        const size = Math.round(Math.max(15, BH * (q.big ? 1.1 : 0.62)));
+        const x = clamp(sx(q.x), 70, VW - 70);
+        txt(q.text, x, sy(q.y), fit(q.text, VW - 24, size, q.big ? DISP : COND, q.big ? "400" : "800"), q.c || "#fff", { a: Math.min(1, q.life * 1.6), stroke: 4, ls: "1px", f: q.big ? DISP : COND, w: q.big ? "400" : "800" });
       }
     }
 
-    // --- rüzgâr çizgileri ve uyarısı
+    // --- rüzgâr çizgileri, rozetler
     const wind = p.blocks ? windAt(p.blocks.length) : null;
-    if (p.streaks && p.streaks.length) {
+    if (p.streaks.length) {
       ctx.lineWidth = 1.2; ctx.lineCap = "round";
-      for (const s of p.streaks) {
-        ctx.strokeStyle = "rgba(255,255,255," + s.a + ")";
-        const y = s.y * area * 0.8;
-        ctx.beginPath(); ctx.moveTo(s.x * VW, y); ctx.lineTo((s.x - Math.sign(s.v) * s.l) * VW, y); ctx.stroke();
-      }
+      for (const st of p.streaks) { ctx.strokeStyle = "rgba(255,255,255," + st.a + ")"; const y = st.y * playH * 0.8; ctx.beginPath(); ctx.moveTo(st.x * VW, y); ctx.lineTo((st.x - Math.sign(st.v) * st.l) * VW, y); ctx.stroke(); }
       ctx.lineCap = "butt";
     }
-    const bannerY = 12;
     let bannerX = 12;
-    function pill(label, bg, fg, bar) {
-      const size = Math.round(Math.max(13, Math.min(17, VW / 26)));
+    const bannerY = 12;
+    function pill(label, bg, fg) {
+      const size = Math.round(clamp(VW / 26, 13, 17));
       ctx.font = "800 " + size + "px " + COND;
       const w = ctx.measureText(label).width + 22;
       ctx.fillStyle = bg; rr(bannerX, bannerY, w, size + 12, (size + 12) / 2); ctx.fill();
       txt(label, bannerX + w / 2, bannerY + (size + 12) / 2 + 1, size, fg, { ls: "0.5px" });
-      if (bar != null) { ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.fillRect(bannerX + 10, bannerY + size + 8, (w - 20) * bar, 2); }
       bannerX += w + 8;
     }
     if (state === "play" && p.alive && p.blocks) {
       if (wind) pill("RÜZGÂR " + (wind.dir > 0 ? "→" : "←") + " " + (wind.s > 0.9 ? "SERT" : "ORTA"), "rgba(14,17,26,0.78)", "#e8f2ff");
       else if (windAt(p.blocks.length + 1)) pill("RÜZGÂR GELİYOR", "rgba(14,17,26,0.6)", "rgba(232,242,255,0.75)");
-      if (p.boostT > 0) pill("VİNÇ HIZLANDI", "rgba(214,40,60,0.92)", "#fff", p.boostT / BOOST_TIME);
+      if (p.incoming > 0) pill("⚡ GELEN SALDIRI ×" + p.incoming, "rgba(214,40,60,0.92)", "#fff");
     }
-    // saldırı kırmızı kenar
-    if (p.boostT > 0 || p.attackFlash > 0) {
-      const a = Math.max(p.attackFlash * 0.6, p.boostT > 0 ? 0.18 + 0.12 * Math.sin(clock * 10) : 0);
-      const vg = ctx.createRadialGradient(VW / 2, area / 2, Math.min(VW, area) * 0.35, VW / 2, area / 2, Math.max(VW, area) * 0.75);
+    if ((p.storm && (p.phase === "swing" || p.phase === "lower")) || p.attackFlash > 0) {
+      const a = Math.max(p.attackFlash * 0.5, p.storm && p.phase !== "drop" ? 0.16 + 0.1 * Math.sin(clock * 10) : 0);
+      const vg = ctx.createRadialGradient(VW / 2, playH / 2, Math.min(VW, playH) * 0.35, VW / 2, playH / 2, Math.max(VW, playH) * 0.75);
       vg.addColorStop(0, "rgba(255,40,60,0)"); vg.addColorStop(1, "rgba(255,40,60," + a + ")");
-      ctx.fillStyle = vg; ctx.fillRect(0, 0, VW, area);
+      ctx.fillStyle = vg; ctx.fillRect(0, 0, VW, playH);
     }
+    if (p.flash > 0) { ctx.fillStyle = "rgba(255,255,255," + (p.flash / 0.15) * 0.25 + ")"; ctx.fillRect(0, 0, VW, playH); }
 
-    // --- alt bilgi şeridi (oyuncunun kendi kenarı)
-    ctx.fillStyle = "rgba(12,14,21,0.94)"; ctx.fillRect(0, VH - HUD, VW, HUD);
-    ctx.fillStyle = p.accent; ctx.fillRect(0, VH - HUD, VW, 3);
+    // --- alt bilgi şeridi
+    ctx.fillStyle = "rgba(12,14,21,0.95)"; ctx.fillRect(0, playH, VW, HUD + 20);
+    ctx.fillStyle = p.accent; ctx.fillRect(0, playH, VW, 3);
     const pad = 14;
-    const nameSize = Math.round(Math.min(HUD * 0.3, VW / 15));
-    const label = cfg.layout === "online" ? (V.remote ? "RAKİP" : "SEN") : p.name;
-    txt(label, pad, VH - HUD + HUD * 0.38, nameSize, p.accent, { align: "left", ls: "1.5px" });
-    // saldırı göstergesi: 5 çentik
-    const pipW = Math.max(8, Math.min(16, VW / 34)), pipY = VH - HUD + HUD * 0.68;
-    const filled = (p.combo || 0) % ATTACK_EVERY;
-    for (let i = 0; i < ATTACK_EVERY; i++) {
-      ctx.fillStyle = i < filled ? p.accent : "rgba(255,255,255,0.14)";
-      rr(pad + i * (pipW + 4), pipY - 3, pipW, 6, 2); ctx.fill();
+    const nameSize = Math.round(Math.min(HUD * 0.28, VW / 15));
+    const label = isSingle() ? "REKOR " + fmtScore(Math.max(best(), p.score || 0)) : isOnline() ? (V.remote ? "RAKİP" : "SEN") : p.name;
+    txt(label, pad, playH + HUD * 0.32, nameSize, isSingle() ? "rgba(243,239,231,0.7)" : p.accent, { align: "left", ls: "1.5px" });
+    const rowY = playH + HUD * 0.66;
+    let hx = pad;
+    if (cfg.mode === "classic") {
+      const hs = Math.max(10, Math.min(16, HUD * 0.22));
+      for (let i = 0; i < LIVES; i++) { heart(hx + hs / 2, rowY - hs / 2, hs, i < (p.lives || 0) ? "#ff4d5e" : "rgba(255,255,255,0.14)"); hx += hs + 4; }
+      hx += 6;
     }
-    const numSize = Math.round(Math.min(HUD * 0.56, VW / 8));
-    txt(String(n), VW - pad, VH - HUD / 2 + 2, numSize, "#f3efe7", { align: "right", f: DISP, w: "400" });
-    ctx.font = "400 " + numSize + "px " + DISP;
-    const numW = ctx.measureText(String(n)).width;
-    const unitX = VW - pad - numW - 8;
-    txt("KAT", unitX, VH - HUD / 2 - numSize * 0.18, Math.round(numSize * 0.36), "rgba(243,239,231,0.65)", { align: "right", ls: "1px" });
-    txt(meters(n) + " m", unitX, VH - HUD / 2 + numSize * 0.24, Math.round(numSize * 0.32), "rgba(243,239,231,0.65)", { align: "right" });
-    // orta: süre veya rakip
+    if (!isSingle()) {
+      const pipW = Math.max(7, Math.min(14, VW / 36));
+      const filled = (p.streak || 0) % ATTACK_EVERY;
+      for (let i = 0; i < ATTACK_EVERY; i++) { ctx.fillStyle = i < filled ? "#f4b400" : "rgba(255,255,255,0.14)"; rr(hx + i * (pipW + 3), rowY - 3, pipW, 6, 2); ctx.fill(); }
+    } else if (p.streak > 1) txt("SERİ ×" + p.streak, hx, rowY, Math.round(nameSize * 0.8), "#ffd34d", { align: "left" });
+    const numSize = Math.round(Math.min(HUD * 0.48, VW / 9));
+    txt(fmtScore(p.score || 0), VW - pad, playH + HUD * 0.4, numSize, "#f3efe7", { align: "right", f: DISP, w: "400" });
+    txt("KAT " + n + " · " + meters(n) + " m", VW - pad, playH + HUD * 0.78, Math.round(numSize * 0.38), "rgba(243,239,231,0.65)", { align: "right", ls: "0.5px" });
     if (screen === "game" && (state === "play" || state === "countdown")) {
       if (cfg.mode === "timed") {
         const tl = V.remote ? (+((oppPeer() || {}).tl) || 0) : timeLeft;
-        const s = Math.ceil(tl);
-        const label2 = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
-        const warn = s <= 10 && !V.remote;
-        txt(label2, VW / 2, VH - HUD / 2 + 1, Math.round(numSize * 0.78), warn ? "#ff6b78" : "#f3efe7", { f: DISP, w: "400", a: warn ? 0.75 + 0.25 * Math.sin(clock * 10) : 1 });
-      } else if (VW > 300 && o.blocks && !(cfg.layout === "online")) {
-        txt("RAKİP " + floors(o), VW / 2, VH - HUD / 2 + 1, Math.round(nameSize * 0.8), o.accent, { a: 0.9, ls: "1px" });
+        const sec = Math.ceil(tl);
+        const warn = sec <= 10 && !V.remote;
+        txt(Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0"), VW / 2, playH + HUD / 2 + 1, Math.round(numSize * 0.8), warn ? "#ff6b78" : "#f3efe7", { f: DISP, w: "400", a: warn ? 0.75 + 0.25 * Math.sin(clock * 10) : 1 });
+      } else if (!isSingle() && !isOnline() && VW > 320 && o.blocks) {
+        txt("RAKİP " + fmtScore(o.score || 0), VW / 2, playH + HUD / 2 + 1, Math.round(nameSize * 0.8), o.accent, { a: 0.9, ls: "1px" });
       }
     }
 
     // --- durum panelleri
-    const big = Math.round(Math.max(20, Math.min(VW / 9, area / 8, 46)));
-    const mid = Math.round(big * 0.52);
-    const small = Math.round(Math.max(13, big * 0.4));
+    const big = Math.round(clamp(Math.min(VW / 9, playH / 8), 20, 46));
+    const mid = Math.round(big * 0.52), small = Math.round(Math.max(13, big * 0.4));
     const pulse = 0.6 + 0.4 * Math.sin(clock * 5);
-    const modeLine = cfg.mode === "timed" ? "60 saniye · en yüksek kule kazanır" : "Klasik · kule çökene kadar";
+    const modeLine = cfg.mode === "timed" ? "60 saniye · en çok puan kazanır" : "Klasik · 3 can";
     if (screen === "game") {
       if (state === "ready") {
         if (V.remote) {
           const pr = oppPeer();
           panel(V, pr
             ? [{ t: "RAKİP BAĞLANDI", s: big * 0.8, f: DISP, w: "400", c: p.accent }, { t: pr.ready ? "HAZIR ✓" : "Hazırlanıyor…", s: mid, c: pr.ready ? p.light : "#f3efe7", a: pr.ready ? 1 : pulse }]
-            : [{ t: "RAKİP BEKLENİYOR", s: big * 0.8, f: DISP, w: "400", c: p.accent }, { t: "Oda kodu: " + net.code, s: mid, ls: "2px" }, { t: "Arkadaşın Online → Katıl ile bu kodu girsin", s: small, w: "600", c: "#a3a9b8" }], p.accent, area);
+            : [{ t: "RAKİP BEKLENİYOR", s: big * 0.8, f: DISP, w: "400", c: p.accent }, { t: "Oda kodu: " + net.code, s: mid, ls: "2px" }, { t: "Arkadaşın Online → Katıl ile bu kodu girsin", s: small, w: "600", c: "#a3a9b8" }], p.accent, playH);
         } else {
           panel(V, [
-            { t: cfg.layout === "online" ? "HAZIR MISIN?" : p.name, s: big, f: DISP, w: "400", c: p.accent },
-            { t: "Blok tam alttakinin üstüne gelince dokun.", s: small, w: "600" },
+            { t: isSingle() || isOnline() ? "HAZIR MISIN?" : p.name, s: big, f: DISP, w: "400", c: isSingle() ? "#f4b400" : p.accent },
+            { t: "Blok sallanırken dokun, düşsün.", s: small, w: "600" },
+            { t: "Tam üstüne oturursa KUSURSUZ, yarısı taşarsa devrilir.", s: small, w: "600" },
             { t: modeLine, s: small, w: "600", c: "#a3a9b8" },
-            { t: p.ready ? "HAZIR ✓  RAKİP BEKLENİYOR" : "HAZIRSAN DOKUN", s: mid, c: p.ready ? p.light : "#f3efe7", a: p.ready ? 1 : pulse, gap: 1.6, ls: "1px" },
-          ], p.accent, area);
+            { t: p.ready ? "HAZIR ✓  RAKİP BEKLENİYOR" : "BAŞLAMAK İÇİN DOKUN", s: mid, c: p.ready ? p.light : "#f3efe7", a: p.ready ? 1 : pulse, gap: 1.6, ls: "1px" },
+          ], isSingle() ? "#f4b400" : p.accent, playH);
         }
       } else if (state === "countdown" || (state === "play" && countdown > 0)) {
         const k = Math.ceil(countdown - 0.6);
-        const lbl = k >= 1 ? String(k) : "BAŞLA!";
-        const sc = 1 + ((countdown - 0.6) % 1 + 1) % 1 * 0.25;
-        txt(lbl, VW / 2, area * 0.45, Math.round(big * 2 * sc), "#ffffff", { f: DISP, w: "400", stroke: 8, a: 0.95 });
-      } else if (state === "play" && !p.alive) {
-        const on = floors(o);
-        const lead = n - on;
+        const sc2 = 1 + (((countdown - 0.6) % 1) + 1) % 1 * 0.25;
+        txt(k >= 1 ? String(k) : "BAŞLA!", VW / 2, playH * 0.42, Math.round(big * 2 * sc2), "#ffffff", { f: DISP, w: "400", stroke: 8, a: 0.95 });
+      } else if (state === "play" && !p.alive && !isSingle()) {
+        const lead = (p.score || 0) - (o.score || 0);
         panel(V, [
-          { t: "KULE ÇÖKTÜ", s: big, f: DISP, w: "400", c: p.accent },
-          { t: n + " kat · " + meters(n) + " m", s: mid },
-          { t: o.alive ? (lead > 0 ? "Rakibin seni geçmek için " + (lead + 1) + " kat daha yapmalı" : "Rakip önde, bitirmesini bekle") : "Bekleniyor…", s: small, w: "600", c: "#a3a9b8" },
-        ], p.accent, area);
+          { t: "CANLARIN BİTTİ", s: big * 0.85, f: DISP, w: "400", c: p.accent },
+          { t: fmtScore(p.score) + " puan · " + n + " kat", s: mid },
+          { t: o.alive ? (lead > 0 ? "Rakibin seni geçmek için " + fmtScore(lead + 1) + " puan daha almalı" : "Rakip önde, bitirmesini bekle") : "Bekleniyor…", s: small, w: "600", c: "#a3a9b8" },
+        ], p.accent, playH);
       } else if (state === "play" && cfg.mode === "timed" && timeLeft <= 0 && !V.remote) {
-        panel(V, [{ t: "SÜRE DOLDU", s: big, f: DISP, w: "400", c: p.accent }, { t: "Rakip bekleniyor…", s: small, w: "600", c: "#a3a9b8" }], p.accent, area);
-      } else if (state === "play" && !o.alive && n > floors(o) && cfg.mode === "classic") {
-        txt("ÖNDESİN · DEVAM ET", VW / 2, area - 22, Math.round(mid * 0.8), p.light, { a: pulse, stroke: 4, ls: "1px" });
+        panel(V, [{ t: "SÜRE DOLDU", s: big, f: DISP, w: "400", c: p.accent }, { t: "Rakip bekleniyor…", s: small, w: "600", c: "#a3a9b8" }], p.accent, playH);
       } else if (state === "over") {
-        const a = n, b = floors(o);
-        const res = a > b ? "KAZANDIN!" : a < b ? "KAYBETTİN" : "BERABERE";
-        const col = a > b ? p.light : a < b ? "#ff9aa4" : "#f3efe7";
         const canTap = clock - overAt > 0.9;
         const lines = [];
         if (overNote) lines.push({ t: overNote.toUpperCase(), s: small, c: "#a3a9b8", ls: "1px" });
-        if (cfg.layout === "online" && V.remote) {
-          lines.push({ t: a > b ? "RAKİP KAZANDI" : a < b ? "RAKİP KAYBETTİ" : "BERABERE", s: big * 0.8, f: DISP, w: "400", c: p.accent });
-          lines.push({ t: a + " kat", s: mid });
-          const pr = oppPeer();
-          if (pr) lines.push({ t: pr.ready ? "TEKRAR İÇİN HAZIR ✓" : "Karar veriyor…", s: small, c: pr.ready ? p.light : "#a3a9b8" });
+        if (isSingle()) {
+          lines.push({ t: newBest ? "YENİ REKOR!" : "OYUN BİTTİ", s: big, f: DISP, w: "400", c: newBest ? "#ffd34d" : "#f3efe7" });
+          lines.push({ t: fmtScore(p.score) + " puan", s: Math.round(mid * 1.3), f: DISP, w: "400" });
+          lines.push({ t: n + " kat · " + meters(n) + " m · rekor " + fmtScore(best()), s: small, w: "600", c: "#a3a9b8" });
+          lines.push({ t: canTap ? "TEKRAR İÇİN DOKUN" : " ", s: mid, a: pulse, gap: 1.6, ls: "1px" });
+          panel(V, lines, newBest ? "#ffd34d" : "#f4b400", playH);
         } else {
-          lines.push({ t: res, s: big, f: DISP, w: "400", c: col });
-          lines.push({ t: a + " kat  —  " + b + " kat", s: mid });
-          lines.push({ t: "Rekor (" + (cfg.mode === "timed" ? "60 sn" : "klasik") + "): " + records[cfg.mode] + " kat", s: small, w: "600", c: "#a3a9b8" });
-          lines.push({ t: p.ready ? "HAZIR ✓  RAKİP BEKLENİYOR" : canTap ? "TEKRAR İÇİN DOKUN" : " ", s: mid, c: p.ready ? p.light : "#f3efe7", a: p.ready ? 1 : pulse, gap: 1.6, ls: "1px" });
+          const a = p.score || 0, b = o.score || 0;
+          const won = a > b || (a === b && n > floors(o)), lost = a < b || (a === b && n < floors(o));
+          const col = won ? p.light : lost ? "#ff9aa4" : "#f3efe7";
+          if (isOnline() && V.remote) {
+            lines.push({ t: won ? "RAKİP KAZANDI" : lost ? "RAKİP KAYBETTİ" : "BERABERE", s: big * 0.8, f: DISP, w: "400", c: p.accent });
+            lines.push({ t: fmtScore(a) + " puan · " + n + " kat", s: mid });
+            const pr = oppPeer();
+            if (pr) lines.push({ t: pr.ready ? "TEKRAR İÇİN HAZIR ✓" : "Karar veriyor…", s: small, c: pr.ready ? p.light : "#a3a9b8" });
+          } else {
+            lines.push({ t: won ? "KAZANDIN!" : lost ? "KAYBETTİN" : "BERABERE", s: big, f: DISP, w: "400", c: col });
+            lines.push({ t: fmtScore(a) + "  —  " + fmtScore(b), s: mid });
+            lines.push({ t: n + " kat · rakip " + floors(o) + " kat", s: small, w: "600", c: "#a3a9b8" });
+            lines.push({ t: p.ready ? "HAZIR ✓  RAKİP BEKLENİYOR" : canTap ? "TEKRAR İÇİN DOKUN" : " ", s: mid, c: p.ready ? p.light : "#f3efe7", a: p.ready ? 1 : pulse, gap: 1.6, ls: "1px" });
+          }
+          panel(V, lines, col, playH);
         }
-        panel(V, lines, col, area);
       }
     }
     ctx.restore();
@@ -1260,15 +1564,9 @@
   function render() {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.fillStyle = "#0d1018"; ctx.fillRect(0, 0, W, H);
-    const vs = views();
-    for (const V of vs) drawView(V);
-    // ayırıcı
-    if (cfg.layout === "side") {
-      ctx.fillStyle = "#15171c"; ctx.fillRect(W / 2 - 3, 0, 6, H);
-      ctx.fillStyle = "#f4b400";
-      for (let y = 0; y < H; y += 18) ctx.fillRect(W / 2 - 3, y, 6, 9);
-    }
-    else { const y = cfg.layout === "online" ? Math.round(H * 0.4) : H / 2; hazard(0, y - 3, W, 6, "#15171c", "#f4b400"); }
+    for (const V of views()) drawView(V);
+    if (cfg.layout === "side") { ctx.fillStyle = "#15171c"; ctx.fillRect(W / 2 - 3, 0, 6, H); ctx.fillStyle = "#f4b400"; for (let y = 0; y < H; y += 18) ctx.fillRect(W / 2 - 3, y, 6, 9); }
+    else if (!isSingle()) { const y = isOnline() ? Math.round(H * 0.38) : H / 2; hazard(0, y - 3, W, 6, "#15171c", "#f4b400"); }
   }
 
   // =====================================================================
@@ -1279,7 +1577,7 @@
     if (screen !== "game") return;
     const r = cv.getBoundingClientRect();
     const x = e.clientX - r.left, y = e.clientY - r.top;
-    if (cfg.layout === "online") tap(P[0]);
+    if (isSingle() || isOnline()) tap(P[0]);
     else if (cfg.layout === "side") tap(x < W / 2 ? P[0] : P[1]);
     else tap(y < H / 2 ? P[1] : P[0]);
   });
@@ -1288,132 +1586,169 @@
     if (screen !== "game" || e.repeat) return;
     if (e.target && e.target.tagName === "INPUT") return;
     const k = e.key.toLowerCase();
-    if (cfg.layout === "online") { if (k === " " || k === "enter" || k === "a" || k === "l") { e.preventDefault(); tap(P[0]); } return; }
+    if (isSingle() || isOnline()) { if (k === " " || k === "enter" || k === "a" || k === "l") { e.preventDefault(); tap(P[0]); } return; }
     const leftTop = cfg.layout === "side" ? P[0] : P[1];
     const rightBottom = cfg.layout === "side" ? P[1] : P[0];
     if (k === "a" || k === " ") { e.preventDefault(); tap(leftTop); }
     if (k === "l" || k === "enter") { e.preventDefault(); tap(rightBottom); }
   });
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && screen === "game") keepAwake();
-  });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && screen === "game") keepAwake(); });
 
   // =====================================================================
   //  Menü
   // =====================================================================
   const menuEl = $("#menu"), menuBtn = $("#menuBtn"), onlineBox = $("#onlineBox");
-  function setRoomStatus(html) { $("#roomStatus").textContent = html; }
+  function setRoomStatus(t) { $("#roomStatus").textContent = t; }
+  function inviteUrl() { return location.origin + location.pathname + "#oda-" + net.code.toLowerCase(); }
   function updateRoomStatus() {
     if (!net.room) return;
     const el = $("#roomStatus");
     el.textContent = "";
-    const b = document.createElement("div");
-    b.className = "code"; b.textContent = net.code;
-    const s = document.createElement("span");
+    const b = document.createElement("div"); b.className = "code"; b.textContent = net.code;
+    const sp = document.createElement("span");
     const opp = oppPeer();
     if (opp && opp.host && !net.host && (opp.mode === "classic" || opp.mode === "timed") && opp.mode !== cfg.mode) {
       cfg.mode = opp.mode;
       for (const o of document.querySelectorAll('[data-group="mode"] .opt')) o.setAttribute("aria-pressed", String(o.dataset.value === cfg.mode));
     }
-    s.textContent = opp
+    sp.textContent = opp
       ? "Rakip bağlandı ✓  Mod: " + (cfg.mode === "timed" ? "60 Saniye" : "Klasik") + (net.host ? "" : " (odayı kuran seçer)")
-      : (net.host ? "Arkadaşın Online → kodu yazıp Katıl'a bassın. Rakip bekleniyor…" : "Odaya girdin. Rakip bekleniyor…");
-    el.append(b, s);
+      : (net.host ? "Arkadaşın Online → kodu yazıp Katıl'a bassın ya da davet linkini açsın. Rakip bekleniyor…" : "Odaya girdin. Rakip bekleniyor…");
+    el.append(b, sp);
+    const showShare = !IN_CLAUDE && net.host;
+    $("#shareRow").hidden = !showShare;
+    if (showShare) $("#shareUrl").textContent = inviteUrl();
   }
   function refreshMenu() {
-    for (const seg of document.querySelectorAll(".seg")) {
+    for (const seg of document.querySelectorAll(".seg[data-group]")) {
       const key = seg.dataset.group;
       for (const b of seg.querySelectorAll(".opt")) b.setAttribute("aria-pressed", String(cfg[key] === b.dataset.value));
     }
-    const online = cfg.layout === "online";
+    const online = isOnline();
     onlineBox.hidden = !online;
     $("#leaveRoom").hidden = !net.room;
     $("#mkRoom").hidden = !!net.room; $("#joinRoom").hidden = !!net.room; $("#code").hidden = !!net.room;
+    if (!net.room) $("#shareRow").hidden = true;
     $("#play").disabled = online && !net.room;
     const modeLocked = online && net.room && !net.host;
     for (const b of document.querySelectorAll('[data-group="mode"] .opt')) b.disabled = !!modeLocked;
+    $("#sfxBtn").setAttribute("aria-pressed", String(AU.sfxOn)); $("#sfxLbl").textContent = AU.sfxOn ? "Açık" : "Kapalı";
+    $("#musicBtn").setAttribute("aria-pressed", String(AU.musicOn)); $("#musicLbl").textContent = AU.musicOn ? "Açık" : "Kapalı";
     if (net.room) updateRoomStatus();
     updateRecordLine();
   }
   function updateRecordLine() {
-    $("#recordLine").textContent = "Rekor: " + records.classic + " kat · 60 sn: " + records.timed + " kat";
+    const c = parseInt(store.get("best-classic", "0"), 10) || 0, t = parseInt(store.get("best-timed", "0"), 10) || 0;
+    $("#recordLine").textContent = "Rekor: " + fmtScore(c) + " · 60 sn: " + fmtScore(t);
   }
-  for (const seg of document.querySelectorAll(".seg")) {
+  for (const seg of document.querySelectorAll(".seg[data-group]")) {
     seg.addEventListener("click", e => {
       const b = e.target.closest(".opt");
       if (!b || b.disabled) return;
+      auInit(); SFX.click();
       cfg[seg.dataset.group] = b.dataset.value;
       store.set(seg.dataset.group, b.dataset.value);
       if (seg.dataset.group === "layout" && b.dataset.value !== "online" && net.room) leaveRoom();
       if (seg.dataset.group === "layout" && b.dataset.value === "online") getRoomApi();
       if (net.room) pushPresence(true);
       refreshMenu();
-      P.forEach(resetPlayer);
+      P.forEach(p => resetPlayer(p, 1));
       placeMenuBtn();
     });
   }
-  $("#mkRoom").addEventListener("click", () => {
-    ensureAudio();
-    joinRoom(newCode(), true);
-  });
-  $("#joinRoom").addEventListener("click", () => { ensureAudio(); joinRoom($("#code").value, false); });
+  $("#sfxBtn").addEventListener("click", () => { auInit(); setSfx(!AU.sfxOn); SFX.click(); refreshMenu(); });
+  $("#musicBtn").addEventListener("click", () => { auInit(); setMusic(!AU.musicOn); refreshMenu(); });
+  $("#mkRoom").addEventListener("click", () => { auInit(); SFX.click(); joinRoom(newCode(), true); });
+  $("#joinRoom").addEventListener("click", () => { auInit(); SFX.click(); joinRoom($("#code").value, false); });
   $("#code").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); joinRoom($("#code").value, false); } });
-  $("#leaveRoom").addEventListener("click", leaveRoom);
+  $("#leaveRoom").addEventListener("click", () => { SFX.click(); leaveRoom(); });
+  $("#shareBtn").addEventListener("click", () => {
+    const url = inviteUrl();
+    const data = { title: "Kule Yarışı", text: "Kule Yarışı'nda benimle yarış! Oda kodu: " + net.code, url };
+    if (navigator.share) { navigator.share(data).catch(() => {}); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(() => { $("#shareBtn").textContent = "Kopyalandı ✓"; setTimeout(() => { $("#shareBtn").textContent = "Davet linki gönder"; }, 1800); }).catch(() => selectLink());
+    else selectLink();
+  });
+  function selectLink() { const r = document.createRange(); r.selectNodeContents($("#shareUrl")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
   $("#play").addEventListener("click", () => {
-    ensureAudio();
+    auInit(); SFX.click();
     screen = "game"; state = "ready";
-    P.forEach(resetPlayer);
-    if (cfg.layout === "online") { P[1].remote = true; pushPresence(true); }
+    P.forEach(p => resetPlayer(p, 1));
+    if (isOnline()) { P[1].remote = true; pushPresence(true); }
     menuEl.hidden = true; menuBtn.hidden = false;
-    placeMenuBtn();
-    keepAwake();
+    placeMenuBtn(); keepAwake();
   });
   menuBtn.addEventListener("click", () => {
-    screen = "menu"; state = "ready";
-    P.forEach(resetPlayer);
-    if (cfg.layout === "online") { me().ready = false; pushPresence(true); }
+    SFX.click();
+    screen = "menu"; state = "ready"; AU.level = 0;
+    P.forEach(p => resetPlayer(p, 1));
+    if (isOnline()) { me().ready = false; pushPresence(true); }
     menuEl.hidden = false; menuBtn.hidden = true;
     refreshMenu();
-    try { wakeLock && wakeLock.release(); } catch (e) {}
+    try { if (wakeLock) wakeLock.release(); } catch (e) {}
   });
   function placeMenuBtn() {
-    const s = menuBtn.style;
-    s.left = s.top = s.right = s.transform = "";
-    if (cfg.layout === "face") { s.left = "50%"; s.top = "50%"; s.transform = "translate(-50%,-50%)"; }
-    else if (cfg.layout === "side") { s.left = "50%"; s.top = "calc(10px + env(safe-area-inset-top, 0px))"; s.transform = "translateX(-50%)"; }
-    else { s.left = "50%"; s.top = Math.round(H * 0.4) + "px"; s.transform = "translate(-50%,-50%)"; }
+    const st = menuBtn.style;
+    st.left = st.top = st.right = st.transform = "";
+    if (cfg.layout === "face") { st.left = "50%"; st.top = "50%"; st.transform = "translate(-50%,-50%)"; }
+    else if (cfg.layout === "side") { st.left = "50%"; st.top = "calc(10px + env(safe-area-inset-top, 0px))"; st.transform = "translateX(-50%)"; }
+    else if (isOnline()) { st.left = "50%"; st.top = Math.round(H * 0.38) + "px"; st.transform = "translate(-50%,-50%)"; }
+    else { st.right = "max(12px, env(safe-area-inset-right, 0px))"; st.top = "calc(12px + env(safe-area-inset-top, 0px))"; }
   }
 
   // =====================================================================
-  //  Döngü
+  //  Menü arkası canlı sahne: kendi kendine oynayan kule(ler)
+  // =====================================================================
+  function demoTick(dt) {
+    for (const p of activePlayers()) {
+      if (!p.blocks) continue;
+      if (p.blocks.length > 45) resetPlayer(p, (Math.random() * 1e9) | 0);
+      p.swayT += dt;
+      if (p.phase === "lower") { p.phaseT += dt; p.t += dt; if (p.phaseT > 0.42) p.phase = "swing"; }
+      else if (p.phase === "swing") {
+        p.t += dt;
+        const a = hookAngle(p);
+        if (Math.abs(Math.sin(a)) * ROPE * BHW < 0.012 && p.t > 0.5) tryDropDemo(p);
+      } else if (p.phase === "drop") {
+        const f = p.fall; f.vy += G * dt; f.y -= f.vy * dt; f.rot *= Math.exp(-10 * dt);
+        if (f.y <= topSurface(p)) { const ni = p.blocks.length; p.blocks.push({ x: 0.5 - swayAt(p, ni) + (Math.random() - 0.5) * 0.02, w: BW, perfect: Math.random() < 0.5 }); addDust(p, 0.5, BW, ni); p.squash = 1; p.fall = null; p.phase = "settle"; p.phaseT = 0; updateSwayAmp(p); }
+      } else if (p.phase === "settle") { p.phaseT += dt; if (p.phaseT > 0.3) { p.swing = swingFor(p, p.blocks.length, false); p.t = 0; p.phase = "lower"; p.phaseT = 0; } }
+      p.retract = Math.max(0, p.retract - dt);
+    }
+  }
+  function tryDropDemo(p) { const a = hookAngle(p); p.fall = { x: 0.5 + Math.sin(a) * ROPE * BHW, y: pivotY(p) - Math.cos(a) * ROPE - 1, vy: 0, rot: a, drift: 0 }; p.phase = "drop"; p.retract = 0.3; }
+
+  // =====================================================================
+  //  PWA (yalnız normal web sitesinde)
+  // =====================================================================
+  if (!IN_CLAUDE && location.protocol === "https:") {
+    try {
+      const l = document.createElement("link"); l.rel = "manifest"; l.href = "manifest.webmanifest"; document.head.appendChild(l);
+      const ai = document.createElement("link"); ai.rel = "apple-touch-icon"; ai.href = "icon-180.png"; document.head.appendChild(ai);
+      if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+    } catch (e) {}
+  }
+
+  // =====================================================================
+  //  Başlat
   // =====================================================================
   resize();
-  P.forEach(resetPlayer);
+  P.forEach(p => resetPlayer(p, 1));
   refreshMenu();
-  if (cfg.layout === "online") getRoomApi();
-
-  // Menü arkasında canlı bir sahne: iki kule kendi kendine yükselir.
-  const demo = { t: 0 };
-  function demoTick(dt) {
-    demo.t += dt;
-    if (demo.t > 0.9) {
-      demo.t = 0;
-      for (const p of P) {
-        if (p.blocks.length > 40) resetPlayer(p);
-        const top = p.blocks[p.blocks.length - 1];
-        const off = (Math.random() - 0.5) * 0.02;
-        const w = Math.max(0.2, top.w - Math.abs(off));
-        p.blocks.push({ x: top.x + (off > 0 ? off : 0), w });
-        spawn(p);
-      }
-    }
-    for (const p of P) if (p.cur) { p.cur.x = 0.5 - p.cur.w / 2 + Math.sin(clock * 1.3 + (p === P[0] ? 0 : 2)) * 0.25; }
-  }
+  if (isOnline()) getRoomApi();
+  (() => { // davet linki: #oda-XXXX
+    const m = /^#oda-([a-z0-9]{4})$/i.exec(location.hash || "");
+    if (!m) return;
+    cfg.layout = "online"; refreshMenu(); placeMenuBtn();
+    $("#code").value = m[1].toUpperCase();
+    joinRoom(m[1], false);
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  })();
 
   let last = performance.now();
-  function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
+  function frame(t) {
+    const dt = Math.min(0.25, (t - last) / 1000);
+    last = t;
     if (screen === "menu") demoTick(dt);
     update(dt);
     render();
