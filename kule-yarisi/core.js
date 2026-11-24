@@ -129,11 +129,12 @@
     try { AU.ctx.close(); } catch (e) {}
     AU.ctx = null; AU.timer = null;
   }
+  K.onAudioRebuild = [];
   K.auInit = () => {
     if (AU.ctx) {
       const st = AU.ctx.state;
-      if (st === "running") return;
-      if (st === "closed" || st === "interrupted" || AU.needRebuild) { AU.needRebuild = false; teardown(); }
+      if (AU.needRebuild || st === "closed" || st === "interrupted") { AU.needRebuild = false; teardown(); }
+      else if (st === "running") return;
       else {
         unlockTick();
         AU.ctx.resume().then(() => { if (AU.ctx && AU.ctx.state !== "running") AU.needRebuild = true; }).catch(() => { AU.needRebuild = true; });
@@ -164,6 +165,7 @@
     AU.timer = setInterval(musicSchedule, 90);
     AU.windSrc = null;
     decodeAll();
+    for (const f of K.onAudioRebuild) { try { f(); } catch (e) {} }
   };
   const ok = () => AU.ctx && AU.ctx.state === "running";
   // ---------- gerçek kayıtlar (CC0; bkz. KAYNAKLAR.md). Yüklenemezse sentez sese düşülür. ----------
@@ -256,11 +258,15 @@
   };
   K.setSfx = on => { AU.sfxOn = on; K.store.set("sfx", on ? "1" : "0"); if (AU.sfx) AU.sfx.gain.setTargetAtTime(on ? AU.SFX_VOL : 0, now(), 0.05); };
   K.setMusic = on => { AU.musicOn = on; K.store.set("music", on ? "1" : "0"); if (AU.mus) { AU.mus.gain.cancelScheduledValues(now()); AU.mus.gain.setTargetAtTime(on ? AU.MUS_VOL : 0, now(), 0.1); } };
+  // iOS/Safari: arka plandan dönünce bağlam "running" görünse de sessiz kalabiliyor (WebKit hatası).
+  // Bu yüzden sayfa gizlenince motoru "yeniden kurulacak" diye işaretle; dönüşte ilk dokunuşta sıfırdan kur.
+  function markHidden() { if (!AU.ctx) return; AU.needRebuild = true; AU.ctx.suspend().catch(() => {}); }
   document.addEventListener("visibilitychange", () => {
-    if (!AU.ctx) return;
-    if (document.visibilityState === "hidden") AU.ctx.suspend().catch(() => {});
-    else AU.ctx.resume().catch(() => {});
+    if (document.visibilityState === "hidden") markHidden();
+    else if (AU.ctx) { AU.ctx.resume().catch(() => {}); }
   });
+  window.addEventListener("pagehide", markHidden);
+  window.addEventListener("blur", () => { if (document.visibilityState === "hidden") markHidden(); });
   window.addEventListener("pageshow", () => { if (AU.ctx && AU.ctx.state !== "running") AU.ctx.resume().catch(() => {}); });
   // Sayfadaki her dokunuş/tıklama/tuş sesi gerekirse yeniden açar (iOS yalnız kullanıcı hareketiyle izin verir).
   for (const ev of ["pointerdown", "touchend", "click", "keydown"]) document.addEventListener(ev, () => K.auInit(), { capture: true, passive: true });

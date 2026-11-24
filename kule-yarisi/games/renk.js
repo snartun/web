@@ -61,11 +61,12 @@
     const g = { score: 0, over: false, lvl: 0, tubes: genLevel(seed, 0), sel: -1, doneSet: new Set(), wait: 0, R: null, pops: [], parts: [], shakeT: -1, shake: 0, clock: 0, moves: 0, hist: [], undos: 5 };
     function layout(R) {
       const n = g.tubes.length, rows = n > 6 ? 2 : 1, per = Math.ceil(n / rows);
-      const tw = Math.min(64, (R.w - 24) / (per * 1.35));
+      // tüpler hem genişliğe hem yüksekliğe sığmalı (2 sıra olunca alt sıra ekran dışına taşmasın)
+      const tw = Math.min(64, (R.w - 24) / (per * 1.35), (R.h - 96) / (rows * (CAP + 0.7) + (rows - 1) * 1.15 + 1.4));
       const th = tw * (CAP + 0.7);
-      const rowGap = tw * 1.3;
+      const rowGap = tw * 1.15;
       const totalH = rows * th + (rows - 1) * rowGap;
-      const y0 = R.y + Math.max(70, (R.h - totalH) / 2 + 20);
+      const y0 = R.y + Math.max(62 + tw * 1.4, (R.h - totalH) / 2 + 20);
       const pos = [];
       for (let i = 0; i < n; i++) {
         const row = Math.floor(i / per), col = i % per, inRow = Math.min(per, n - row * per);
@@ -104,7 +105,7 @@
       }
     }
     const undoBtn = R => ({ x: R.x + R.w - 128, y: R.y + 10, w: 116, h: 40 });
-    return {
+    const inst = {
       get score() { return g.score; },
       get over() { return g.over; },
       info() { return { extra: "BÖLÜM " + (g.lvl + 1) }; },
@@ -122,9 +123,13 @@
           for (let k = 0; k < h.m; k++) g.tubes[h.from].push(g.tubes[h.to].pop());
           g.doneSet.delete(h.to); g.undos--; g.sel = -1; SFX.whoosh(); return;
         }
-        L.pos.forEach((p, i) => { if (x >= p.x - 10 && x <= p.x + p.w + 10 && y >= p.y - L.tw * 1.4 && y <= p.y + p.h + 10) tap(i); });
+        // tek bir tüp seç: dokunulan noktaya en yakın tüp
+        let best = -1, bd = 1e9;
+        L.pos.forEach((p, i) => { if (x >= p.x - 12 && x <= p.x + p.w + 12 && y >= p.y - L.tw * 1.1 && y <= p.y + p.h + 12) { const d = Math.abs(x - (p.x + p.w / 2)) + Math.abs(y - (p.y + p.h / 2)) * 0.5; if (d < bd) { bd = d; best = i; } } });
+        if (best >= 0) tap(best);
       },
       net() { return { l: g.lvl, t: g.tubes.map(t => t.join("")).join(",") }; },
+      _g: g,
       draw(ctx, R) {
         g.R = R;
         ctx.save(); ctx.beginPath(); ctx.rect(R.x, R.y, R.w, R.h); ctx.clip();
@@ -151,6 +156,7 @@
         ctx.restore();
       },
     };
+    return inst;
   }
   function drawRemote(ctx, R, d) {
     K.bg(ctx, R, "#123a3a", "#0b1a20");
