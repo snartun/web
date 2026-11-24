@@ -1,6 +1,6 @@
 // Düello Arenası: çevrimdışı oynanabilmesi için önbellek.
 // Kendi dosyalarımız "önce ağ, yoksa önbellek"; yazı tipleri "önce önbellek".
-const CACHE = "duello-arenasi-v1";
+const CACHE = "duello-arenasi-v2";
 const CORE = ["./", "./index.html", "./core.js", "./app.js", "./games/kule.js", "./games/blok.js", "./games/kelime.js", "./games/renk.js", "./games/misket.js", "./games/refleks.js", "./kelimeler.txt", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-180.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

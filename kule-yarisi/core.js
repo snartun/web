@@ -119,9 +119,29 @@
     sfxOn: K.store.get("sfx", "1") === "1", musicOn: K.store.get("music", "1") === "1",
     SFX_VOL: 0.45, MUS_VOL: 0.08, level: 0,
   });
+  // iOS, uygulamadan çıkılınca sesi "interrupted" durumuna alır ve kendiliğinden açmaz.
+  // Her dokunuşta: çalışmıyorsa devam ettir; kapalı/kesintili ise motoru baştan kur.
+  function unlockTick() {
+    try { const b = AU.ctx.createBuffer(1, 1, 22050), s = AU.ctx.createBufferSource(); s.buffer = b; s.connect(AU.ctx.destination); s.start(0); } catch (e) {}
+  }
+  function teardown() {
+    try { clearInterval(AU.timer); } catch (e) {}
+    try { AU.ctx.close(); } catch (e) {}
+    AU.ctx = null; AU.timer = null;
+  }
   K.auInit = () => {
-    if (AU.ctx) { if (AU.ctx.state === "suspended") AU.ctx.resume().catch(() => {}); return; }
+    if (AU.ctx) {
+      const st = AU.ctx.state;
+      if (st === "running") return;
+      if (st === "closed" || st === "interrupted" || AU.needRebuild) { AU.needRebuild = false; teardown(); }
+      else {
+        unlockTick();
+        AU.ctx.resume().then(() => { if (AU.ctx && AU.ctx.state !== "running") AU.needRebuild = true; }).catch(() => { AU.needRebuild = true; });
+        return;
+      }
+    }
     try { const C = window.AudioContext || window.webkitAudioContext; AU.ctx = new C({ latencyHint: "interactive" }); } catch (e) { AU.ctx = null; return; }
+    unlockTick();
     try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
     const c = AU.ctx;
     const comp = c.createDynamicsCompressor();
@@ -205,8 +225,12 @@
   K.setMusic = on => { AU.musicOn = on; K.store.set("music", on ? "1" : "0"); if (AU.mus) { AU.mus.gain.cancelScheduledValues(now()); AU.mus.gain.setTargetAtTime(on ? AU.MUS_VOL : 0, now(), 0.1); } };
   document.addEventListener("visibilitychange", () => {
     if (!AU.ctx) return;
-    if (document.visibilityState === "hidden") AU.ctx.suspend().catch(() => {}); else AU.ctx.resume().catch(() => {});
+    if (document.visibilityState === "hidden") AU.ctx.suspend().catch(() => {});
+    else AU.ctx.resume().catch(() => {});
   });
+  window.addEventListener("pageshow", () => { if (AU.ctx && AU.ctx.state !== "running") AU.ctx.resume().catch(() => {}); });
+  // Sayfadaki her dokunuş/tıklama/tuş sesi gerekirse yeniden açar (iOS yalnız kullanıcı hareketiyle izin verir).
+  for (const ev of ["pointerdown", "touchend", "click", "keydown"]) document.addEventListener(ev, () => K.auInit(), { capture: true, passive: true });
 
   // Üretken müzik: 92 BPM, C–G–Am–F; her 8 ölçüde yeni melodi; oyun sırasında yoğunlaşır.
   const MUS = { bpm: 92, step: 0, next: 0, prog: [[0, 4, 7], [7, 11, 14], [9, 12, 16], [5, 9, 12]] };

@@ -78,23 +78,45 @@
         ctx.fillRect(wx, wy, ww, wh); ctx.fillStyle = "rgba(255,255,255,0.25)"; ctx.fillRect(wx, wy, ww, 1.5);
         if (hash(idx, i + 50) < 0.4) { ctx.fillStyle = gold ? "#a07a1a" : p.wallD; ctx.fillRect(wx - 2, wy + wh - 1, ww + 4, 2); for (let k = 0; k <= 3; k++) ctx.fillRect(wx - 2 + (ww + 4) * k / 3, wy + wh * 0.72, 1, wh * 0.28); }
       }
-    } else {
+    } else if (style === 1) {
+      // ofis: mavi-gri cam giydirme cephe, açık renk alüminyum doğramalar
       const g = ctx.createLinearGradient(0, y, 0, y + gh);
-      if (gold) { g.addColorStop(0, "#fff1c4"); g.addColorStop(0.5, "#e7b94a"); g.addColorStop(1, "#8c6416"); }
-      else if (style === 1) { g.addColorStop(0, p.g0); g.addColorStop(0.5, p.g1); g.addColorStop(1, p.g2); }
-      else { g.addColorStop(0, p.g1); g.addColorStop(0.6, p.g2); g.addColorStop(1, "#11161f"); }
+      if (gold) { g.addColorStop(0, "#fff3cf"); g.addColorStop(0.5, "#e9bf57"); g.addColorStop(1, "#9a6f1a"); }
+      else { g.addColorStop(0, "#d9ebf7"); g.addColorStop(0.45, "#7fa7c9"); g.addColorStop(1, "#33557a"); }
       ctx.fillStyle = g; ctx.fillRect(x, y, w, gh);
-      if (night > 0) { ctx.fillStyle = "rgba(6,10,28," + night * 0.6 + ")"; ctx.fillRect(x, y, w, gh); }
+      if (night > 0) { ctx.fillStyle = "rgba(8,14,32," + night * 0.7 + ")"; ctx.fillRect(x, y, w, gh); }
+      const nP = Math.max(2, Math.round(w / Math.max(9, h * 0.55))), step = w / nP;
+      if (night > 0.25) for (let i = 0; i < nP; i++) if (hash(idx, i) < 0.55) { ctx.fillStyle = "rgba(255,226,170," + Math.min(0.85, (night - 0.25) * 1.3) + ")"; ctx.fillRect(x + i * step + 1, y + 1, step - 2, gh - 2); }
       ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, gh); ctx.clip();
-      const rx = x + (hash(idx, 7) * 1.4 - 0.2) * w;
-      ctx.fillStyle = "rgba(255,255,255," + 0.16 * (1 - night * 0.6) + ")";
-      ctx.beginPath(); ctx.moveTo(rx, y + gh); ctx.lineTo(rx + gh * 0.7, y); ctx.lineTo(rx + gh * 0.7 + w * 0.08, y); ctx.lineTo(rx + w * 0.08, y + gh); ctx.fill();
+      const rx = x + (hash(idx, 7) * 1.3 - 0.15) * w;
+      ctx.fillStyle = "rgba(255,255,255," + 0.28 * (1 - night * 0.7) + ")";
+      ctx.beginPath(); ctx.moveTo(rx, y + gh); ctx.lineTo(rx + gh * 0.8, y); ctx.lineTo(rx + gh * 0.8 + w * 0.12, y); ctx.lineTo(rx + w * 0.12, y + gh); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255," + 0.12 * (1 - night * 0.7) + ")";
+      ctx.beginPath(); ctx.moveTo(rx + w * 0.2, y + gh); ctx.lineTo(rx + w * 0.2 + gh * 0.8, y); ctx.lineTo(rx + w * 0.24 + gh * 0.8, y); ctx.lineTo(rx + w * 0.24, y + gh); ctx.fill();
       ctx.restore();
-      const nP = Math.max(1, Math.round(w / Math.max(8, h * (style === 1 ? 0.62 : 0.4)))), step = w / nP;
-      if (night > 0.25) for (let i = 0; i < nP; i++) if (hash(idx, i) < 0.5) { ctx.fillStyle = "rgba(255,212,140," + Math.min(0.9, (night - 0.25) * 1.4) + ")"; ctx.fillRect(x + i * step + 1.5, y + 1.5, step - 3, gh - 3); }
-      ctx.fillStyle = style === 1 ? "rgba(10,18,28,0.38)" : "rgba(200,220,240,0.35)";
-      for (let i = 1; i < nP; i++) ctx.fillRect(x + i * step - 0.75, y, style === 1 ? 1.5 : 2, gh);
-      if (style === 1) { ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(x, y + gh * 0.64, w, 1); }
+      ctx.fillStyle = css(mix(hex("#e9eef3"), hex("#5a6478"), night * 0.6));
+      for (let i = 1; i < nP; i++) ctx.fillRect(x + i * step - 1, y, 2, gh);
+      ctx.fillRect(x, y + gh * 0.62, w, 1.5);
+      ctx.fillStyle = "rgba(255,255,255,0.35)"; ctx.fillRect(x, y, w, 1);
+    } else {
+      // gökdelen: koyu füme cam, metal dikey kanatlar, ince aydınlatma
+      const g = ctx.createLinearGradient(0, y, 0, y + gh);
+      if (gold) { g.addColorStop(0, "#f7e2a6"); g.addColorStop(0.5, "#c99a35"); g.addColorStop(1, "#6e4c0e"); }
+      else { g.addColorStop(0, "#5d7391"); g.addColorStop(0.5, "#2a3a54"); g.addColorStop(1, "#141c2b"); }
+      ctx.fillStyle = g; ctx.fillRect(x, y, w, gh);
+      const nP = Math.max(3, Math.round(w / Math.max(7, h * 0.36))), step = w / nP;
+      if (night > 0.2) for (let i = 0; i < nP; i++) if (hash(idx, i) < 0.45) { ctx.fillStyle = "rgba(200,225,255," + Math.min(0.75, (night - 0.2) * 1.2) + ")"; ctx.fillRect(x + i * step + 2, y + gh * 0.15, step - 4, gh * 0.7); }
+      ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, gh); ctx.clip();
+      const rg = ctx.createLinearGradient(x, y, x + w, y + gh);
+      rg.addColorStop(0, "rgba(255,255,255,0)"); rg.addColorStop(0.45, "rgba(255,255,255," + 0.22 * (1 - night * 0.6) + ")"); rg.addColorStop(0.55, "rgba(255,255,255,0)");
+      ctx.fillStyle = rg; ctx.fillRect(x, y, w, gh);
+      ctx.restore();
+      for (let i = 0; i <= nP; i++) {
+        const fx = x + i * step - 1.5;
+        const fg = ctx.createLinearGradient(fx, 0, fx + 3, 0);
+        fg.addColorStop(0, "#9aa7b8"); fg.addColorStop(0.5, "#e8eef5"); fg.addColorStop(1, "#6d7889");
+        ctx.fillStyle = fg; ctx.fillRect(Math.max(x, fx), y, 3, gh);
+      }
     }
     ctx.fillStyle = css(mix(hex(gold ? "#f8e7b0" : "#ece7dd"), hex("#4b4f63"), night * 0.7)); ctx.fillRect(x, y + gh, w, slab);
     ctx.fillStyle = gold ? "#f4b400" : p.accent; ctx.fillRect(x, y + gh, w, Math.max(1.5, slab * 0.34));
@@ -441,6 +463,7 @@
     }
   }
 
+  K._kuleFloor = drawFloor; // önizleme/test için
   K.register({
     id: "kule", name: "Kule Yarışı", color: "#ff6a3d", desc: "Vinçten bloğu bırak, kuleni dengede tutarak yükselt.",
     rules: "Blok sallanırken dokun · tam üstüne oturt · 3 can",
