@@ -537,44 +537,121 @@
     return net.apiP;
   }
 
-  async function joinRoom(code, host) {
+  // İki taşıma yolu: claude.ai içinde "room" yeteneği, normal web sitesinde PeerJS (WebRTC, hesap gerekmez).
+  function canPeer() { return !(window.claude && window.claude.use) && typeof RTCPeerConnection !== "undefined"; }
+  function newCode() { let c = ""; for (let i = 0; i < 4; i++) c += ROOM_CHARS[Math.floor(Math.random() * ROOM_CHARS.length)]; return c; }
+
+  function wrapRoom(nr) {
+    const t = {
+      kind: "room",
+      send(d) { nr.presence(d).catch(() => {}); },
+      opp() {
+        let peers;
+        try { peers = nr.peers(); } catch (e) { return null; }
+        for (const p of peers) {
+          if (p.sameTab || p.kind !== "viewer") continue;
+          const pr = p.presence;
+          if (pr && pr.v === 1) return pr;
+        }
+        return null;
+      },
+      leave() { return nr.leave(); },
+    };
+    nr.onPeers(() => updateRoomStatus(), () => { if (net.room === t) { net.room = null; setRoomStatus("Bağlantı koptu. Odaya yeniden katılın."); refreshMenu(); } });
+    return t;
+  }
+
+  let peerLibP = null;
+  function loadPeerJS() {
+    if (window.Peer) return Promise.resolve();
+    if (!peerLibP) peerLibP = new Promise((res, rej) => {
+      const sc = document.createElement("script");
+      sc.src = "https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js";
+      sc.onload = () => res();
+      sc.onerror = () => { peerLibP = null; rej({ code: "load" }); };
+      document.head.appendChild(sc);
+    });
+    return peerLibP;
+  }
+
+  async function peerTransport(code, host) {
+    await loadPeerJS();
+    const hostId = "kule-yarisi-" + code.toLowerCase();
+    return new Promise((resolve, reject) => {
+      const peer = host ? new window.Peer(hostId, { debug: 0 }) : new window.Peer({ debug: 0 });
+      const t = {
+        kind: "peer", conn: null, last: null, lastAt: 0,
+        send(d) { if (t.conn && t.conn.open) { try { t.conn.send(d); } catch (e) {} } },
+        opp() { return t.last && performance.now() - t.lastAt < 3500 ? t.last : null; },
+        leave() { t.closed = true; try { peer.destroy(); } catch (e) {} },
+      };
+      let settled = false;
+      const fail = code => { if (settled) return; settled = true; try { peer.destroy(); } catch (e) {} reject({ code }); };
+      function attach(conn) {
+        if (t.conn && t.conn !== conn) { try { t.conn.close(); } catch (e) {} }
+        t.conn = conn;
+        conn.on("open", () => { if (!settled) { settled = true; resolve(t); } pushPresence(true); updateRoomStatus(); });
+        conn.on("data", d => {
+          if (!d || typeof d !== "object" || d.v !== 1) return;
+          const first = !t.opp();
+          t.last = d; t.lastAt = performance.now();
+          if (first) updateRoomStatus();
+        });
+        conn.on("close", () => { if (t.conn === conn) t.conn = null; t.last = null; updateRoomStatus(); });
+        conn.on("error", () => {});
+      }
+      peer.on("open", () => {
+        if (host) { settled = true; resolve(t); return; }
+        attach(peer.connect(hostId, { reliable: true, serialization: "json" }));
+        setTimeout(() => fail("timeout"), 15000);
+      });
+      peer.on("connection", c => { if (host) attach(c); else c.close(); });
+      peer.on("error", e => { if (!settled) fail((e && e.type) || "error"); });
+      peer.on("disconnected", () => { if (!t.closed) { try { peer.reconnect(); } catch (e) {} } });
+    });
+  }
+
+  function joinError(e) {
+    const c = (e && (e.code || e.type)) || "error";
+    if (c === "peer-unavailable" || c === "timeout") return "Bu kodla açık bir oda bulunamadı. Kodu kontrol et; odayı kuranın oyunu açık olmalı.";
+    if (c === "unavailable-id") return "Bu kod şu an kullanımda. Tekrar Oda kur'a bas.";
+    if (c === "load") return "Online bileşeni yüklenemedi. İnternet bağlantını kontrol et.";
+    if (c === "network" || c === "server-error" || c === "socket-error" || c === "socket-closed") return "Bağlantı sunucusuna ulaşılamadı. İnternetini kontrol edip tekrar dene.";
+    if (c === "browser-incompatible") return "Bu tarayıcı online modu desteklemiyor. Chrome ya da Safari'nin güncel sürümünü dene.";
+    return "Odaya bağlanılamadı (" + c + "). Biraz sonra tekrar dene.";
+  }
+
+  async function joinRoom(code, host, retried) {
     code = (code || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
     if (code.length !== 4) { setRoomStatus("Kod 4 karakter olmalı."); return; }
     setRoomStatus("Bağlanıyor…");
-    const api = await getRoomApi();
-    if (!api) { setRoomStatus("Online mod bu görünümde kullanılamıyor. Oyunu claude.ai'deki linkinden, giriş yapmış olarak açın."); return; }
+    if (net.room) { const old = net.room; net.room = null; try { await old.leave(); } catch (e) {} }
     try {
-      if (net.room) { try { await net.room.leave(); } catch (e) {} }
-      net.room = await api.join("kule-" + code.toLowerCase());
+      const api = await getRoomApi();
+      if (api) net.room = wrapRoom(await api.join("kule-" + code.toLowerCase()));
+      else if (canPeer()) net.room = await peerTransport(code, host);
+      else { setRoomStatus("Online mod bu görünümde kullanılamıyor. Oyunu web adresinden (github.io) aç ya da claude.ai'de giriş yapmış olarak aç."); refreshMenu(); return; }
       net.code = code; net.host = host; net.r = 0; net.lastAtk = 0;
-      net.room.onPeers(() => updateRoomStatus(), () => { setRoomStatus("Bağlantı koptu. Odaya yeniden katılın."); net.room = null; refreshMenu(); });
       me().ready = false;
       pushPresence(true);
       updateRoomStatus();
     } catch (e) {
-      setRoomStatus("Odaya katılınamadı (" + ((e && e.code) || "hata") + "). Biraz sonra tekrar deneyin.");
       net.room = null;
+      if (host && !retried && e && e.code === "unavailable-id") return joinRoom(newCode(), true, true);
+      setRoomStatus(joinError(e));
     }
     refreshMenu();
   }
   async function leaveRoom() {
-    if (net.room) { try { await net.room.leave(); } catch (e) {} }
+    const old = net.room;
     net.room = null; net.code = "";
+    if (old) { try { await old.leave(); } catch (e) {} }
     setRoomStatus("Bir oda kur ve kodu arkadaşına söyle, ya da onun kodunu yazıp katıl.");
     refreshMenu();
   }
 
-  function oppPeer() {
-    if (!net.room) return null;
-    let peers;
-    try { peers = net.room.peers(); } catch (e) { return null; }
-    for (const p of peers) {
-      if (p.sameTab || p.kind !== "viewer") continue;
-      const pr = p.presence;
-      if (pr && pr.v === 1) return pr;
-    }
-    return null;
-  }
+  function oppPeer() { return net.room ? net.room.opp() : null; }
+  setInterval(() => { if (net.room && net.room.kind === "peer") pushPresence(true); }, 500);
 
   function stName() {
     if (screen !== "game") return "lobby";
@@ -601,7 +678,7 @@
       cx: p.cur ? r4(p.cur.x) : 0, cw: p.cur ? r4(p.cur.w) : BASE_W,
       combo: p.combo | 0, atk: p.atk | 0, tl: Math.max(0, Math.round(timeLeft * 10) / 10),
     };
-    net.room.presence(data).catch(() => {});
+    net.room.send(data);
   }
 
   function applyRemote(pr) {
@@ -1277,8 +1354,7 @@
   }
   $("#mkRoom").addEventListener("click", () => {
     ensureAudio();
-    let code = ""; for (let i = 0; i < 4; i++) code += ROOM_CHARS[Math.floor(Math.random() * ROOM_CHARS.length)];
-    joinRoom(code, true);
+    joinRoom(newCode(), true);
   });
   $("#joinRoom").addEventListener("click", () => { ensureAudio(); joinRoom($("#code").value, false); });
   $("#code").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); joinRoom($("#code").value, false); } });
