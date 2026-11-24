@@ -37,10 +37,26 @@
   function create(opts) {
     const seed = opts.seed | 0, duel = opts.mode === "duel";
     const g = { score: 0, over: false, grid: new Array(N * N).fill(0), tray: [], next: 0, combo: 0, drag: null, R: null, fade: [], parts: [], pops: [], shake: 0, clock: 0 };
-    function refill() { g.tray = [pieceAt(seed, g.next), pieceAt(seed, g.next + 1), pieceAt(seed, g.next + 2)]; g.next += 3; }
-    refill();
+    function refill() {
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const k = g.next + attempt * 1000003;
+        const t = [pieceAt(seed, k), pieceAt(seed, k + 1), pieceAt(seed, k + 2)];
+        if (duel || attempt === 11 || t.some(anyFit)) { g.tray = t; break; }
+      }
+      g.next += 3;
+    }
     const fits = (p, gx, gy) => p.cells.every(([cx, cy]) => { const x = gx + cx, y = gy + cy; return x >= 0 && y >= 0 && x < N && y < N && !g.grid[y * N + x]; });
     const anyFit = p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (fits(p, x, y)) return true; return false; };
+    refill();
+    // yerleştirilirse dolacak satır/sütunlar (önizleme için)
+    function wouldClear(p, gx, gy) {
+      const tmp = g.grid.slice();
+      for (const [cx, cy] of p.cells) tmp[(gy + cy) * N + gx + cx] = 9;
+      const rows = [], cols = [];
+      for (let y = 0; y < N; y++) { let f = true; for (let x = 0; x < N; x++) if (!tmp[y * N + x]) { f = false; break; } if (f) rows.push(y); }
+      for (let x = 0; x < N; x++) { let f = true; for (let y = 0; y < N; y++) if (!tmp[y * N + x]) { f = false; break; } if (f) cols.push(x); }
+      return { rows, cols };
+    }
     function layout(R) {
       const cs = Math.floor(Math.min((R.w - 28) / N, (R.h * 0.64) / N));
       const trayH = cs * 3.4, total = cs * N + 18 + trayH;
@@ -68,9 +84,13 @@
           g.grid[i] = 0;
         }
         gain += 80 * L + 40 * L * (L - 1) + (g.combo > 1 ? 50 * (g.combo - 1) : 0);
-        K.pops.add(g.pops, (L > 1 ? L + " ÇİZGİ! " : "") + "+" + (gain - p.cells.length) + (g.combo > 1 ? "  KOMBO ×" + g.combo : ""), L0.bx + L0.cs * 4, L0.by + L0.cs * 3.5, "#ffd34d", L > 1);
-        SFX.arp(L > 1 ? [0, 4, 7, 12] : [0, 7], 0.06, 0.6); SFX.chime(Math.min(10, 2 + g.combo)); buzz(20);
-        g.shake = Math.min(1, 0.25 + L * 0.15);
+        const praise = L >= 4 ? "MUHTEŞEM!" : L === 3 ? "MÜKEMMEL!" : L === 2 ? "SÜPER!" : g.combo > 2 ? "HARİKA!" : "İYİ!";
+        K.pops.add(g.pops, praise, L0.bx + L0.cs * 4, L0.by + L0.cs * 3, L >= 2 ? "#ffd34d" : "#ffffff", true);
+        K.pops.add(g.pops, "+" + (gain - p.cells.length) + (g.combo > 1 ? "  KOMBO ×" + g.combo : ""), L0.bx + L0.cs * 4, L0.by + L0.cs * 4.2, "#8ef0e2");
+        g.glow = { rows, cols, life: 0.45 };
+        if (g.grid.every(v => !v)) { gain += 300; K.pops.add(g.pops, "TAHTA TEMİZ!  +300", L0.bx + L0.cs * 4, L0.by + L0.cs * 5.4, "#ffd34d", true); SFX.milestone(); buzz([30, 40, 60]); }
+        SFX.chime(Math.min(13, g.combo + L - 1)); if (L > 1) SFX.arp([0, 4, 7, 12].slice(0, L + 1), 0.05, 0.5); buzz(L > 1 ? [20, 30, 20] : 20);
+        g.shake = Math.min(1, 0.2 + L * 0.18 + g.combo * 0.04);
       } else { g.combo = 0; SFX.place(); }
       g.score += gain;
       if (g.tray.every(t => t.used)) refill();
@@ -103,6 +123,7 @@
       update(dt) {
         g.clock += dt; g.shake = Math.max(0, g.shake - dt * 2.5);
         for (const f of g.fade) f.life -= dt; g.fade = g.fade.filter(f => f.life > 0);
+        if (g.glow) { g.glow.life -= dt; if (g.glow.life <= 0) g.glow = null; }
         K.parts.update(g.parts, dt); K.pops.update(g.pops, dt);
       },
       pointer(type, x, y) {
@@ -134,9 +155,19 @@
         if (g.drag) {
           t = dragTarget();
           if (t.ok) {
-            const p = g.tray[g.drag.i];
-            for (const [cx, cy] of p.cells) cell(ctx, L.bx + (t.gx + cx) * cs, L.by + (t.gy + cy) * cs, cs, COLORS[p.color - 1], 0.35);
+            const p = g.tray[g.drag.i], wc = wouldClear(p, t.gx, t.gy), a = 0.25 + 0.15 * Math.sin(g.clock * 12);
+            ctx.fillStyle = "rgba(255,240,170," + a + ")";
+            for (const y of wc.rows) rr(ctx, L.bx, L.by + y * cs, cs * N, cs, cs * 0.18), ctx.fill();
+            for (const x of wc.cols) rr(ctx, L.bx + x * cs, L.by, cs, cs * N, cs * 0.18), ctx.fill();
+            for (const [cx, cy] of p.cells) cell(ctx, L.bx + (t.gx + cx) * cs, L.by + (t.gy + cy) * cs, cs, COLORS[p.color - 1], 0.4);
           }
+        }
+        if (g.glow) {
+          const a = g.glow.life / 0.45;
+          ctx.save(); ctx.shadowColor = "rgba(255,240,170,0.9)"; ctx.shadowBlur = 24 * a; ctx.fillStyle = "rgba(255,250,220," + 0.55 * a + ")";
+          for (const y of g.glow.rows) ctx.fillRect(L.bx, L.by + y * cs + cs * 0.1, cs * N, cs * 0.8);
+          for (const x of g.glow.cols) ctx.fillRect(L.bx + x * cs + cs * 0.1, L.by, cs * 0.8, cs * N);
+          ctx.restore();
         }
         for (const f of g.fade) { const k = f.life / 0.35; cell(ctx, L.bx + f.x * cs + cs * (1 - k) / 2, L.by + f.y * cs + cs * (1 - k) / 2, cs * k, f.c, k); }
         // tepsi

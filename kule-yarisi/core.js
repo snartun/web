@@ -162,8 +162,35 @@
     if (c.state === "suspended") c.resume().catch(() => {});
     MUS.next = c.currentTime + 0.15;
     AU.timer = setInterval(musicSchedule, 90);
+    AU.windSrc = null;
+    decodeAll();
   };
   const ok = () => AU.ctx && AU.ctx.state === "running";
+  // ---------- gerçek kayıtlar (CC0; bkz. KAYNAKLAR.md). Yüklenemezse sentez sese düşülür. ----------
+  const SAMPLE_NAMES = ["thud", "collapse", "creak", "wind", "win", "lose", "marble", "marbledrop", "pop", "pop2", "bell", "click", "tick", "confirm", "error", "drop", "glass", "select",
+    "h_ambient", "h_heart_slow", "h_heart_fast", "h_breath", "h_step1", "h_step2", "h_door", "h_whisper", "h_scrape", "h_click", "h_jump", "h_scream", "h_thunder"];
+  const RAW = {};
+  K.BUF = {};
+  const fetchRaw = n => RAW[n] || (RAW[n] = fetch("ses/" + n + ".mp3").then(r => (r.ok ? r.arrayBuffer() : null)).catch(() => null));
+  SAMPLE_NAMES.forEach(fetchRaw);
+  function decodeAll() {
+    const c = AU.ctx; K.BUF = {};
+    for (const n of SAMPLE_NAMES) fetchRaw(n).then(ab => { if (!ab || AU.ctx !== c) return; c.decodeAudioData(ab.slice(0)).then(b => { if (AU.ctx === c) K.BUF[n] = b; }).catch(() => {}); });
+  }
+  K.play = (n, o) => {
+    o = o || {};
+    const b = K.BUF[n];
+    if (!b || !ok()) return null;
+    const c = AU.ctx, src = c.createBufferSource(), g = c.createGain(), t = c.currentTime + (o.delay || 0);
+    src.buffer = b; src.playbackRate.value = o.rate || 1;
+    if (o.loop) { src.loop = true; src.loopStart = 0.04; src.loopEnd = b.duration - 0.04; }
+    g.gain.value = o.vol == null ? 1 : o.vol;
+    src.connect(g).connect(o.dest || AU.sfx);
+    src.start(t, o.offset || 0);
+    if (o.dur) { g.gain.setValueAtTime(g.gain.value, t + o.dur - 0.05); g.gain.linearRampToValueAtTime(0.0001, t + o.dur); src.stop(t + o.dur + 0.02); }
+    src.gainNode = g;
+    return src;
+  };
   const now = () => AU.ctx.currentTime;
   const vary = (v, p) => v * (1 + (Math.random() * 2 - 1) * p);
   function env(g, t, a, peak, d) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); }
@@ -190,34 +217,40 @@
   const note = i => 523.25 * Math.pow(2, PENTA[K.clamp(i, 0, PENTA.length - 1)] / 12);
   const S = (K.SFX = {
     // genel
-    click() { if (!ok()) return; osc("triangle", 1400, now(), 0.035, 0.08); },
+    click() { if (!ok()) return; if (K.play("click", { vol: 0.7 })) return; osc("triangle", 1400, now(), 0.035, 0.08); },
     beep(go) { if (!ok()) return; osc("square", go ? 988 : 660, now(), go ? 0.35 : 0.12, 0.08); },
-    tick() { if (!ok()) return; osc("square", 1500, now(), 0.035, 0.04); },
-    buzz() { if (!ok()) return; const t = now(); osc("square", 140, t, 0.16, 0.06); osc("square", 147, t, 0.16, 0.05); },
+    tick() { if (!ok()) return; if (K.play("tick", { vol: 0.8 })) return; osc("square", 1500, now(), 0.035, 0.04); },
+    buzz() { if (!ok()) return; if (K.play("error", { vol: 0.8 })) return; const t = now(); osc("square", 140, t, 0.16, 0.06); osc("square", 147, t, 0.16, 0.05); },
     chime(i, v) { if (!ok()) return; bell(note(i), now(), v || 1); duck(0.5, 0.3); },
     arp(list, gap, v) { if (!ok()) return; const t = now(); list.forEach((s, i) => bell(523.25 * Math.pow(2, s / 12), t + i * (gap || 0.08), v || 0.8)); duck(0.4, 0.6); },
-    milestone() { S.arp([0, 4, 7, 12, 16]); },
-    win() { if (!ok()) return; const t = now(); [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => { const f = 392 * Math.pow(2, s / 12); osc("triangle", f, t + i * 0.09, i === 6 ? 0.8 : 0.16, 0.12); osc("sine", f * 2, t + i * 0.09, 0.12, 0.04); }); duck(0.2, 1.2); },
-    lose() { if (!ok()) return; const t = now(); [7, 3, 0, -5].forEach((s, i) => osc("triangle", 392 * Math.pow(2, s / 12), t + i * 0.16, i === 3 ? 0.7 : 0.18, 0.12)); duck(0.2, 1.2); },
-    pop(up) { if (!ok()) return; const t = now(); osc("sine", up ? vary(520, 0.05) : vary(700, 0.05), t, 0.09, 0.22, null, 0.003, up ? 900 : 380); },
+    milestone() { S.arp([0, 4, 7, 12, 16]); K.play("bell", { vol: 0.5 }); },
+    win() { if (!ok()) return; if (K.play("win", { vol: 0.8 })) { duck(0.2, 2.5); return; } const t = now(); [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => { const f = 392 * Math.pow(2, s / 12); osc("triangle", f, t + i * 0.09, i === 6 ? 0.8 : 0.16, 0.12); osc("sine", f * 2, t + i * 0.09, 0.12, 0.04); }); duck(0.2, 1.2); },
+    lose() { if (!ok()) return; if (K.play("lose", { vol: 0.7 })) { duck(0.2, 1.5); return; } const t = now(); [7, 3, 0, -5].forEach((s, i) => osc("triangle", 392 * Math.pow(2, s / 12), t + i * 0.16, i === 3 ? 0.7 : 0.18, 0.12)); duck(0.2, 1.2); },
+    pop(up) { if (!ok()) return; if (K.play(up ? "pop" : "pop2", { vol: 0.8, rate: vary(up ? 1.15 : 0.92, 0.04) })) return; const t = now(); osc("sine", up ? vary(520, 0.05) : vary(700, 0.05), t, 0.09, 0.22, null, 0.003, up ? 900 : 380); },
     whoosh() { if (!ok()) return; noise(now(), 0.3, 0.2, "bandpass", 350, 1.4, null, 0.05, 1500); },
-    thud(k) { if (!ok()) return; k = k || 1; const t = now(); osc("sine", vary(150, 0.05), t, 0.22, 0.85 * k, null, 0.003, 48); noise(t, 0.09, vary(0.45, 0.15) * k, "lowpass", vary(1200, 0.12), 0.7); noise(t, 0.014, 0.22 * k, "highpass", 3200, 0.7); duck(0.6, 0.15); },
-    clack(v) { if (!ok()) return; const t = now(); v = K.clamp(v, 0.05, 1); osc("sine", vary(2400, 0.1), t, 0.03, 0.25 * v, null, 0.001); noise(t, 0.02, 0.25 * v, "highpass", 5000); },
-    crash() { if (!ok()) return; const t = now(); noise(t, 0.9, 0.55, "lowpass", 2600, 0.6, null, 0.003, 280); osc("sine", 95, t, 0.5, 0.75, null, 0.003, 32); noise(t + 0.07, 0.45, 0.18, "highpass", 3200, 0.5); duck(0.35, 0.5); },
+    thud(k) { if (!ok()) return; k = k || 1; if (K.play("thud", { vol: 0.95 * k, rate: vary(1, 0.06) })) { duck(0.6, 0.15); return; } const t = now(); osc("sine", vary(150, 0.05), t, 0.22, 0.85 * k, null, 0.003, 48); noise(t, 0.09, vary(0.45, 0.15) * k, "lowpass", vary(1200, 0.12), 0.7); noise(t, 0.014, 0.22 * k, "highpass", 3200, 0.7); duck(0.6, 0.15); },
+    clack(v) { if (!ok()) return; v = K.clamp(v, 0.05, 1); if (K.play("marble", { vol: v, rate: vary(1, 0.08) })) return; const t = now(); osc("sine", vary(2400, 0.1), t, 0.03, 0.25 * v, null, 0.001); noise(t, 0.02, 0.25 * v, "highpass", 5000); },
+    crash() { if (!ok()) return; if (K.play("collapse", { vol: 0.9, rate: vary(1, 0.05) })) { duck(0.35, 1.2); return; } const t = now(); noise(t, 0.9, 0.55, "lowpass", 2600, 0.6, null, 0.003, 280); osc("sine", 95, t, 0.5, 0.75, null, 0.003, 32); noise(t + 0.07, 0.45, 0.18, "highpass", 3200, 0.5); duck(0.35, 0.5); },
     // kule
     release() { if (!ok()) return; const t = now(); osc("square", vary(1700, 0.05), t, 0.025, 0.05); noise(t, 0.03, 0.08, "highpass", 4500); },
     winch() { if (!ok()) return; osc("sawtooth", 70, now(), 0.32, 0.018, null, 0.05, 110); },
     topple() { if (!ok()) return; const t = now(); noise(t, 0.45, 0.28, "bandpass", 900, 2.5, null, 0.02, 280); osc("sawtooth", 120, t, 0.4, 0.04, null, 0.01, 55); },
-    creak() { if (!ok()) return; const t = now(); noise(t, 0.5, 0.12, "bandpass", 420, 9, null, 0.06, 260); osc("sawtooth", 82, t, 0.45, 0.025, null, 0.05, 64); },
+    creak() { if (!ok()) return; if (K.play("creak", { vol: 0.8, rate: vary(1, 0.05) })) return; const t = now(); noise(t, 0.5, 0.12, "bandpass", 420, 9, null, 0.06, 260); osc("sawtooth", 82, t, 0.45, 0.025, null, 0.05, 64); },
     fall() { if (!ok()) return; osc("sine", 720, now(), 0.6, 0.07, null, 0.01, 170); },
     lifeLost() { if (!ok()) return; const t = now(); osc("triangle", 440, t, 0.14, 0.14); osc("triangle", 311, t + 0.15, 0.3, 0.14); },
     // blok / kelime
-    place() { if (!ok()) return; const t = now(); osc("triangle", vary(330, 0.04), t, 0.08, 0.2, null, 0.002, 220); noise(t, 0.03, 0.12, "lowpass", 2000); },
+    place() { if (!ok()) return; if (K.play("drop", { vol: 0.8, rate: vary(1, 0.05) })) return; const t = now(); osc("triangle", vary(330, 0.04), t, 0.08, 0.2, null, 0.002, 220); noise(t, 0.03, 0.12, "lowpass", 2000); },
     letter(i) { if (!ok()) return; osc("triangle", 440 * Math.pow(2, (i * 2) / 12), now(), 0.07, 0.1); },
   });
   K.setWind = level => {
     if (!AU.ctx || !AU.windGain) return;
     const t = now();
+    if (K.BUF.wind && ok()) {
+      if (!AU.windSrc && level > 0) AU.windSrc = K.play("wind", { loop: true, vol: 0.0001 });
+      if (AU.windSrc) AU.windSrc.gainNode.gain.setTargetAtTime(level * 0.55, t, 0.4);
+      AU.windGain.gain.setTargetAtTime(level * 0.06, t, 0.3);
+      return;
+    }
     AU.windGain.gain.setTargetAtTime(level * 0.22, t, 0.3);
     AU.windFilt.frequency.setTargetAtTime(380 + level * 420 + Math.sin(t * 0.9) * 120, t, 0.3);
   };

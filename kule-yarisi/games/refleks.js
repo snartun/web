@@ -22,7 +22,7 @@
     return {
       get score() { return g.score; },
       get over() { return g.over; },
-      info() { return { extra: "TUR " + Math.min(ROUNDS, g.k + 1) + "/" + ROUNDS }; },
+      info() { const v = g.rt.filter(x => x > 0 && x < 1000); return { extra: "TUR " + Math.min(ROUNDS, g.k + 1) + "/" + ROUNDS + (v.length ? " · ort. " + Math.round(v.reduce((a, b) => a + b, 0) / v.length) + " ms" : "") }; },
       update(dt, active) {
         g.clock += dt;
         K.pops.update(g.pops, dt); K.parts.update(g.parts, dt);
@@ -35,7 +35,7 @@
       pointer(type) {
         if (type !== "down" || g.over) return;
         if (g.st === "wait") finish(0, true);
-        else if (g.st === "go") finish(performance.now() - g.goAt, false);
+        else if (g.st === "go") { const rt = performance.now() - g.goAt; if (rt < 100) finish(0, true); else finish(rt, false); } // <100 ms: tahmin sayılır (atletizm kuralı)
       },
       net() { return { k: g.k, r: g.rt.slice() }; },
       draw(ctx, R, active) {
@@ -52,7 +52,13 @@
         if (st === "wait") { txt(ctx, "BEKLE…", cx, cy, big, "#ffffff", { f: K.DISP, w: "400" }); txt(ctx, "Yeşil olunca dokun", cx, cy + big * 0.9, 18, "rgba(255,255,255,0.8)", { w: "700" }); }
         else if (st === "go") txt(ctx, "DOKUN!", cx, cy, Math.round(big * 1.2), "#ffffff", { f: K.DISP, w: "400" });
         else if (st === "show") txt(ctx, g.msg, cx, cy, big, g.msg === "ERKEN!" ? "#ff9aa4" : "#ffffff", { f: K.DISP, w: "400" });
-        else txt(ctx, "HAZIR OL", cx, cy, big, "#ffffff", { f: K.DISP, w: "400" });
+        else if (g.over) {
+          const v = g.rt.filter(x => x > 0 && x < 1000), avg = v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0;
+          const label = !avg ? "—" : avg < 200 ? "ŞİMŞEK GİBİ" : avg < 240 ? "ÇOK HIZLI" : avg < 280 ? "ORTALAMANIN ÜSTÜ" : avg < 330 ? "ORTALAMA" : "BİRAZ YAVAŞ";
+          txt(ctx, avg ? avg + " ms" : "—", cx, cy - big * 0.3, big, "#ffffff", { f: K.DISP, w: "400" });
+          txt(ctx, label, cx, cy + big * 0.55, 22, "#ffd34d", { ls: "2px" });
+          txt(ctx, "İnsanların ortanca değeri ≈ 273 ms", cx, cy + big * 0.55 + 28, 15, "rgba(255,255,255,0.7)", { w: "600" });
+        } else txt(ctx, "HAZIR OL", cx, cy, big, "#ffffff", { f: K.DISP, w: "400" });
         // tur geçmişi
         const bw = Math.min(64, (R.w - 40) / ROUNDS - 8), y = R.y + R.h - 64;
         for (let i = 0; i < ROUNDS; i++) {

@@ -33,7 +33,9 @@
   };
   let screen = "menu";
 
+  function dispose() { if (M.inst && M.inst.dispose) { try { M.inst.dispose(); } catch (e) {} } }
   function startIntro(gid, seed) {
+    dispose();
     M.gid = gid; M.def = K.game(gid);
     M.inst = M.def.create({ seed, mode: M.mode });
     M.ph = "intro"; M.t = 3.2; M.timeLeft = M.def.timeLimit(M.mode);
@@ -47,7 +49,7 @@
   }
   function finishRound() {
     const sc = Math.round(M.inst.score);
-    AU.level = 0; K.setWind(0);
+    AU.level = 0; K.setWind(0); dispose();
     if (M.mode === "single") {
       M.newBest = K.saveBest(M.gid, sc);
       M.ph = "final"; M.t = 0;
@@ -190,7 +192,7 @@
   }
 
   function mixOrder(seed) {
-    const ids = K.GAMES.map(g => g.id);
+    const ids = K.GAMES.filter(g => g.mix !== false).map(g => g.id);
     for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(K.hash(seed, 900 + i) * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
     return ids;
   }
@@ -331,7 +333,7 @@
         { t: head, s: small, c: "#a3a9b8", ls: "3px" },
         { t: K.upper(def.name), s: big, f: K.DISP, w: "400", c: def.color },
         { t: def.rules, s: small, w: "600" },
-        { t: (M.timeLeft ? M.timeLeft + " saniye" : M.gid === "kule" ? "3 can" : M.gid === "refleks" ? "5 tur" : "yer kalmayana kadar"), s: small, w: "600", c: "#a3a9b8" },
+        { t: (M.gid === "korku" ? "5 sayfa · çıkış · " + M.timeLeft + " sn" : M.timeLeft ? M.timeLeft + " saniye" : M.gid === "kule" ? "3 can" : M.gid === "refleks" ? "5 tur" : "yer kalmayana kadar"), s: small, w: "600", c: "#a3a9b8" },
         { t: k >= 1 ? String(k) : "BAŞLA!", s: Math.round(big * 1.6), f: K.DISP, w: "400", gap: 1.2 },
       ], def.color);
     } else if (M.ph === "done") {
@@ -388,20 +390,20 @@
   }
 
   // ---------------- giriş ----------------
-  let capId = null;
+  const ptrs = new Set();
   function local(e) { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
   cv.addEventListener("pointerdown", e => {
     e.preventDefault(); K.auInit();
     if (screen !== "game") return;
     const [x, y] = local(e), P = geom().play;
     if (M.ph === "play") {
-      if (y >= P.y && y <= P.y + P.h) { capId = e.pointerId; try { cv.setPointerCapture(e.pointerId); } catch (_) {} M.inst.pointer("down", x, y); }
+      if (y >= P.y && y <= P.y + P.h) { ptrs.add(e.pointerId); try { cv.setPointerCapture(e.pointerId); } catch (_) {} M.inst.pointer("down", x, y, e.pointerId); }
       return;
     }
     if (M.mode === "single" && M.ph === "final" && M.t > 0.9) { startIntro(M.gid, (Math.random() * 2147483646) | 0); return; }
     if (M.mode === "duel" && (M.ph === "lobby" || (M.ph === "final" && M.t > 0.9)) && !M.ready) { M.ready = true; SFX.click(); pushPresence(true); }
   });
-  const fwd = type => e => { if (screen === "game" && M.ph === "play" && e.pointerId === capId) { const [x, y] = local(e); M.inst.pointer(type, x, y); } if (type !== "move" && e.pointerId === capId) capId = null; };
+  const fwd = type => e => { if (!ptrs.has(e.pointerId)) return; if (screen === "game" && M.ph === "play") { const [x, y] = local(e); M.inst.pointer(type, x, y, e.pointerId); } if (type !== "move") ptrs.delete(e.pointerId); };
   cv.addEventListener("pointermove", fwd("move"));
   cv.addEventListener("pointerup", fwd("up"));
   cv.addEventListener("pointercancel", fwd("cancel"));
@@ -464,13 +466,15 @@
     $("#play").disabled = !net.room;
     $("#sfxBtn").setAttribute("aria-pressed", String(AU.sfxOn)); $("#sfxLbl").textContent = AU.sfxOn ? "Açık" : "Kapalı";
     $("#musicBtn").setAttribute("aria-pressed", String(AU.musicOn)); $("#musicLbl").textContent = AU.musicOn ? "Açık" : "Kapalı";
+    const jump = store.get("jump", "1") === "1";
+    $("#jumpBtn").setAttribute("aria-pressed", String(jump)); $("#jumpLbl").textContent = jump ? "Açık (korku oyunu)" : "Kapalı: yumuşak geçiş";
     renderLists();
     if (net.room) updateRoomStatus();
   }
   function showGame() { screen = "game"; menuEl.hidden = true; menuBtn.hidden = false; }
   function showMenu() {
     screen = "menu"; menuEl.hidden = false; menuBtn.hidden = true;
-    M.inst = null; M.def = null; M.ph = "lobby"; M.ready = false; AU.level = 0; K.setWind(0);
+    dispose(); M.inst = null; M.def = null; M.ph = "lobby"; M.ready = false; AU.level = 0; K.setWind(0);
     if (net.room) pushPresence(true);
     refreshMenu();
     try { if (wakeLock) wakeLock.release(); } catch (e) {}
@@ -490,6 +494,7 @@
   });
   $("#sfxBtn").addEventListener("click", () => { K.auInit(); K.setSfx(!AU.sfxOn); SFX.click(); refreshMenu(); });
   $("#musicBtn").addEventListener("click", () => { K.auInit(); K.setMusic(!AU.musicOn); refreshMenu(); });
+  $("#jumpBtn").addEventListener("click", () => { SFX.click(); store.set("jump", store.get("jump", "1") === "1" ? "0" : "1"); refreshMenu(); });
   $("#mkRoom").addEventListener("click", () => { K.auInit(); SFX.click(); joinRoom(newCode(), true); });
   $("#joinRoom").addEventListener("click", () => { K.auInit(); SFX.click(); joinRoom($("#code").value, false); });
   $("#code").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); joinRoom($("#code").value, false); } });

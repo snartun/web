@@ -23,7 +23,7 @@
     const base = PUZZLES[Math.floor(hash(seed, 1) * PUZZLES.length) % PUZZLES.length] || "kelimea";
     const letters = base.split("");
     for (let i = letters.length - 1; i > 0; i--) { const j = Math.floor(hash(seed, 50 + i) * (i + 1)); [letters[i], letters[j]] = [letters[j], letters[i]]; }
-    const g = { score: 0, over: false, letters, order: letters.map((_, i) => i), pick: [], found: [], valid: null, err: null, msg: null, msgT: 0, shake: 0, R: null, pops: [], parts: [], clock: 0, loadErr: false };
+    const g = { score: 0, over: false, letters, order: letters.map((_, i) => i), pick: [], found: [], valid: null, err: null, msg: null, msgT: 0, shake: 0, R: null, pops: [], parts: [], clock: 0, loadErr: false, swipe: null, hints: 3, hint: "" };
     const ready = () => { if (WORDS && !g.valid) g.valid = solve(letters.join("")); };
     if (WORDS) ready(); else K.loadWords().then(ready).catch(() => { g.loadErr = true; });
     const word = () => g.pick.map(i => g.letters[i]).join("");
@@ -32,8 +32,8 @@
       const tile = Math.max(36, Math.min(58, wheelR * 0.52));
       const cx = R.x + R.w / 2, cy = R.y + R.h - 12 - 44 - 14 - tile * 0.5 - wheelR;
       const pos = g.order.map((li, k) => { const a = -Math.PI / 2 + (k * 2 * Math.PI) / g.letters.length; return { li, x: cx + Math.cos(a) * wheelR, y: cy + Math.sin(a) * wheelR }; });
-      const by = cy + wheelR + tile * 0.5 + 14, bw = Math.min(110, (R.w - 48) / 3);
-      const btns = [{ id: "del", label: "SİL", x: R.x + R.w / 2 - bw * 1.5 - 10 }, { id: "mix", label: "KARIŞTIR", x: R.x + R.w / 2 - bw / 2 }, { id: "ok", label: "GÖNDER", x: R.x + R.w / 2 + bw / 2 + 10 }].map(b => ({ ...b, y: by, w: bw, h: 44 }));
+      const by = cy + wheelR + tile * 0.5 + 14, gap = 8, bw = Math.min(96, (R.w - 24 - gap * 3) / 4), x0 = R.x + (R.w - (bw * 4 + gap * 3)) / 2;
+      const btns = [{ id: "del", label: "SİL" }, { id: "mix", label: "KARIŞTIR" }, { id: "hint", label: "İPUCU (" + g.hints + ")" }, { id: "ok", label: "GÖNDER" }].map((b, i) => ({ ...b, x: x0 + i * (bw + gap), y: by, w: bw, h: 44 }));
       return { cx, cy, wheelR, tile, pos, btns, wordY: cy - wheelR - tile * 0.5 - 34 };
     }
     function submit() {
@@ -46,6 +46,7 @@
       const pangram = w.length === g.letters.length;
       if (pangram) pts += 150;
       g.found.push(w); g.score += pts;
+      if (g.hint && upper(w).startsWith(g.hint.slice(0, 2)) ) g.hint = "";
       const L = layout(g.R);
       K.pops.add(g.pops, (pangram ? "TÜM HARFLER! " : "") + "+" + pts, L.cx, L.wordY - 20, pangram ? "#ffd34d" : "#8ef0e2", pangram);
       K.parts.burst(g.parts, L.cx, L.wordY, pangram ? "#ffd34d" : "#8ef0e2", 16, 200);
@@ -59,14 +60,32 @@
       info() { return { extra: g.valid ? g.found.length + " / " + g.valid.size + " kelime" : "" }; },
       update(dt) { g.clock += dt; g.msgT = Math.max(0, g.msgT - dt); g.shake = Math.max(0, g.shake - dt * 4); K.pops.update(g.pops, dt); K.parts.update(g.parts, dt); },
       pointer(type, x, y) {
-        if (type !== "down" || !g.R || g.over) return;
+        if (!g.R || g.over) return;
         const L = layout(g.R);
+        if (type === "move" && g.swipe) {
+          for (const p of L.pos) if (Math.hypot(x - p.x, y - p.y) < L.tile * 0.5) {
+            const n = g.pick.length;
+            if (n >= 2 && g.pick[n - 2] === p.li) { g.pick.pop(); g.swipe.moved = true; SFX.pop(false); }
+            else if (!g.pick.includes(p.li)) { g.pick.push(p.li); g.swipe.moved = true; SFX.letter(g.pick.length); }
+          }
+          return;
+        }
+        if (type === "up" || type === "cancel") { const sw = g.swipe; g.swipe = null; if (type === "up" && sw && sw.moved && g.pick.length >= 2) submit(); return; }
+        if (type !== "down") return;
         for (const p of L.pos) if (Math.hypot(x - p.x, y - p.y) < L.tile * 0.62) {
+          g.swipe = { moved: false };
           if (g.pick.includes(p.li)) { if (g.pick[g.pick.length - 1] === p.li) { g.pick.pop(); SFX.pop(false); } return; }
           g.pick.push(p.li); SFX.letter(g.pick.length); return;
         }
         for (const b of L.btns) if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
           if (b.id === "del") { if (g.pick.length) { g.pick.pop(); SFX.pop(false); } }
+          else if (b.id === "hint") {
+            if (!g.valid || g.hints <= 0) { SFX.buzz(); return; }
+            const left = [...g.valid].filter(w => !g.found.includes(w)).sort((a, b2) => b2.length - a.length);
+            if (!left.length) return;
+            const w = left[Math.floor(Math.random() * Math.min(5, left.length))];
+            g.hints--; g.hint = upper(w.slice(0, 2)) + " _ ".repeat(w.length - 2).trim() + "  (" + w.length + " harf)"; SFX.chime(3, 0.6);
+          }
           else if (b.id === "mix") { for (let i = g.order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [g.order[i], g.order[j]] = [g.order[j], g.order[i]]; } SFX.whoosh(); }
           else submit();
           return;
@@ -103,6 +122,7 @@
         if (w) txt(ctx, w, L.cx + sx, L.wordY, fit(ctx, w, R.w - 40, 40, K.DISP, "400"), "#ffffff", { f: K.DISP, w: "400", ls: "4px" });
         else txt(ctx, g.msgT > 0 ? g.msg : "Harflere dokun", L.cx, L.wordY, 18, g.msgT > 0 ? "#ff9aa4" : "rgba(255,255,255,0.45)", { w: "700" });
         if (w && g.msgT > 0) txt(ctx, g.msg, L.cx, L.wordY + 28, 15, "#ff9aa4", { w: "700" });
+        if (g.hint) txt(ctx, "İPUCU: " + g.hint, L.cx, L.wordY - 34, 16, "#ffd34d", { w: "800", ls: "1px" });
         // harf çarkı
         ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.beginPath(); ctx.arc(L.cx, L.cy, L.wheelR + L.tile * 0.75, 0, Math.PI * 2); ctx.fill();
         if (g.pick.length > 1) {
