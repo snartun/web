@@ -54,7 +54,14 @@ Two families exist. (a) **Tower Bloxx-style** (iamkun): the block keeps its full
 ### Cited Findings
 **iamkun/tower_game collision codes** ([block.js L12-31](https://github.com/iamkun/tower_game/blob/master/src/block.js); the code comment reads "0 goon 1 drop 2 rotate left 3 rotate right 4 ok 5 perfect")
 - Miss (1): `block.x < line.x - calWidth || block.x > line.collisionX + calWidth` (the block's centre is outside the top block's span). The block keeps falling, and when it leaves the screen it counts as a failure.
-- Tip left (2) if `block.x < line.x`; tip right (3) if `block.x > line.collisionX`. Inference: since `calWidth` is half the width, a tip happens when the block's left edge is offset by more than its own width... more precisely, when the horizontal offset between the new and previous block exceeds 0 in the "outside" direction but the centre is still over the top block. The exact geometry depends on how `line.x` and `collisionX` relate to the left x.
+- Tip left (2) if `block.x < line.x`; tip right (3) if `block.x > line.collisionX`.
+- Derived geometry (inference). `calWidth` comes from the cooljs Instance and is not defined in the repo. I assume it is width/2, because the swinging block is drawn at `weightX - calWidth` (centred under the rope) and the code comment equates ±0.2·calWidth with "±10%". After a landing, `line.x = prevLeft - W/2` and `collisionX = prevLeft + W/2`. With offset d = newLeft - prevLeft:
+  - |d| ≤ 0.1·W → PERFECT
+  - |d| ≤ 0.5·W → OK landing (the new block's centre is over the support)
+  - 0.5·W < |d| ≤ W → TIP over the edge and fall (centre of mass beyond the support edge)
+  - |d| > W → MISS (no contact)
+
+  This is effectively a centre-of-mass-over-support test.
 - Perfect (5): `block.x > line.x + calWidth*0.8 && block.x < line.x + calWidth*1.2`. The comment calls this "-10% +10%", i.e. an offset under ±0.2·halfWidth = ±10% of block width. Otherwise (4) it is an OK landing.
 - Tip animation: the block pivots around the tower edge `(line.x or collisionX) + calWidth, line.y`. `rotateSpeed = pixelsPerFrame(π*4)` is scaled by `max(0.5, (calWidth - outwardOffset)/calWidth)`. Once `|rotate| > 1.3` rad (the comment says "75度", 75°), the block slides off (`y += 0.7·H`, `x += 0.3·W` per pixelsPerFrame) and is counted as failed when off-screen — [block.js L175-200](https://github.com/iamkun/tower_game/blob/master/src/block.js)
 - A successful landing sets the new tower top to the landed block (`line.x = i.x - i.calWidth; line.collisionX = line.x + i.width`). The tower does **not** shrink — [block.js L135-138](https://github.com/iamkun/tower_game/blob/master/src/block.js)
