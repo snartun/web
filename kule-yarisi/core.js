@@ -150,7 +150,7 @@
     comp.connect(c.destination);
     AU.master = c.createGain(); AU.master.gain.value = 0.9; AU.master.connect(comp);
     AU.sfx = c.createGain(); AU.sfx.gain.value = AU.sfxOn ? AU.SFX_VOL : 0; AU.sfx.connect(AU.master);
-    AU.mus = c.createGain(); AU.mus.gain.value = AU.musicOn ? AU.MUS_VOL : 0; AU.mus.connect(AU.master);
+    AU.mus = c.createGain(); AU.mus.gain.value = AU.musicOn && !AU.quiet ? AU.MUS_VOL : 0; AU.mus.connect(AU.master);
     const buf = c.createBuffer(1, c.sampleRate, c.sampleRate);
     const d = buf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -210,7 +210,7 @@
     s.connect(f).connect(g).connect(dest || AU.sfx); s.start(t, Math.random() * 0.4); s.stop(t + a + dur + 0.05);
   }
   function duck(amount, hold) {
-    if (!AU.ctx || !AU.musicOn) return;
+    if (!AU.ctx || !AU.musicOn || AU.quiet) return;
     const t = now(), g = AU.mus.gain;
     g.cancelScheduledValues(t); g.setTargetAtTime(AU.MUS_VOL * amount, t, 0.02); g.setTargetAtTime(AU.MUS_VOL, t + (hold || 0.25), 0.18);
   }
@@ -257,7 +257,12 @@
     AU.windFilt.frequency.setTargetAtTime(380 + level * 420 + Math.sin(t * 0.9) * 120, t, 0.3);
   };
   K.setSfx = on => { AU.sfxOn = on; K.store.set("sfx", on ? "1" : "0"); if (AU.sfx) AU.sfx.gain.setTargetAtTime(on ? AU.SFX_VOL : 0, now(), 0.05); };
-  K.setMusic = on => { AU.musicOn = on; K.store.set("music", on ? "1" : "0"); if (AU.mus) { AU.mus.gain.cancelScheduledValues(now()); AU.mus.gain.setTargetAtTime(on ? AU.MUS_VOL : 0, now(), 0.1); } };
+  // Bazı oyunlar (korku) menü müziğini tamamen susturur.
+  K.musicQuiet = q => {
+    q = !!q; if (AU.quiet === q) return; AU.quiet = q;
+    if (AU.mus) { const t = now(); AU.mus.gain.cancelScheduledValues(t); AU.mus.gain.setTargetAtTime(AU.musicOn && !q ? AU.MUS_VOL : 0, t, q ? 0.05 : 0.4); }
+  };
+  K.setMusic = on => { AU.musicOn = on; K.store.set("music", on ? "1" : "0"); if (AU.mus) { AU.mus.gain.cancelScheduledValues(now()); AU.mus.gain.setTargetAtTime(on && !AU.quiet ? AU.MUS_VOL : 0, now(), 0.1); } };
   // iOS/Safari: arka plandan dönünce bağlam "running" görünse de sessiz kalabiliyor (WebKit hatası).
   // Bu yüzden sayfa gizlenince motoru "yeniden kurulacak" diye işaretle; dönüşte ilk dokunuşta sıfırdan kur.
   function markHidden() { if (!AU.ctx) return; AU.needRebuild = true; AU.ctx.suspend().catch(() => {}); }
@@ -278,7 +283,7 @@
     if (!c || c.state !== "running") return;
     const spb = 60 / MUS.bpm / 2;
     if (MUS.next < c.currentTime) MUS.next = c.currentTime + 0.05;
-    while (MUS.next < c.currentTime + 0.35) { if (AU.musicOn) playStep(MUS.step, MUS.next, spb); MUS.step++; MUS.next += spb; }
+    while (MUS.next < c.currentTime + 0.35) { if (AU.musicOn && !AU.quiet) playStep(MUS.step, MUS.next, spb); MUS.step++; MUS.next += spb; }
   }
   function playStep(s, t, spb) {
     const c = AU.ctx, bar = Math.floor(s / 8), pos = s % 8, chord = MUS.prog[bar % 4], lvl = AU.level;

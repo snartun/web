@@ -663,7 +663,7 @@
   K.register({
     id: "korku", name: "Karanlık Koridor", color: "#c43a3a", desc: "18+ · Karanlıkta 5 sayfayı topla, çıkışı bul. Seni duyabiliyor.",
     rules: "⚠ 18+ · yoğun korku, kan ve rahatsız edici görüntüler · kulaklık önerilir",
-    timeLimit: () => 150, mix: false,
+    timeLimit: () => 150, mix: false, noMusic: true,
     create, drawRemote,
   });
 })();

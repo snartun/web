@@ -103,6 +103,7 @@
   // ---------------- güncelleme ----------------
   function update(dt) {
     M.clock += dt;
+    K.musicQuiet(screen === "game" && M.def && M.def.noMusic);
     if (screen !== "game") return;
     const inst = M.inst;
     if (M.ph === "intro") {
