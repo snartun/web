@@ -41,3 +41,9 @@ Dosyalar kısaltılmış, ses seviyesi eşitlenmiş ve mono MP3 / küçük JPG o
 
 ## Kelime listesi
 `kelimeler.txt`: dictionary-tr (npm), MIT lisansı © Harun Reşit Zafer — bkz. `kelimeler-LICENSE.txt`.
+
+## Yapay zekâ ile üretilen görseller
+
+| Dosya | Kaynak |
+|---|---|
+| doku/yaratik.webp, doku/koridor_yaratik.jpg | ElevenLabs (FLUX.2 Pro) ile üretildi, arka plan BiRefNet ile kaldırıldı |

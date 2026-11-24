@@ -196,7 +196,10 @@
   const PHOTO = {};
   function photo(n) { if (!PHOTO[n]) { const im = new Image(); im.src = "doku/" + n + ".jpg"; PHOTO[n] = im; } const im = PHOTO[n]; return im.complete && im.naturalWidth ? im : null; }
   ["beton", "zemin", "kapi", "pas"].forEach(photo);
+  const CREA = new Image(); CREA.src = "doku/yaratik.webp";
+  const creaOk = () => CREA.complete && CREA.naturalWidth > 0;
   function upgradeTextures(T) {
+    if (!T.crea && creaOk()) { const c = document.createElement("canvas"); c.width = 171; c.height = 300; c.getContext("2d").drawImage(CREA, 0, 0, 171, 300); T.thing = c; T.crea = true; }
     if (T.photo) return;
     const be = photo("beton"), ze = photo("zemin"), ka = photo("kapi"), pa = photo("pas");
     if (!be || !ze || !ka || !pa) return;
@@ -279,7 +282,7 @@
       sx: -10, sy: -10, rx: -10, ry: -10, sDir: 0, ai: "dormant", target: null, detect: 0, menace: 0, lastSeen: [1.5, 1.5], lastSeenT: -99, chaseT: 0, searchT: 0, retreatT: 0, stutT: 0, glimpseT: 6, glimpse: null,
       sPath: null, sTimer: 0, sStare: 0, sVisible: false, lastStep: 0, sStepT: 0, running: false, noise: 0, stamina: 1, hidden: false, hideSpotted: false, savedLight: true,
       lightsOutT: 0, hallu: 0, halluT: 30, halluSide: 1, dust: Array.from({ length: 36 }, () => ({ x: Math.random(), y: Math.random(), v: 0.01 + Math.random() * 0.03, s: 0.6 + Math.random() * 1.4 })),
-      joy: null, look: null, clock: 0, bob: 0, heartT: 0, breathT: 3, eventT: 8, scare: 0, glitch: 0, msg: "", msgT: 0, R: null, A: null, started: false, endT: 0,
+      joy: null, look: null, hints: 2, hintT: 0, hintA: 0, hintD: 0, clock: 0, bob: 0, heartT: 0, breathT: 3, eventT: 8, scare: 0, glitch: 0, msg: "", msgT: 0, R: null, A: null, started: false, endT: 0,
     };
     // başlangıç yönü: en uzun açık koridora bak
     { let best = -1; for (const [a, dx, dy] of [[0, 1, 0], [Math.PI / 2, 0, 1], [Math.PI, -1, 0], [-Math.PI / 2, 0, -1]]) { let n = 0, x = 1, y = 1; while (!m[y + dy][x + dx]) { x += dx; y += dy; n++; } if (n > best) { best = n; g.pa = a; } } }
@@ -338,6 +341,7 @@
       dispose() { if (g.A) g.A.stop(); },
       update(dt, active) {
         g.clock += dt; g.msgT = Math.max(0, g.msgT - dt); g.glitch = Math.max(0, g.glitch - dt * 2); g.hallu = Math.max(0, g.hallu - dt);
+        if (g.pop > 0) g.pop = Math.max(0, g.pop - dt);
         if (g.over) { g.endT += dt; g.scare = Math.max(0, g.scare - dt * 0.9); return; }
         if (!active) return;
         const A = audio();
@@ -347,11 +351,31 @@
         for (const l of map.lamps) { l.t -= dt; if (l.t <= 0) { const dead = g.lightsOutT > 0; l.on = dead ? false : !l.on || map.rand() < 0.75; l.t = l.on ? 0.6 + map.rand() * 3.5 : 0.45 + map.rand() * 1.2; } l.level += ((l.on ? 1 : 0) - l.level) * Math.min(1, dt * 18); }
         g.lightsOutT = Math.max(0, g.lightsOutT - dt);
         // hareket: sol çubuk (sonuna kadar it = koş, gürültülü)
-        let fwd = 0, turn = 0;
-        if (g.joy && !g.hidden) { fwd = clamp(-g.joy.dy / 60, -1, 1); turn = clamp(g.joy.dx / 70, -1, 1); }
-        g.running = Math.abs(fwd) > 0.92;
-        g.pa += turn * 2.2 * dt;
-        const sp = (g.running ? 2.35 : 1.45) * fwd * dt;
+        // tek joystick: itilen yön = gidilecek yön (kameraya göre). Kamera kendiliğinden o yöne döner.
+        let fwd = 0;
+        if (g.joy && !g.hidden) {
+          const jd = Math.hypot(g.joy.dx, g.joy.dy), mag = clamp((jd - 8) / 62, 0, 1);
+          if (mag > 0) {
+            const rel = Math.atan2(g.joy.dx, -g.joy.dy); // 0 = ileri, ±π = geri
+            const back = Math.abs(rel) > 2.2;
+            g.pa += clamp(rel * (back ? 3.2 : 2.6), -3.4, 3.4) * dt * (0.55 + 0.45 * mag);
+            fwd = back ? 0 : mag * Math.max(0, Math.cos(rel * 0.85));
+            // koridor yardımı: düz giderken ana yöne hizala
+            if (Math.abs(rel) < 0.3 && fwd > 0.2) {
+              const card = Math.round(g.pa / (Math.PI / 2)) * (Math.PI / 2), diff = card - g.pa;
+              if (Math.abs(diff) < 0.45) g.pa += diff * Math.min(1, dt * 3);
+              // önü duvarsa ve tek açık yan varsa oraya kıvrıl
+              if (solid(g.px + Math.cos(g.pa) * 0.6, g.py + Math.sin(g.pa) * 0.6)) {
+                const lo = !solid(g.px + Math.cos(g.pa - Math.PI / 2) * 0.8, g.py + Math.sin(g.pa - Math.PI / 2) * 0.8);
+                const ro = !solid(g.px + Math.cos(g.pa + Math.PI / 2) * 0.8, g.py + Math.sin(g.pa + Math.PI / 2) * 0.8);
+                if (lo !== ro) g.pa += (ro ? 1 : -1) * 2.4 * dt;
+              }
+            }
+          }
+          g.joyMag = mag;
+        } else g.joyMag = 0;
+        g.running = fwd > 0.9 && g.joyMag > 0.97 && g.stamina > 0;
+        const sp = (g.running ? 2.35 : 1.5) * fwd * dt;
         if (sp) { move(Math.cos(g.pa) * sp, Math.sin(g.pa) * sp, 0.22); g.bob += dt * (g.running ? 13 : 9) * Math.abs(fwd); }
         g.noise = g.hidden ? 0 : g.running ? 6 : Math.abs(fwd) > 0.25 ? 2.4 : 0;
         if (Math.abs(fwd) > 0.2) { g.lastStep += dt * Math.abs(fwd) * (g.running ? 1.6 : 1); if (g.lastStep > 0.42) { g.lastStep = 0; if (A) A.step(0.5, g.running); } }
@@ -368,8 +392,21 @@
           if (A) A.page(); buzz(40); g.glitch = 0.6;
           g.msg = g.got >= PAGES ? "Tüm sayfalar. ÇIKIŞ KAPISINI BUL." : g.got + " / " + PAGES; g.msgT = 2.5;
           if (g.ai === "dormant") { g.ai = "roam"; spawnFar(7); }
+          if ((g.got === 2 || g.got === 4) && jumpOn) setTimeout(() => { if (!g.over && !g.hidden) { g.pop = 0.75; const A2 = audio(); if (A2) { A2.silence(1.5); A2.scream(); } buzz([80, 30, 120]); g.glitch = 1; } }, 1400 + map.rand() * 1500);
           if (g.got === 3) { g.lightsOutT = 7; g.lightOn = false; if (A) { A.silence(2.5); setTimeout(() => { if (g.A && !g.over) { const ra = -Math.PI / 2; g.A.distant(Math.sin(ra) * 0.8, -Math.cos(ra) * 0.8, 2); } }, 1800); } g.msg = "…"; }
           if (g.got >= PAGES && g.ai !== "chase") { g.ai = "search"; g.target = [Math.floor(g.px), Math.floor(g.py)]; }
+        }
+        // ipucu: en yakın sayfaya (hepsi alındıysa çıkışa) giden yolun yönü
+        if (g.hintT > 0) {
+          g.hintT -= dt;
+          let tgt = null;
+          if (g.got >= PAGES) tgt = [map.exit.x, map.exit.y];
+          else { const dd = bfs(m, Math.floor(g.px), Math.floor(g.py)); let bv = 1e9; for (const pg of g.pages) if (!pg.got) { const v = dd[Math.floor(pg.y)][Math.floor(pg.x)]; if (v < bv) { bv = v; tgt = [Math.floor(pg.x), Math.floor(pg.y)]; } } }
+          if (tgt) {
+            const dd = bfs(m, tgt[0], tgt[1]); let cx = Math.floor(g.px), cy = Math.floor(g.py); g.hintD = dd[cy][cx];
+            for (let i = 0; i < 2; i++) { let nb = null, bv = dd[cy][cx]; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = cx + dx, ny = cy + dy; if (!m[ny][nx] && dd[ny][nx] < bv) { bv = dd[ny][nx]; nb = [nx, ny]; } } if (!nb) break; cx = nb[0]; cy = nb[1]; }
+            g.hintA = relAngle(cx + 0.5, cy + 0.5);
+          }
         }
         // çıkış
         if (g.got >= PAGES && exitDoor && !g.hidden && Math.hypot(exitDoor[0] + 0.5 - g.px, exitDoor[1] + 0.5 - g.py) < 1.05) { g.score += 500 + Math.round(g.battery * 100); endGame("escape"); return; }
@@ -470,6 +507,8 @@
         if (type === "down") {
           const fb = flashBtn(R), hb = hideBtn(R);
           if (x >= fb.x && x <= fb.x + fb.w && y >= fb.y && y <= fb.y + fb.h) { if (g.battery > 0 && !g.hidden && g.lightsOutT <= 0) { g.lightOn = !g.lightOn; const A = audio(); if (A) A.click(); } return; }
+          const ib = hintBtn(R);
+          if (x >= ib.x && x <= ib.x + ib.w && y >= ib.y && y <= ib.y + ib.h) { if (g.hints > 0 && g.hintT <= 0 && !g.hidden) { g.hints--; g.hintT = 5; const A = audio(); if (A) A.distant(0, -0.5, 2); } return; }
           const lk = nearLocker();
           if ((lk || g.hidden) && x >= hb.x && x <= hb.x + hb.w && y >= hb.y && y <= hb.y + hb.h) {
             const A = audio();
@@ -478,12 +517,10 @@
             return;
           }
           if (g.hidden) return;
-          if (x < R.x + R.w * 0.55) g.joy = { id, x0: x, y0: y, dx: 0, dy: 0 };
-          else g.look = { id, x };
+          if (!g.joy) g.joy = { id, x0: x, y0: y, dx: 0, dy: 0 };
         } else if (type === "move") {
-          if (g.joy && g.joy.id === id) { g.joy.dx = clamp(x - g.joy.x0, -80, 80); g.joy.dy = clamp(y - g.joy.y0, -80, 80); }
-          if (g.look && g.look.id === id) { g.pa += (x - g.look.x) * 0.006; g.look.x = x; }
-        } else { if (g.joy && g.joy.id === id) g.joy = null; if (g.look && g.look.id === id) g.look = null; }
+          if (g.joy && g.joy.id === id) { const ddx = x - g.joy.x0, ddy = y - g.joy.y0, l = Math.hypot(ddx, ddy); if (l > 80) { g.joy.x0 += ddx * (1 - 80 / l); g.joy.y0 += ddy * (1 - 80 / l); } g.joy.dx = x - g.joy.x0; g.joy.dy = y - g.joy.y0; }
+        } else { if (g.joy && g.joy.id === id) g.joy = null; }
       },
       net() { return { x: Math.round(g.px * 10), y: Math.round(g.py * 10), sx: Math.round(Math.max(0, g.sx) * 10), sy: Math.round(Math.max(0, g.sy) * 10), p: g.got, c: g.caught ? 1 : 0, e: g.escaped ? 1 : 0, s: seed }; },
       draw(ctx, R, active) {
@@ -492,7 +529,7 @@
         // düşük çözünürlüklü sahne (performans + bulanık, kirli görüntü)
         upgradeTextures(T);
         const FP = T.floorPx;
-        const RW = 220, RH = Math.max(120, Math.round((RW * R.h) / R.w));
+        const RW = 300, RH = Math.max(160, Math.round((RW * R.h) / R.w));
         if (!g.buf || g.buf.width !== RW || g.buf.height !== RH) { g.buf = document.createElement("canvas"); g.buf.width = RW; g.buf.height = RH; g.bctx = g.buf.getContext("2d"); g.zb = new Float32Array(RW); }
         const b = g.bctx, zb = g.zb;
         const bob = Math.sin(g.bob) * RH * 0.012, horizon = RH / 2 + bob;
@@ -568,12 +605,17 @@
           if (s.glow) lum = Math.max(lum, 0.12);
           if (s.lamp) lum = Math.max(lum, 0.15 + s.lamp.level * 0.85);
           else for (const l of map.lamps) if (l.level > 0.02) { const ld = Math.hypot(l.x - s.x, l.y - s.y); if (ld < 2.4) lum += (1 - ld / 2.4) * 0.5 * l.level; }
-          if (s.thing) lum = Math.min(lum, 0.6);
-          for (let k = Math.max(0, Math.floor(cx - sw / 2)); k < Math.min(RW, Math.ceil(cx + sw / 2)); k++) {
+          if (s.thing) lum = Math.min(Math.max(lum, 0.05), 0.7);
+          // önce ışıkla karartılmış kopya (saydam kısımlar korunur), sonra sütun sütun derinlik testi
+          const iw = Math.max(1, Math.ceil(sw)), ih = Math.max(1, Math.ceil(sh));
+          if (!g.sp || g.sp.width < iw || g.sp.height < ih) { g.sp = document.createElement("canvas"); g.sp.width = Math.max(iw, 64); g.sp.height = Math.max(ih, 64); g.spx = g.sp.getContext("2d"); }
+          const sx2 = g.spx; sx2.clearRect(0, 0, iw, ih); sx2.globalCompositeOperation = "source-over"; sx2.drawImage(s.tex, 0, 0, iw, ih);
+          sx2.globalCompositeOperation = "source-atop"; sx2.fillStyle = "rgba(0,0,0," + clamp(1 - lum, 0, 0.97) + ")"; sx2.fillRect(0, 0, iw, ih); sx2.globalCompositeOperation = "source-over";
+          const x0 = cx - sw / 2;
+          for (let k = Math.max(0, Math.floor(x0)); k < Math.min(RW, Math.ceil(x0 + sw)); k++) {
             if (zb[k] < dist) continue;
-            const u = (k - (cx - sw / 2)) / sw; const tx = Math.floor(u * s.tex.width);
-            b.drawImage(s.tex, tx, 0, 1, s.tex.height, k, top, 1, sh);
-            b.fillStyle = "rgba(0,0,0," + clamp(1 - lum, 0, 0.97) + ")"; b.fillRect(k, top, 1, sh);
+            const tx = Math.floor(k - x0); if (tx < 0 || tx >= iw) continue;
+            b.drawImage(g.sp, tx, 0, 1, ih, k, top, 1, sh);
           }
         }
         // yukarı ölçekle
@@ -611,7 +653,16 @@
         // kontroller
         if (!g.over) {
           if (g.joy) { ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(g.joy.x0, g.joy.y0, 60, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.beginPath(); ctx.arc(g.joy.x0 + g.joy.dx * 0.75, g.joy.y0 + g.joy.dy * 0.75, 24, 0, Math.PI * 2); ctx.fill(); }
-          else if (active && g.clock < 12) { txt(ctx, "◀ sol: yürü / dön", R.x + R.w * 0.27, R.y + R.h - 30, 14, "rgba(255,255,255,0.35)", { w: "700" }); txt(ctx, "sağ: etrafa bak ▶", R.x + R.w * 0.75, R.y + R.h - 30, 14, "rgba(255,255,255,0.35)", { w: "700" }); }
+          else if (active) { const jx = R.x + 96, jy = R.y + R.h - 110, a = g.clock < 15 ? 0.3 : 0.12; ctx.strokeStyle = "rgba(255,255,255," + a + ")"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(jx, jy, 60, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = "rgba(255,255,255," + a * 0.7 + ")"; ctx.beginPath(); ctx.arc(jx, jy, 24, 0, Math.PI * 2); ctx.fill(); if (g.clock < 15) txt(ctx, "Ekrana bas, gitmek istediğin yöne sürükle", R.x + R.w / 2, R.y + R.h - 26, 14, "rgba(255,255,255,0.5)", { w: "700" }); }
+          { const ib = hintBtn(R); ctx.fillStyle = g.hints > 0 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)"; rr(ctx, ib.x, ib.y, ib.w, ib.h, 10); ctx.fill(); txt(ctx, "İPUCU " + g.hints, ib.x + ib.w / 2, ib.y + ib.h / 2 + 1, 13, g.hints > 0 ? "#f0e6d8" : "rgba(255,255,255,0.3)", { ls: "1px" }); }
+          if (g.hintT > 0 && !g.hidden) {
+            const ax = R.x + R.w / 2, ay = R.y + R.h * 0.34, al = Math.min(1, g.hintT, (5 - g.hintT) * 4) * (0.7 + 0.3 * Math.sin(g.clock * 6));
+            ctx.save(); ctx.translate(ax, ay); ctx.rotate(g.hintA); ctx.globalAlpha = al;
+            ctx.fillStyle = "rgba(200,30,30,0.85)"; ctx.shadowColor = "#ff2a2a"; ctx.shadowBlur = 18;
+            ctx.beginPath(); ctx.moveTo(0, -46); ctx.lineTo(26, -6); ctx.lineTo(9, -6); ctx.lineTo(9, 34); ctx.lineTo(-9, 34); ctx.lineTo(-9, -6); ctx.lineTo(-26, -6); ctx.closePath(); ctx.fill();
+            ctx.restore();
+            txt(ctx, (g.got >= PAGES ? "ÇIKIŞ" : "SAYFA") + " · " + g.hintD + " adım", ax, ay + 62, 14, "rgba(240,200,190," + al + ")", { w: "800", ls: "2px" });
+          }
           const lk = nearLocker(), hb = hideBtn(R);
           if (lk || g.hidden) { ctx.fillStyle = g.hidden ? "rgba(180,40,40,0.35)" : "rgba(255,255,255,0.14)"; rr(ctx, hb.x, hb.y, hb.w, hb.h, 12); ctx.fill(); txt(ctx, g.hidden ? "DOLAPTAN ÇIK" : "SAKLAN", hb.x + hb.w / 2, hb.y + hb.h / 2 + 1, 14, "#f0e6d8", { ls: "1px" }); }
           if (g.running) txt(ctx, "KOŞUYORSUN · GÜRÜLTÜ", R.x + R.w * 0.27, R.y + R.h - 92, 13, "rgba(255,160,140,0.7)", { w: "800", ls: "1px" });
@@ -619,9 +670,12 @@
           ctx.fillStyle = g.lightOn ? "rgba(255,230,170,0.22)" : "rgba(255,255,255,0.08)"; rr(ctx, fb.x, fb.y, fb.w, fb.h, 12); ctx.fill();
           txt(ctx, g.lightOn ? "FENER AÇIK" : "FENER KAPALI", fb.x + fb.w / 2, fb.y + fb.h / 2 + 1, 14, g.lightOn ? "#ffe6aa" : "rgba(255,255,255,0.6)", { ls: "1px" });
         }
+        // ani fırlama (oyun içi): yaratık ekrana doğru atılır
+        if (g.pop > 0 && !g.over) lunge(ctx, R, 1 - g.pop / 0.75, false);
         // son: yakalanma / kaçış
         if (g.over) {
-          if (g.caught && g.scare > 0) {
+          if (g.caught && g.scare > 0 && creaOk()) lunge(ctx, R, 1 - g.scare, true);
+          else if (g.caught && g.scare > 0) {
             const k = 1 - g.scare, sc = 0.55 + Math.min(1, k * 3) * 0.9 + k * 0.25, cx = R.x + R.w / 2, cy = R.y + R.h * 0.46;
             ctx.fillStyle = "#000"; ctx.fillRect(R.x, R.y, R.w, R.h);
             const fw = Math.min(R.w * 0.9, R.h * 0.6) * sc, fh = fw * (T.face.height / T.face.width);
@@ -641,6 +695,25 @@
         ctx.restore();
       },
     };
+    // gerçekçi yaratık görseli ekrana fırlar: hızlı büyüme, sarsıntı, kırmızı titreme, tarama bozulması
+    function lunge(ctx, R, k, full) {
+      if (!creaOk()) return;
+      const e = 1 - Math.pow(1 - Math.min(1, k * 3.2), 3); // ilk ~0,25 sn'de yüze gelir
+      const cx = R.x + R.w / 2, iw = CREA.naturalWidth, ih = CREA.naturalHeight;
+      const scale = (R.h / ih) * (0.6 + e * 2.9) * (1 + k * 0.15);
+      const w = iw * scale, h = ih * scale;
+      const jx = (Math.random() - 0.5) * 26 * (1 - k * 0.5), jy = (Math.random() - 0.5) * 26 * (1 - k * 0.5);
+      const headY = R.y + R.h * (0.5 - e * 0.08); // baş (görselin ~%12'si) ekran ortasına gelsin
+      const x = cx - w / 2 + jx, y = headY - h * 0.12 + jy;
+      ctx.fillStyle = full ? "#000" : "rgba(0,0,0," + (0.55 + e * 0.4) + ")"; ctx.fillRect(R.x, R.y, R.w, R.h);
+      ctx.globalAlpha = 0.5; ctx.globalCompositeOperation = "lighter"; ctx.drawImage(CREA, x - 10 * (1 - k), y, w, h); ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+      ctx.drawImage(CREA, x, y, w, h);
+      for (let i = 0; i < 7; i++) { const sy = R.y + Math.random() * R.h, sh2 = 5 + Math.random() * 24, off = (Math.random() - 0.5) * 50; const srcY = ((sy - y) / h) * ih; if (srcY < 0 || srcY > ih) continue; ctx.drawImage(CREA, 0, srcY, iw, (sh2 / h) * ih, x + off, sy, w, sh2); }
+      ctx.fillStyle = "rgba(140,0,0," + (0.12 + 0.18 * Math.random()) + ")"; ctx.fillRect(R.x, R.y, R.w, R.h);
+      const gr2 = T.grain[(g.clock * 30 | 0) % 4]; ctx.globalAlpha = 0.28; for (let yy = R.y; yy < R.y + R.h; yy += 128) for (let xx = R.x; xx < R.x + R.w; xx += 128) ctx.drawImage(gr2, xx, yy); ctx.globalAlpha = 1;
+      const vg = ctx.createRadialGradient(cx, R.y + R.h / 2, R.h * 0.25, cx, R.y + R.h / 2, R.h * 0.8); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.85)"); ctx.fillStyle = vg; ctx.fillRect(R.x, R.y, R.w, R.h);
+    }
+    const hintBtn = R => ({ x: R.x + R.w - 122, y: R.y + 44, w: 110, h: 40 });
     const flashBtn = R => ({ x: R.x + R.w - 132, y: R.y + R.h - 64, w: 120, h: 48 });
     const hideBtn = R => ({ x: R.x + R.w - 132, y: R.y + R.h - 122, w: 120, h: 48 });
     Object.defineProperty(inst, "_g", { value: g }); // test için
@@ -662,7 +735,7 @@
 
   K.register({
     id: "korku", name: "Karanlık Koridor", color: "#c43a3a", desc: "18+ · Karanlıkta 5 sayfayı topla, çıkışı bul. Seni duyabiliyor.",
-    rules: "⚠ 18+ · yoğun korku, kan ve rahatsız edici görüntüler · kulaklık önerilir",
+    rules: "Tek parmakla sürükle: o yöne yürü · sonuna kadar it: koş (duyulur) · 2 ipucu hakkın var · kulaklık tak",
     timeLimit: () => 150, mix: false, noMusic: true,
     create, drawRemote,
   });
