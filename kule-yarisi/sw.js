@@ -1,6 +1,6 @@
 // Kule Yarışı: çevrimdışı oynanabilmesi için basit önbellek.
 // Kendi dosyalarımız "önce ağ, yoksa önbellek"; yazı tipleri "önce önbellek".
-const CACHE = "kule-yarisi-v6";
+const CACHE = "kule-yarisi-v7";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-180.png"];
 
 self.addEventListener("install", e => {

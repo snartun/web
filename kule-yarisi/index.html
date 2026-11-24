@@ -410,6 +410,9 @@
       osc("sine", 95, t, 0.5, 0.75, null, 0.003, 32);
       noise(t + 0.07, 0.45, 0.18, "highpass", 3200, 0.5);
       duck(0.35, 0.5); },
+    creak() { if (!auOK()) return; const t = now();
+      noise(t, 0.5, 0.12, "bandpass", 420, 9, null, 0.06, 260);
+      osc("sawtooth", 82, t, 0.45, 0.025, null, 0.05, 64); },
     fall() { if (!auOK()) return; const t = now(); osc("sine", 720, t, 0.6, 0.07, null, 0.01, 170); },
     lifeLost() { if (!auOK()) return; const t = now(); osc("triangle", 440, t, 0.14, 0.14); osc("triangle", 311, t + 0.15, 0.3, 0.14); },
     milestone() { if (!auOK()) return; const t = now(); [0, 4, 7, 12, 16].forEach((s, i) => bell(523.25 * Math.pow(2, s / 12), t + i * 0.08, 0.8)); duck(0.4, 0.6); },
@@ -559,7 +562,7 @@
     p.swayT = 0; p.swayAmp = 0;
     p.incoming = 0; p.atk = 0; p.misses = 0;
     p.debris = []; p.pops = []; p.parts = []; p.rings = []; p.streaks = []; p.planes = []; p.birds = []; p.meteors = [];
-    p.trauma = 0; p.freeze = 0; p.squash = 0; p.flash = 0; p.attackFlash = 0;
+    p.trauma = 0; p.freeze = 0; p.squash = 0; p.flash = 0; p.attackFlash = 0; p.balance = 0;
     p.ready = false; p.remote = false;
   }
 
@@ -669,9 +672,44 @@
     }
   }
 
+  // Denge: her katta, üstündeki tüm katların ağırlık merkezi o katın üzerinde olmalı.
+  // Dışarı taşarsa o noktanın üstü devrilir.
+  function stabilityCheck(p) {
+    const b = p.blocks;
+    let sum = 0, cnt = 0, worst = 0;
+    for (let i = b.length - 1; i >= 1; i--) {
+      sum += b[i].x; cnt++;
+      const com = sum / cnt, sup = b[i - 1];
+      const ratio = Math.abs(com - sup.x) / (sup.w / 2);
+      if (ratio > 1) return { fail: i, side: com >= sup.x ? 1 : -1, worst: ratio };
+      worst = Math.max(worst, ratio);
+    }
+    return { fail: 0, worst };
+  }
+
+  function collapse(p, res) {
+    const removed = p.blocks.splice(res.fail);
+    removed.forEach((blk, k) => {
+      const j = res.fail + k;
+      p.debris.push({ x: blk.x + swayAt(p, j), y: j, w: blk.w, vy: -0.6 - k * 0.15, vx: res.side * (0.1 + k * 0.035), rot: 0, vr: res.side * (1.2 + k * 0.35), perfect: blk.perfect });
+    });
+    const lost = removed.length;
+    p.score = Math.max(0, p.score - 25 * lost);
+    p.balance = 0;
+    p.pops.push({ text: "KULE YIKILDI  −" + lost + " KAT", life: 1.5, x: 0.5, y: p.blocks.length + 2.2, c: "#ff6b78", big: lost >= 3 });
+    p.trauma = 1;
+    SFX.topple();
+    updateSwayAmp(p);
+    loseLife(p);
+  }
+
   function afterLanding(p) {
     p.fall = null;
     p.phase = "settle"; p.phaseT = 0;
+    const st = stabilityCheck(p);
+    p.balance = st.worst || 0;
+    if (st.fail) { collapse(p, st); if (isOnline() && p === me()) pushPresence(true); return; }
+    if (p.balance > 0.7) SFX.creak();
     updateSwayAmp(p);
     const n = floors(p);
     if (n > 0 && n % 10 === 0) {
@@ -1041,6 +1079,10 @@
       const fx = o.fall ? o.fall.x : 0.5, fy = o.fall ? o.fall.y : blocks.length;
       if (!o.topple) o.debris.push({ x: fx, y: fy, w: BW, vy: 2, vx: 0, rot: 0, vr: 1.5, perfect: false });
       o.trauma = Math.min(1, o.trauma + 0.5);
+    }
+    if (state === "play" && o.blocks && blocks.length < prevLen) {
+      for (let i = blocks.length; i < prevLen; i++) { const b = o.blocks[i]; if (b) o.debris.push({ x: b.x, y: i, w: b.w, vy: -0.5, vx: (b.x >= 0.5 ? 1 : -1) * 0.12, rot: 0, vr: (b.x >= 0.5 ? 1 : -1) * 1.5, perfect: b.perfect }); }
+      o.trauma = 1;
     }
     o.misses = pr.ms | 0;
     o.blocks = blocks;
@@ -1453,6 +1495,7 @@
     if (state === "play" && p.alive && p.blocks) {
       if (wind) pill("RÜZGÂR " + (wind.dir > 0 ? "→" : "←") + " " + (wind.s > 0.9 ? "SERT" : "ORTA"), "rgba(14,17,26,0.78)", "#e8f2ff");
       else if (windAt(p.blocks.length + 1)) pill("RÜZGÂR GELİYOR", "rgba(14,17,26,0.6)", "rgba(232,242,255,0.75)");
+      if (!p.remote && p.balance > 0.7) pill("⚠ DENGE KRİTİK", "rgba(230,110,20," + (0.75 + 0.25 * Math.sin(clock * 8)) + ")", "#fff");
       if (p.incoming > 0) pill("⚡ GELEN SALDIRI ×" + p.incoming, "rgba(214,40,60,0.92)", "#fff");
     }
     if ((p.storm && (p.phase === "swing" || p.phase === "lower")) || p.attackFlash > 0) {
