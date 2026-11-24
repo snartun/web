@@ -706,16 +706,18 @@
     if (cfg.mode === "classic" && activePlayers().every(q => !q.alive)) endGame("");
   }
 
-  function endGame(note) {
+  // winner: "me" | "opp" | null (null = puana göre)
+  let winner = null;
+  function endGame(note, win) {
     if (state === "over") return;
-    state = "over"; overAt = clock; overNote = note || "";
+    state = "over"; overAt = clock; overNote = note || ""; winner = win || null;
     P.forEach(q => { q.ready = false; });
     newBest = false;
     for (const q of activePlayers()) if (!q.remote && saveBest(q.score)) newBest = true;
     if (isSingle()) { if (newBest) SFX.win(); else SFX.lose(); }
     else {
       const meP = isOnline() ? me() : null;
-      if (meP) { const o = other(meP); (meP.score >= o.score ? SFX.win : SFX.lose)(); } else SFX.win();
+      if (meP) { const o = other(meP); const iWin = winner ? winner === "me" : meP.score >= o.score; (iWin ? SFX.win : SFX.lose)(); } else SFX.win();
     }
     AU.level = 0;
     if (isOnline()) { me().ready = false; pushPresence(true); }
@@ -1083,10 +1085,13 @@
       }
     }
     if (state === "countdown" || state === "play") {
-      if (!pr && clock - net.oppSeen > 6) endGame("Rakibin bağlantısı koptu");
+      if (!pr && clock - net.oppSeen > 6) endGame("Rakibin bağlantısı koptu", "me");
       if (state === "play" && pr && (pr.r | 0) === net.r) {
         const oppEnded = pr.st === "dead" || pr.st === "done" || pr.st === "over";
-        if (cfg.mode === "classic" && !m.alive && oppEnded) endGame("");
+        // Klasik: biri canlarını bitirdiği an oyun iki taraf için de biter, ayakta kalan kazanır.
+        const oppDead = (pr.lv | 0) <= 0 || pr.st === "dead";
+        if (cfg.mode === "classic" && !m.alive) endGame(oppDead ? "" : "Kulen çöktü", oppDead ? null : "opp");
+        else if (cfg.mode === "classic" && oppDead) endGame("Rakibin kulesi çöktü", "me");
         if (cfg.mode === "timed" && timeLeft <= 0) { if (!net.doneAt) net.doneAt = clock; if (oppEnded || clock - net.doneAt > 3) endGame(""); }
       }
     }
@@ -1526,7 +1531,7 @@
       } else if (state === "over") {
         const canTap = clock - overAt > 0.9;
         const lines = [];
-        if (overNote) lines.push({ t: overNote.toUpperCase(), s: small, c: "#a3a9b8", ls: "1px" });
+        if (overNote && !V.remote) lines.push({ t: overNote.toUpperCase(), s: small, c: "#a3a9b8", ls: "1px" });
         if (isSingle()) {
           lines.push({ t: newBest ? "YENİ REKOR!" : "OYUN BİTTİ", s: big, f: DISP, w: "400", c: newBest ? "#ffd34d" : "#f3efe7" });
           lines.push({ t: fmtScore(p.score) + " puan", s: Math.round(mid * 1.3), f: DISP, w: "400" });
@@ -1535,7 +1540,9 @@
           panel(V, lines, newBest ? "#ffd34d" : "#f4b400", playH);
         } else {
           const a = p.score || 0, b = o.score || 0;
-          const won = a > b || (a === b && n > floors(o)), lost = a < b || (a === b && n < floors(o));
+          const pw = !winner ? null : (V.remote ? (winner === "opp") : (winner === "me"));
+          const won = pw === null ? (a > b || (a === b && n > floors(o))) : pw;
+          const lost = pw === null ? (a < b || (a === b && n < floors(o))) : !pw;
           const col = won ? p.light : lost ? "#ff9aa4" : "#f3efe7";
           if (isOnline() && V.remote) {
             lines.push({ t: won ? "RAKİP KAZANDI" : lost ? "RAKİP KAYBETTİ" : "BERABERE", s: big * 0.8, f: DISP, w: "400", c: p.accent });
