@@ -180,13 +180,24 @@
       g.fillStyle = "rgba(120,70,30,0.5)"; for (let i = 0; i < 60; i++) g.fillRect(2 + r() * (w - 4), 2 + r() * (h - 4), 1.5, 1.5);
       g.fillStyle = "#8a8f90"; g.fillRect(w / 2 - 5, h * 0.5, 2, 6); g.fillRect(w / 2 + 3, h * 0.5, 2, 6);
     });
-    const body = mk(96, 40, (g, w, h) => {
-      const sg = g.createLinearGradient(0, 0, 0, h); sg.addColorStop(0, "#bdb6a6"); sg.addColorStop(1, "#6e685c");
-      g.fillStyle = "rgba(60,0,0,0.85)"; g.beginPath(); g.ellipse(w * 0.55, h - 5, w * 0.48, 6, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = sg; g.beginPath(); g.moveTo(6, h - 6); g.quadraticCurveTo(10, h - 22, 22, h - 24); g.quadraticCurveTo(34, h - 34, 50, h - 26); g.quadraticCurveTo(70, h - 30, 88, h - 16); g.lineTo(92, h - 6); g.fill();
-      g.strokeStyle = "rgba(40,30,25,0.5)"; g.lineWidth = 1; for (let i = 0; i < 6; i++) { g.beginPath(); g.moveTo(14 + i * 13, h - 8); g.quadraticCurveTo(18 + i * 13, h - 20, 24 + i * 13, h - 8); g.stroke(); }
-      g.fillStyle = "rgba(110,0,0,0.75)"; g.beginPath(); g.ellipse(46, h - 20, 9, 5, 0.2, 0, Math.PI * 2); g.fill(); g.beginPath(); g.ellipse(30, h - 14, 4, 3, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#cfc8b8"; g.beginPath(); g.ellipse(91, h - 9, 4, 2.4, 0.4, 0, Math.PI * 2); g.fill();
+    // ceset: lekeli çarşaf altında yatan beden (baş, omuz, kalça, ayak kabarıklıkları), dışarı sarkan solgun el, altında kan gölü
+    const body = mk(128, 44, (g, w, h) => {
+      const pool = g.createRadialGradient(w * 0.42, h - 7, 4, w * 0.42, h - 7, w * 0.5); pool.addColorStop(0, "rgba(58,4,4,0.95)"); pool.addColorStop(0.7, "rgba(40,2,2,0.8)"); pool.addColorStop(1, "rgba(30,0,0,0)");
+      g.fillStyle = pool; g.beginPath(); g.ellipse(w * 0.45, h - 6, w * 0.5, 8, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "rgba(0,0,0,0.6)"; g.beginPath(); g.ellipse(w * 0.5, h - 4, w * 0.44, 4, 0, 0, Math.PI * 2); g.fill();
+      const sh = g.createLinearGradient(0, h - 30, 0, h - 2); sh.addColorStop(0, "#cfc9bb"); sh.addColorStop(0.6, "#9d978a"); sh.addColorStop(1, "#5a564e");
+      g.fillStyle = sh; g.beginPath(); g.moveTo(6, h - 4);
+      g.bezierCurveTo(6, h - 20, 14, h - 24, 22, h - 23); g.bezierCurveTo(30, h - 22, 32, h - 16, 38, h - 18); // baş → boyun
+      g.bezierCurveTo(46, h - 27, 60, h - 26, 70, h - 21); g.bezierCurveTo(80, h - 17, 86, h - 22, 96, h - 19); // gövde → kalça
+      g.bezierCurveTo(108, h - 15, 114, h - 17, 121, h - 11); g.lineTo(123, h - 4); g.closePath(); g.fill();
+      for (let i = 0; i < 9; i++) { g.strokeStyle = "rgba(60,55,48," + (0.25 + r() * 0.25) + ")"; g.lineWidth = 0.8; g.beginPath(); const x = 14 + i * 12 + r() * 4; g.moveTo(x, h - 5); g.quadraticCurveTo(x + 3, h - 14, x + 1 + r() * 4, h - 20); g.stroke(); }
+      // kan: çarşafa alttan sızar (kenar boyunca koyu bant) + göğüs/karın bölgesinde düzensiz, kümelenmiş lekeler
+      g.save(); g.globalCompositeOperation = "source-atop";
+      const soak = g.createLinearGradient(0, h - 12, 0, h - 3); soak.addColorStop(0, "rgba(90,6,6,0)"); soak.addColorStop(1, "rgba(70,4,4,0.85)"); g.fillStyle = soak; g.fillRect(10, h - 14, 80, 12);
+      for (const [cx, cy, n, sp] of [[46, h - 15, 26, 11], [74, h - 11, 12, 6], [22, h - 12, 8, 4]]) for (let i = 0; i < n; i++) { const a = r() * Math.PI * 2, d = Math.pow(r(), 1.6) * sp; g.fillStyle = "rgba(" + (70 + (r() * 40 | 0)) + ",4,4," + (0.25 + r() * 0.35) + ")"; g.beginPath(); g.ellipse(cx + Math.cos(a) * d * 1.4, cy + Math.sin(a) * d * 0.6, 1 + r() * 3.2, 0.8 + r() * 2, r() * 3, 0, Math.PI * 2); g.fill(); }
+      g.restore();
+      g.strokeStyle = "#b9b2a2"; g.lineCap = "round"; g.lineWidth = 2.4; g.beginPath(); g.moveTo(52, h - 8); g.quadraticCurveTo(56, h - 3, 63, h - 3); g.stroke();
+      g.lineWidth = 0.9; for (let f = 0; f < 4; f++) { g.beginPath(); g.moveTo(63, h - 3); g.lineTo(66 + f * 0.6, h - 4.5 + f * 1.2); g.stroke(); }
     });
     const lamp = mk(24, 80, (g, w, h) => {
       g.fillStyle = "#151515"; g.fillRect(w / 2 - 0.6, 0, 1.2, h - 22);
@@ -250,18 +261,27 @@
     A.staticG = c.createGain(); A.staticG.gain.value = 0; A.staticG.connect(out);
     const s2 = c.createBufferSource(); s2.buffer = AU.noise; s2.loop = true; const sf = c.createBiquadFilter(); sf.type = "highpass"; sf.frequency.value = 1800; s2.connect(sf).connect(A.staticG); s2.start();
     // yönlü kaynak (HRTF)
-    A.panner = c.createPanner(); A.panner.panningModel = "HRTF"; A.panner.distanceModel = "inverse"; A.panner.refDistance = 1; A.panner.rolloffFactor = 1.2; A.panner.connect(out);
+    // koridor yankısı: sentetik dürtü yanıtı (2,4 sn, erken yansımalar + üstel sönüm), tüm efektler yankıya gider
+    { const sr = c.sampleRate, len = Math.floor(sr * 2.4), ir = c.createBuffer(2, len, sr);
+      for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) { const t = i / len; d[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3.2) * (i < sr * 0.08 && Math.random() < 0.02 ? 3 : 1); } }
+      A.verb = c.createConvolver(); A.verb.buffer = ir; A.verbG = c.createGain(); A.verbG.gain.value = 0.32; out.connect(A.verb); A.verb.connect(A.verbG).connect(AU.sfx); }
+    // yönlü kaynak (HRTF) → duvar arkasındaysa alçak geçiren ile boğuklaşır
+    A.panner = c.createPanner(); A.panner.panningModel = "HRTF"; A.panner.distanceModel = "inverse"; A.panner.refDistance = 1; A.panner.rolloffFactor = 1.2;
+    A.occl = c.createBiquadFilter(); A.occl.type = "lowpass"; A.occl.frequency.value = 12000; A.panner.connect(A.occl).connect(out);
+    A.occlude = on => A.occl.frequency.setTargetAtTime(on ? 650 : 12000, c.currentTime, 0.08);
     A.fadeIn = () => { A.droneG.gain.setTargetAtTime(0.4, c.currentTime, 1.5); A.startAmb(); };
     A.startAmb = () => { if (A.amb || !K.BUF.h_ambient) return; A.amb = K.play("h_ambient", { loop: true, vol: 0.0001, dest: A.out }); if (A.amb) A.amb.gainNode.gain.setTargetAtTime(0.75, c.currentTime, 2); };
     A.silence = sec => { const t = c.currentTime; A.droneG.gain.cancelScheduledValues(t); A.droneG.gain.setTargetAtTime(0.0001, t, 0.15); A.droneG.gain.setTargetAtTime(0.55, t + sec, 0.8); };
-    A.stop = () => { const t = c.currentTime; try { A.chaseG.gain.setTargetAtTime(0, t, 0.3); if (A.amb) { A.amb.gainNode.gain.setTargetAtTime(0, t, 0.4); A.amb.stop(t + 2); } A.droneG.gain.setTargetAtTime(0, t, 0.3); A.staticG.gain.setTargetAtTime(0, t, 0.2); setTimeout(() => { try { out.disconnect(); } catch (e) {} }, 1500); } catch (e) {} A.ok = false; };
+    A.stop = () => { const t = c.currentTime; try { A.chaseG.gain.setTargetAtTime(0, t, 0.3); if (A.amb) { A.amb.gainNode.gain.setTargetAtTime(0, t, 0.4); A.amb.stop(t + 2); } A.droneG.gain.setTargetAtTime(0, t, 0.3); A.staticG.gain.setTargetAtTime(0, t, 0.2); setTimeout(() => { try { out.disconnect(); A.verbG.disconnect(); } catch (e) {} }, 2600); } catch (e) {} A.ok = false; };
     const env = (g, t, a, p, d) => { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(p, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); };
     const tone = (type, f, t, d, p, dest, slide) => { const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + d); env(g, t, 0.005, p, d); o.connect(g).connect(dest || out); o.start(t); o.stop(t + d + 0.1); };
     const noise = (t, d, p, type, f, q, dest, a, fEnd) => { const s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain(); s.buffer = AU.noise; fl.type = type; fl.frequency.setValueAtTime(f, t); if (fEnd) fl.frequency.exponentialRampToValueAtTime(fEnd, t + d); fl.Q.value = q || 0.7; env(g, t, a || 0.003, p, d); s.connect(fl).connect(g).connect(dest || out); s.start(t, Math.random() * 0.5); s.stop(t + d + 0.1); };
     A.heart = k => { if (K.play(k > 0.55 ? "h_heart_fast" : "h_heart_slow", { vol: 0.35 + k * 0.6, dur: k > 0.55 ? 0.42 : 0.6, rate: 1 + k * 0.15, dest: out })) return; const t = c.currentTime; tone("sine", 62, t, 0.12, 0.35 + k * 0.4, null, 40); tone("sine", 55, t + 0.18, 0.14, 0.25 + k * 0.3, null, 38); };
     A.step = (k, run) => { if (K.play(Math.random() < 0.5 ? "h_step1" : "h_step2", { vol: 0.22, rate: 0.95 + Math.random() * 0.1, dest: out })) return; const t = c.currentTime; noise(t, 0.06, 0.05 + k * 0.04, "lowpass", 700 + Math.random() * 300, 0.7); tone("sine", 90, t, 0.05, 0.05 * (run ? 1.5 : 1)); };
-    A.thingStep = (x, z, vol) => { vol = vol == null ? 1 : vol; A.panner.positionX ? (A.panner.positionX.value = x, A.panner.positionY.value = 0, A.panner.positionZ.value = z) : A.panner.setPosition(x, 0, z); if (K.play("h_step1", { vol: 1.4 * vol, rate: 0.72 + Math.random() * 0.06, dest: A.panner })) return; const t = c.currentTime; tone("sine", 70, t, 0.18, 0.5, A.panner, 40); noise(t, 0.12, 0.35, "lowpass", 400, 0.8, A.panner); };
-    A.distant = (x, z, kind) => {
+    A.thingStep = (x, z, vol) => { vol = vol == null ? 1 : vol; A.occlude(vol < 1); A.panner.positionX ? (A.panner.positionX.value = x, A.panner.positionY.value = 0, A.panner.positionZ.value = z) : A.panner.setPosition(x, 0, z); if (K.play("h_step1", { vol: 1.4 * vol, rate: 0.72 + Math.random() * 0.06, dest: A.panner })) return; const t = c.currentTime; tone("sine", 70, t, 0.18, 0.5, A.panner, 40); noise(t, 0.12, 0.35, "lowpass", 400, 0.8, A.panner); };
+    // yakınındaki yaratığın ıslak, yavaş nefesi (oyuncu nefesinin kalın perdeden çalınışı)
+    A.thingBreath = (x, z, k, occl) => { A.occlude(occl); A.panner.positionX ? (A.panner.positionX.value = x, A.panner.positionY.value = 0.3, A.panner.positionZ.value = z) : A.panner.setPosition(x, 0.3, z); K.play("h_breath", { vol: 0.5 + k * 0.9, rate: 0.6 + Math.random() * 0.05, dest: A.panner }); };
+    A.distant = (x, z, kind) => { A.occlude(false);
       A.panner.positionX ? (A.panner.positionX.value = x, A.panner.positionZ.value = z) : A.panner.setPosition(x, 0, z);
       const t = c.currentTime;
       const smp = ["h_door", "h_scrape", "h_whisper", "h_thunder"][kind];
@@ -302,7 +322,7 @@
       sx: -10, sy: -10, rx: -10, ry: -10, sDir: 0, ai: "dormant", target: null, detect: 0, menace: 0, lastSeen: [1.5, 1.5], lastSeenT: -99, chaseT: 0, searchT: 0, retreatT: 0, stutT: 0, glimpseT: 6, glimpse: null,
       sPath: null, sTimer: 0, sStare: 0, sVisible: false, lastStep: 0, sStepT: 0, running: false, noise: 0, stamina: 1, hidden: false, hideSpotted: false, savedLight: true,
       lightsOutT: 0, hallu: 0, halluT: 30, halluSide: 1, dust: Array.from({ length: 36 }, () => ({ x: Math.random(), y: Math.random(), v: 0.01 + Math.random() * 0.03, s: 0.6 + Math.random() * 1.4 })),
-      joy: null, look: null, scene: null, pageView: 0, ceilArmed: false, hints: 2, hintT: 0, hintA: 0, hintD: 0, clock: 0, bob: 0, heartT: 0, breathT: 3, eventT: 8, scare: 0, glitch: 0, msg: "", msgT: 0, R: null, A: null, started: false, endT: 0,
+      joy: null, look: null, scene: null, pageView: 0, ceilArmed: false, danger: 0, tBreathT: 0, turning: false, shoulderUsed: false, hints: 2, hintT: 0, hintA: 0, hintD: 0, clock: 0, bob: 0, heartT: 0, breathT: 3, eventT: 8, scare: 0, glitch: 0, msg: "", msgT: 0, R: null, A: null, started: false, endT: 0,
     };
     // başlangıç yönü: en uzun açık koridora bak
     { let best = -1; for (const [a, dx, dy] of [[0, 1, 0], [Math.PI / 2, 0, 1], [Math.PI, -1, 0], [-Math.PI / 2, 0, -1]]) { let n = 0, x = 1, y = 1; while (!m[y + dy][x + dx]) { x += dx; y += dy; n++; } if (n > best) { best = n; g.pa = a; } } }
@@ -379,7 +399,7 @@
           const jd = Math.hypot(g.joy.dx, g.joy.dy), mag = clamp((jd - 8) / 62, 0, 1);
           if (mag > 0) {
             const rel = Math.atan2(g.joy.dx, -g.joy.dy); // 0 = ileri, ±π = geri
-            const back = Math.abs(rel) > 2.2;
+            const back = Math.abs(rel) > 2.2; g.turning = back && mag > 0.4;
             g.pa += clamp(rel * (back ? 3.2 : 2.6), -3.4, 3.4) * dt * (0.55 + 0.45 * mag);
             fwd = back ? 0 : mag * Math.max(0, Math.cos(rel * 0.85));
             // koridor yardımı: düz giderken ana yöne hizala
@@ -521,6 +541,11 @@
         if (g.halluT <= 0) { g.halluT = 28 + map.rand() * 25; if (g.ai !== "chase" && g.got > 0) { g.hallu = 0.35; g.halluSide = map.rand() < 0.5 ? -1 : 1; if (A) A.distant(g.halluSide * 0.7, -0.3, 2); } }
         // kalp atışı ve nefes: tehlikeye göre
         const k = present ? clamp(1 - d / 9, 0, 1) * (g.ai === "chase" ? 1 : 0.7) : 0;
+        g.danger += (k - g.danger) * Math.min(1, dt * 2);
+        g.tBreathT -= dt;
+        if (present && d < 3.4 && g.tBreathT <= 0 && A) { g.tBreathT = 2.4 + map.rand() * 1.2; A.thingBreath(Math.sin(ra) * d, -Math.cos(ra) * d, 1 - d / 3.4, !canSee(g.sx, g.sy)); }
+        // arkanı dönersin ve o tam omzunun dibinde: bir kez, sonra karanlığa çekilir
+        if (present && g.turning && !g.shoulderUsed && d < 1.9 && Math.abs(ra) > 2.2 && g.ai !== "chase" && startScene("shoulder")) { g.ai = "retreat"; g.retreatT = 16 + map.rand() * 8; g.menace = 0.3; g.detect = 0; g.sx = -10; g.sy = -10; }
         g.heartT -= dt;
         if (g.heartT <= 0) { g.heartT = 60 / (62 + 95 * k); if (A && (k > 0.15 || g.hidden)) A.heart(Math.max(k, g.hidden ? 0.5 : 0)); }
         g.breathT -= dt;
@@ -638,7 +663,7 @@
           if (s.glow) lum = Math.max(lum, 0.12);
           if (s.lamp) lum = Math.max(lum, 0.15 + s.lamp.level * 0.85);
           else for (const l of map.lamps) if (l.level > 0.02) { const ld = Math.hypot(l.x - s.x, l.y - s.y); if (ld < 2.4) lum += (1 - ld / 2.4) * 0.5 * l.level; }
-          if (s.thing) lum = Math.min(Math.max(lum, 0.05), 0.7);
+          if (s.thing) { lum = Math.min(Math.max(lum, 0.05), 0.7); if (dist > 4) lum *= 0.55 + 0.45 * hash(Math.floor(g.clock * 7), 3); }
           // önce ışıkla karartılmış kopya (saydam kısımlar korunur), sonra sütun sütun derinlik testi
           const iw = Math.max(1, Math.ceil(sw)), ih = Math.max(1, Math.ceil(sh));
           if (!g.sp || g.sp.width < iw || g.sp.height < ih) { g.sp = document.createElement("canvas"); g.sp.width = Math.max(iw, 64); g.sp.height = Math.max(ih, 64); g.spx = g.sp.getContext("2d"); }
@@ -654,7 +679,21 @@
         // yukarı ölçekle
         ctx.imageSmoothingEnabled = true;
         const shake = g.glitch * 6 + (g.sStare > 0.5 ? g.sStare * 1.5 : 0);
-        ctx.drawImage(g.buf, R.x + (Math.random() - 0.5) * shake, R.y + (Math.random() - 0.5) * shake, R.w, R.h);
+        // elde kamera: nefesle yavaş salınım, yürürken adım sallantısı, koşarken daha sert
+        const run = g.running ? 1 : 0, sway = Math.sin(g.clock * 0.8) * 0.006 + Math.sin(g.bob * 0.5) * (0.004 + run * 0.006);
+        const swx = Math.sin(g.bob * 0.5) * R.w * (0.006 + run * 0.01), swy = Math.abs(Math.cos(g.bob * 0.5)) * R.h * (0.004 + run * 0.006);
+        ctx.save(); ctx.translate(R.x + R.w / 2 + swx + (Math.random() - 0.5) * shake, R.y + R.h / 2 + swy + (Math.random() - 0.5) * shake); ctx.rotate(sway); ctx.scale(1.045, 1.045);
+        ctx.drawImage(g.buf, -R.w / 2, -R.h / 2, R.w, R.h);
+        // kromatik sapma: bozulma/ani korku anlarında kırmızı-camgöbeği kanallar ayrışır
+        const ca = Math.max(g.glitch, g.pop > 0 ? 1 : 0, g.sStare > 1 ? 0.5 : 0);
+        if (ca > 0.15) {
+          if (!g.caR) { g.caR = document.createElement("canvas"); g.caC = document.createElement("canvas"); }
+          for (const [cv, col] of [[g.caR, "#ff0000"], [g.caC, "#00ffff"]]) { cv.width = RW; cv.height = RH; const x2 = cv.getContext("2d"); x2.drawImage(g.buf, 0, 0); x2.globalCompositeOperation = "multiply"; x2.fillStyle = col; x2.fillRect(0, 0, RW, RH); }
+          const off = 4 + ca * 8; ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.28 * ca;
+          ctx.drawImage(g.caR, -R.w / 2 - off, -R.h / 2, R.w, R.h); ctx.drawImage(g.caC, -R.w / 2 + off, -R.h / 2, R.w, R.h);
+          ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+        }
+        ctx.restore();
         // bozulma: yatay kayma dilimleri (yanıp sönme değil)
         if (g.glitch > 0.05 || g.sStare > 1) {
           const n = 3 + Math.floor((g.glitch + g.sStare * 0.3) * 6);
@@ -662,9 +701,17 @@
           ctx.fillStyle = "rgba(120,0,0," + Math.min(0.18, g.glitch * 0.25 + g.sStare * 0.03) + ")"; ctx.fillRect(R.x, R.y, R.w, R.h);
         }
         // fener konisi + kenar kararması
-        const vg = ctx.createRadialGradient(R.x + R.w / 2, R.y + R.h * 0.55, Math.min(R.w, R.h) * 0.18, R.x + R.w / 2, R.y + R.h * 0.55, Math.max(R.w, R.h) * 0.72);
+        const bx = R.x + R.w / 2 + swx * 2.2, by = R.y + R.h * 0.55 + swy * 1.5;
+        if (light > 0) { const hs = ctx.createRadialGradient(bx, by, 0, bx, by, Math.min(R.w, R.h) * 0.32); hs.addColorStop(0, "rgba(255,226,180," + 0.09 * light + ")"); hs.addColorStop(0.6, "rgba(255,210,160," + 0.03 * light + ")"); hs.addColorStop(1, "rgba(255,210,160,0)"); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = hs; ctx.fillRect(R.x, R.y, R.w, R.h); ctx.globalCompositeOperation = "source-over"; }
+        const vg = ctx.createRadialGradient(bx, by, Math.min(R.w, R.h) * 0.18, bx, by, Math.max(R.w, R.h) * 0.72);
         vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(0.55, "rgba(0,0,0," + (light ? 0.35 : 0.7) + ")"); vg.addColorStop(1, "rgba(0,0,0," + (light ? 0.9 : 0.97) + ")");
         ctx.fillStyle = vg; ctx.fillRect(R.x, R.y, R.w, R.h);
+        if (g.danger > 0.08 && !g.over) {
+          ctx.globalCompositeOperation = "saturation"; ctx.fillStyle = "rgba(128,128,128," + Math.min(0.75, g.danger * 0.9) + ")"; ctx.fillRect(R.x, R.y, R.w, R.h); ctx.globalCompositeOperation = "source-over";
+          const beat = Math.pow(Math.max(0, Math.cos((1 - g.heartT / (60 / (62 + 95 * g.danger))) * Math.PI)), 6);
+          const pv = ctx.createRadialGradient(R.x + R.w / 2, R.y + R.h / 2, Math.min(R.w, R.h) * 0.35, R.x + R.w / 2, R.y + R.h / 2, Math.max(R.w, R.h) * 0.7);
+          pv.addColorStop(0, "rgba(90,0,0,0)"); pv.addColorStop(1, "rgba(90,0,0," + (g.danger * (0.25 + 0.3 * beat)) + ")"); ctx.fillStyle = pv; ctx.fillRect(R.x, R.y, R.w, R.h);
+        }
         // fener ışığında uçuşan toz
         if (light > 0) { ctx.fillStyle = "rgba(255,240,210," + 0.35 * light + ")"; for (const p of g.dust) { p.y += p.v * 0.016; p.x += Math.sin(g.clock + p.v * 100) * 0.0006; if (p.y > 1) { p.y = 0; p.x = Math.random(); } const dx = (p.x - 0.5) * R.w, dy = (p.y - 0.55) * R.h; if (dx * dx + dy * dy < (R.w * 0.32) ** 2) ctx.fillRect(R.x + p.x * R.w, R.y + p.y * R.h, p.s, p.s); } }
         // halüsinasyon: ekran kenarında bir anlık siluet
@@ -691,10 +738,11 @@
           if (g.hintT > 0 && !g.hidden) {
             const ax = R.x + R.w / 2, ay = R.y + R.h * 0.34, al = Math.min(1, g.hintT, (5 - g.hintT) * 4) * (0.7 + 0.3 * Math.sin(g.clock * 6));
             ctx.save(); ctx.translate(ax, ay); ctx.rotate(g.hintA); ctx.globalAlpha = al;
-            ctx.fillStyle = "rgba(200,30,30,0.85)"; ctx.shadowColor = "#ff2a2a"; ctx.shadowBlur = 18;
-            ctx.beginPath(); ctx.moveTo(0, -46); ctx.lineTo(26, -6); ctx.lineTo(9, -6); ctx.lineTo(9, 34); ctx.lineTo(-9, 34); ctx.lineTo(-9, -6); ctx.lineTo(-26, -6); ctx.closePath(); ctx.fill();
+            ctx.globalAlpha = al * (0.75 + 0.25 * hash(Math.floor(g.clock * 9), 7));
+            ctx.strokeStyle = "rgba(196,48,40,0.9)"; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.shadowColor = "rgba(160,0,0,0.8)"; ctx.shadowBlur = 6;
+            for (let i = 0; i < 3; i++) { const yy = 8 - i * 16; ctx.globalAlpha = al * (0.35 + i * 0.3); ctx.beginPath(); ctx.moveTo(-16, yy + 10); ctx.lineTo(0, yy - 4); ctx.lineTo(16, yy + 10); ctx.stroke(); }
             ctx.restore();
-            txt(ctx, (g.got >= PAGES ? "ÇIKIŞ" : "SAYFA") + " · " + g.hintD + " adım", ax, ay + 62, 14, "rgba(240,200,190," + al + ")", { w: "800", ls: "2px" });
+            txt(ctx, g.hintD + " ADIM", ax, ay + 40, 12, "rgba(220,180,170," + al * 0.8 + ")", { w: "700", ls: "3px" });
           }
           const lk = nearLocker(), hb = hideBtn(R);
           if (lk || g.hidden) { ctx.fillStyle = g.hidden ? "rgba(180,40,40,0.35)" : "rgba(255,255,255,0.14)"; rr(ctx, hb.x, hb.y, hb.w, hb.h, 12); ctx.fill(); txt(ctx, g.hidden ? "DOLAPTAN ÇIK" : "SAKLAN", hb.x + hb.w / 2, hb.y + hb.h / 2 + 1, 14, "#f0e6d8", { ls: "1px" }); }
@@ -780,7 +828,8 @@
       ctx.restore();
     }
     function startScene(k) {
-      if (!jumpOn || g.over || g.hidden || !pic(k)) return false;
+      if (!jumpOn || g.over || g.hidden || !pic(k) || (k === "shoulder" && g.shoulderUsed)) return false;
+      if (k === "shoulder") g.shoulderUsed = true;
       g.scene = { k, t: SCENES[k].dur };
       const A = audio();
       if (A) { A.silence(SCENES[k].dur + 0.4); if (k === "peek") { A.sting(); A.distant(0.6, -0.4, 2); } else { A.scream(); } }
@@ -790,7 +839,7 @@
     const hintBtn = R => ({ x: R.x + R.w - 122, y: R.y + 44, w: 110, h: 40 });
     const flashBtn = R => ({ x: R.x + R.w - 132, y: R.y + R.h - 64, w: 120, h: 48 });
     const hideBtn = R => ({ x: R.x + R.w - 132, y: R.y + R.h - 122, w: 120, h: 48 });
-    Object.defineProperty(inst, "_g", { value: g }); // test için
+    Object.defineProperty(inst, "_g", { value: g }); Object.defineProperty(inst, "_T", { value: T }); // test için
     return inst;
   }
 

@@ -1,7 +1,7 @@
 # Düello Arenası — devam notu (oturum devri)
 
 Oyun: `kule-yarisi/` (tek sayfa canvas). Dal: `claude/cool-archimedes-cqk1mn`; yayın: aynı içerik `gh-pages` dalına push edilir.
-Yayından önce `sw.js` içindeki önbellek adını bir artır (şu an `duello-arenasi-v9`).
+Yayından önce `sw.js` içindeki önbellek adını bir artır (şu an `duello-arenasi-v13`).
 
 ## Yapı
 - `core.js`: K yardımcıları, ses motoru (Web Audio + `ses/*.mp3`), müzik. `K.musicQuiet(true)` menü müziğini susturur.
@@ -10,16 +10,20 @@ Yayından önce `sw.js` içindeki önbellek adını bir artır (şu an `duello-a
   Örnek API: `score, over, info(), update(dt, active), draw(ctx, R, active), pointer(type, x, y, id), net(), dispose()`.
 - Test: `python3 -m http.server 8765` (kule-yarisi içinde) + Playwright; `window.__arena.startSingle('korku')`, `window.__arena.M.inst._g` oyun durumu.
 
+## Ortak efekt katmanı (core.js)
+- `K.kick(0..1)` ekran sarsıntısı, `K.flash(a, renk)`, `K.hitstop(sn ≤0.12)`; app.js oyun çizimini `K.fxBegin/K.fxEnd` ile sarar.
+- Parçacıklar: `K.parts.burst / spark / confetti / dust / ring`; `K.pops` belirirken büyüyüp oturur.
+
+## Testler sessiz olmalı
+Kullanıcı isteği: tüm oyun testleri sessiz. Tarayıcıda `K.setSfx(false); K.setMusic(false)`; başsız tarayıcılar `--mute-audio` ile.
+
 ## Yapıldı
-- Korku: menü müziği susturuldu; tek joystick (ekrana bas, yöne sürükle; aşağı = arkanı dön; sonuna kadar = koş; koridor hizalama, köşede otomatik kıvrılma); 2 ipucu hakkı (yol boyunca ok + adım sayısı); gerçekçi yaratık `doku/yaratik.webp` (ElevenLabs FLUX.2 Pro + arka plan silme) koridorda; 2. ve 4. sayfadan sonra ve yakalanınca ekrana fırlama (`lunge()`).
+- Korku: menü müziği susturuldu; tek joystick; 2 ipucu hakkı.
+- Korku görselleri (`doku/`, ayrıntı KAYNAKLAR.md): Nano Banana Pro varyasyonlarından her türün en iyisi seçildi; eksik "omuz arkası" ve tutarsız "dört ayakla koşan" ElevenLabs FLUX.2 Pro ile üretildi (koşanın arka planı BiRefNet). Duvar/zemin/tavan/kapı/kan yazısı gerçek doku; el izleri kan yazılı fotoğraftan kırpılır; yaratık dolaşırken yürür, kovalarken dört ayak; ani korku sahneleri: 1. sayfa kapı aralığı, 3. sayfa karartması sonrası tavan, 4. sayfa veya arkanı döndüğünde omuz arkası; 2. sayfa ve yakalanmada yüz.
+- Korku gerçekçilik: koridor yankısı (konvolüsyon), duvar arkası sesler boğuk, yakındaki yaratığın nefesi, elde kamera salınımı, fener sıcak noktası, tehlikede renk solması + kalp atışıyla kızaran kenarlar, kromatik sapma, sade ipucu işareti, kanlı çarşaf altında ceset.
+- Misket hatası: çember temizlenince yeni dizilim çemberde kalan atıcının üstüne doğup misketi rastgele fırlatıyordu → düzeltildi; toprak sürtünmesi/esneklik gerçekçi (`PHYS`).
+- Tüm oyunların grafikleri ve oyun hissi yenilendi (kurallar/puanlama/ağ verisi aynı).
 
-## Kullanıcının istekleri — KALAN
-1. **Görseller**: Kullanıcı Nano Banana Pro ile her görselin 4 varyasyonunu üretti (masaüstünde `indir.zip`). Her türden en iyisini seç, küçült (webp/jpg), `doku/` içine koy ve korku oyununda kullan:
-   1 yakalanma yüzü (yakalanınca `lunge` yerine/ile), 2 kapı aralığından bakan (oyun içi ani korku), 3 tavanda sürünen, 4 omuz arkası,
-   5 yürüyen yaratık yandan, 6 dört ayakla koşan (kovalamada sprite; arka plan silinmeli), 7 duvar dokusu, 8 zemin dokusu (döşenebilir; `upgradeTextures` içindeki beton/zemin yerine), 9 çıkış kapısı, 10 kan yazılı duvar, 11 sayfa.
-   Beğenilmeyen/eksik olanlar ElevenLabs ile üretilebilir (kalan ~3.500 kredi; flux-2-pro ≈ 273, arka plan silme ≈ 30).
-2. **Misket hatası**: "kafasına göre alandan atıyor" — misketler sebepsiz çember dışı sayılıyor/atılıyor. `games/misket.js` `physics()` incelenip Playwright ile yeniden üretilmeli, sonra düzeltilmeli.
-3. **Tüm oyunların grafikleri kötü**: kule, blok, kelime, renk, misket, refleks, penaltı, basket — daha gerçekçi/profesyonel görünüm, efekt ve "juice" (kaynak: `gamedev-skills/awesome-gamedev-agent-skills` → disciplines/game-feel, audio-design).
-4. Korku daha gerçekçi ve gerici olmalı (+18): ses, efekt, sahneler; çocukça olmamalı.
-
-Commit sonu: `Co-Authored-By` satırı ekle; model adını commit'e yazma.
+## KALAN / öneriler
+- Gerçek orta seviye telefonda kare hızı kontrolü (özellikle penaltı ilk kare, korku, blok).
+- Yürüyen yaratık ve yakalanma yüzünün arka planı yerelde silindi (BiRefNet değil); istenirse kullanıcı dosyaları ElevenLabs akışına yükleyip BiRefNet'ten geçirebilir.
