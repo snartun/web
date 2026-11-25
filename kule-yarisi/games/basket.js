@@ -55,6 +55,8 @@
 
   // ---------- salon katmanları (boyut başına bir kez): A arka plan+tavan, C seyirci (bulanık), F ışık konisi+reklam bandı+parke ----------
   let LAY = null;
+  // gerçek ahşap damarı (CC0, ambientCG WoodFloor041, gri tonlamalı): parkeye perspektifle işlenir; yüklenince katman yeniden kurulur
+  const GRAIN = new Image(); GRAIN.onload = () => { LAY = null; }; GRAIN.src = "doku/parke_damar.jpg";
   function person(ctx, x, y, sc, lit, rn) {
     const shirts = ["#e0661c", "#1f3a6b", "#d9dde6", "#1a1c22", "#b8322a", "#1f8a8a", "#e0661c", "#3c4250"];
     const skins = ["#e8b48f", "#c98e64", "#8d5a3b", "#f1c7a6"];
@@ -66,7 +68,7 @@
   }
   function layers(R) {
     const fontsOK = !document.fonts || document.fonts.status === "loaded";
-    const key = R.w + "x" + R.h + (fontsOK ? "f" : "");
+    const key = R.w + "x" + R.h + (fontsOK ? "f" : "") + (GRAIN.naturalWidth ? "g" : "");
     if (LAY && LAY.key === key) return LAY;
     const d = dpr(), W = R.w, H = R.h, L = { x: 0, y: 0, w: W, h: H };
     const make = () => { const c = mk(W * d, H * d), x = c.getContext("2d"); x.scale(d, d); return [c, x]; };
@@ -126,6 +128,16 @@
       f.fillStyle = v < 0.5 ? "rgba(60,25,5," + (0.04 + v * 0.12) + ")" : "rgba(255,210,150," + ((v - 0.5) * 0.12) + ")";
       f.beginPath(); f.moveTo(a0.x, fy); f.lineTo(a1.x, fy); f.lineTo(b1.x, b1.y); f.lineTo(b0.x, b0.y); f.fill();
       for (let k = 0; k < 6; k++) { const u = (k + hash(i, k + 9)) / 6, y = lerp(fy, H, u * u), x0 = lerp(a0.x, b0.x, u * u), x1 = lerp(a1.x, b1.x, u * u); f.fillStyle = "rgba(50,20,5,0.3)"; f.fillRect(x0, y, x1 - x0, 1); }
+    }
+    // ahşap damarı: her satırda dokunun bir satırı, şeritlerin perspektifine göre genişletilir; derinlik 1/z ile sıkışır
+    if (GRAIN.naturalWidth) {
+      const gw = GRAIN.naturalWidth, gh = GRAIN.naturalHeight, [L0, R0] = strip(-13), [L1, R1] = strip(13);
+      f.save(); f.beginPath(); f.rect(0, fy, W, H - fy); f.clip(); f.globalCompositeOperation = "overlay"; f.globalAlpha = 0.42;
+      for (let y = fy; y < H; y += 2) {
+        const t = (y - fy) / (H - fy), xa = lerp(L0.x, R0.x, t), xb = lerp(L1.x, R1.x, t), v = (0.55 / (t + 0.06)) * gh * 1.1, sy0 = ((v % gh) + gh) % gh;
+        const half = (xb - xa) / 2; f.drawImage(GRAIN, 0, sy0, gw, 1, xa, y, half, 2); f.drawImage(GRAIN, 0, sy0, gw, 1, xa + half, y, half, 2);
+      }
+      f.restore();
     }
     f.strokeStyle = "rgba(55,25,8,0.4)"; f.lineWidth = 1;
     for (let i = -12; i <= 12; i++) { const [a0, b0] = strip(i); f.beginPath(); f.moveTo(a0.x, fy); f.lineTo(b0.x, b0.y); f.stroke(); }

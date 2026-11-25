@@ -1,7 +1,7 @@
 # Düello Arenası — devam notu (oturum devri)
 
 Oyun: `kule-yarisi/` (tek sayfa canvas). Dal: `claude/cool-archimedes-cqk1mn`; yayın: aynı içerik `gh-pages` dalına push edilir.
-Yayından önce `sw.js` içindeki önbellek adını bir artır (şu an `duello-arenasi-v14`).
+Yayından önce `sw.js` içindeki önbellek adını bir artır (şu an `duello-arenasi-v15`).
 
 ## Yapı
 - `core.js`: K yardımcıları, ses motoru (Web Audio + `ses/*.mp3`), müzik. `K.musicQuiet(true)` menü müziğini susturur.
@@ -30,4 +30,4 @@ Kullanıcı isteği: tüm oyun testleri sessiz. Tarayıcıda `K.setSfx(false); K
 - Gerçek orta seviye telefonda kare hızı kontrolü (özellikle penaltı ilk kare, korku, blok).
 - Yürüyen yaratık ve yakalanma yüzünün arka planı yerelde silindi (BiRefNet değil); istenirse kullanıcı dosyaları ElevenLabs akışına yükleyip BiRefNet'ten geçirebilir.
 - Kullanıcı kararı bekleyenler: karışık düelloda tur beraberliği ham puan toplamıyla bozuluyor (oyun ölçekleri farklı; normalleştirme önerildi); Refleks'te erken dokunuş turu yakıyor (yeniden başlatma alternatifi); Misket'te süre biterken yuvarlanan misket sayılmıyor (app.js'in atışı bitirmesi gerekir).
-- Gerçekçi görseller için kaynak seçimi: ücretsiz CC0 (ambientCG WoodFloor041 parke, Facade001 cephe, Poly Haven puresky gökyüzü) ve/veya ElevenLabs tribün görselleri.
+- Kullanıcı yalnız ücretsiz CC0 doku seçti (ElevenLabs yok): basket parkesine gerçek ahşap damarı, kule gündüz gökyüzü fotoğrafı ve gökdelenlere cam cephe eklendi. Penaltı/basket tribünleri hâlâ çizim (CC0 tribün dokusu bulunamadı).

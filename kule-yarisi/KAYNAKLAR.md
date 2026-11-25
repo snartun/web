@@ -34,6 +34,9 @@ Dosyalar kısaltılmış, ses seviyesi eşitlenmiş ve mono MP3 / küçük JPG o
 | Dosya | Kaynak | Lisans |
 |---|---|---|
 | pas.jpg | Poly Haven — rusty_metal_02 | CC0 |
+| parke_damar.jpg | ambientCG — WoodFloor041 (renk haritası, gri tonlamalı; basket parkesine damar olarak) | CC0 |
+| cephe.jpg | ambientCG — Facade001 (renk haritası; kule arka plan gökdelenleri) | CC0 |
+| gokyuzu.jpg | Poly Haven — kloofendal_48d_partly_cloudy_puresky (önizleme panoramanın üst şeridi; kule gündüz gökyüzü) | CC0 |
 | toprak.jpg | Poly Haven — aerial_beach_01 | CC0 |
 
 ## Kelime listesi

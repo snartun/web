@@ -19,6 +19,10 @@
     return out;
   }
   const cityFar = makeCity(11, 0.12, 0.42), cityNear = makeCity(29, 0.06, 0.3);
+  // gerçek fotoğraf dokuları (CC0): bulutlu gökyüzü (Poly Haven kloofendal puresky, 360° → yatayda dikişsiz), cam cephe (ambientCG Facade001)
+  const SKYIMG = new Image(); SKYIMG.src = "doku/gokyuzu.jpg";
+  const FACADE = new Image(); FACADE.src = "doku/cephe.jpg";
+  let facPat = null, facCtx = null;
   const stars = []; (() => { const r = rnd(5); for (let i = 0; i < 90; i++) stars.push({ x: r(), y: r(), s: 0.5 + r() * 1.4, tw: r() * 6 }); })();
   const clouds = []; (() => { const r = rnd(17); for (let k = 0; k < 40; k++) clouds.push({ alt: 3 + k * 1.1 + r() * 0.8, x: r(), s: 0.6 + r() * 0.8, v: 0.004 + r() * 0.01, sp: r() < 0.5 ? 0 : 1 }); })();
   let cloudSprites = null;
@@ -411,6 +415,14 @@
         const sx = x => ox + x * s, camPx = g.cam * BH, sy = y => base0 - y * BH + camPx;
         const alt = g.cam / SKY_FLOORS, night = clamp((alt - 0.4) / 0.35, 0, 1);
         const { top: skyTop, bot } = sky(ctx, { x: 0, y: 0, w: VW, h: playH }, alt, t, night);
+        // gündüz: gerçek bulutlu gökyüzü fotoğrafı; kule yükseldikçe (alacakaranlık/gece) solar, rüzgârla yavaşça kayar
+        const dayA = clamp(1 - alt * 2.2, 0, 1) * (1 - night);
+        if (dayA > 0.01 && SKYIMG.naturalWidth) {
+          const ih = SKYIMG.naturalHeight, hgt = Math.min(playH * 0.62, ih * 2.1), w = SKYIMG.naturalWidth * (hgt / ih) * 0.6, off = (t * 3) % w, y0 = Math.min(0, -camPx * 0.04);
+          ctx.globalAlpha = dayA * 0.92; ctx.drawImage(SKYIMG, -off, y0, w, hgt); ctx.drawImage(SKYIMG, w - off, y0, w, hgt);
+          const fade = ctx.createLinearGradient(0, y0 + hgt * 0.62, 0, y0 + hgt); fade.addColorStop(0, css(bot, 0)); fade.addColorStop(1, css(bot, 1));
+          ctx.fillStyle = fade; ctx.fillRect(0, y0 + hgt * 0.62, VW, hgt * 0.38 + 1); ctx.globalAlpha = 1;
+        }
         // güneş: geniş hale + parlak çekirdek
         const sr = Math.max(14, Math.min(VW, playH) * 0.06), sunY = playH * (0.14 + alt * 1.6), sunX = VW * 0.8;
         if (sunY < playH + sr) {
@@ -434,6 +446,14 @@
           if (baseY - playH * 0.5 > playH) return;
           ctx.fillStyle = css(col);
           for (const b of list) { const bh = b.h * playH * scale, bx = b.x * VW, bw = b.w * VW; ctx.fillRect(bx, baseY - bh, bw, bh + 2); if (b.cap > 0.75) ctx.fillRect(bx + bw * 0.4, baseY - bh - bh * 0.12, bw * 0.2, bh * 0.12); }
+          // cam cephe dokusu: binalara pencere ızgarası ve yansıma (gece söner, ışıklı pencereler kalır)
+          if (FACADE.naturalWidth && night < 0.95) {
+            if (facCtx !== ctx) { facPat = ctx.createPattern(FACADE, "repeat"); facCtx = ctx; }
+            const k = scale > 0.88 ? 0.22 : 0.3; if (facPat.setTransform) facPat.setTransform(new DOMMatrix([k, 0, 0, k, 0, baseY]));
+            ctx.globalCompositeOperation = "overlay"; ctx.globalAlpha = 0.6 * (1 - night); ctx.fillStyle = facPat;
+            for (const b of list) { const bh = b.h * playH * scale; ctx.fillRect(b.x * VW, baseY - bh, b.w * VW, bh + 2); }
+            ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+          }
           if (face > 0) { ctx.fillStyle = css(mix(col, bot, face)); for (const b of list) { const bh = b.h * playH * scale, bx = b.x * VW, bw = b.w * VW; ctx.fillRect(bx + bw * 0.8, baseY - bh, bw * 0.2, bh + 2); } }
           if (lit > 0) { ctx.fillStyle = "rgba(255,206,120," + lit + ")"; for (const b of list) { const bh = b.h * playH * scale, bx = b.x * VW, bw = b.w * VW; for (const w of b.wins) ctx.fillRect(bx + w[0] * bw - 1, baseY - bh + w[1] * bh, 2, 2.5); } }
           if (night > 0.3 && scale < 0.88) for (const b of list) if (b.cap > 0.75) { const bh = b.h * playH * scale, bx = b.x * VW + b.w * VW * 0.5; if (Math.sin(t * 2.4 + b.x * 40) > 0.2) { ctx.fillStyle = "rgba(255,60,60," + night + ")"; ctx.fillRect(bx - 1, baseY - bh * 1.12 - 2, 2, 2); } }
@@ -447,7 +467,7 @@
         for (const c of clouds) {
           const cy = base0 - c.alt * BH * 2.2 + camPx * 0.85; if (cy < -80 || cy > playH + 40) continue;
           const sp = spr[c.sp], cw = VW * 0.45 * c.s, ch = cw * sp.height / sp.width, cx = ((c.x + t * c.v) % 1.4) - 0.2;
-          ctx.globalAlpha = 0.75 * (1 - night * 0.8); ctx.drawImage(sp, cx * VW - cw / 2, cy - ch / 2, cw, ch);
+          ctx.globalAlpha = 0.75 * (1 - night * 0.8) * (1 - dayA * 0.8); ctx.drawImage(sp, cx * VW - cw / 2, cy - ch / 2, cw, ch); // gündüz fotoğraf bulutları baskın
         }
         ctx.globalAlpha = 1;
         ctx.strokeStyle = night > 0.5 ? "rgba(220,225,240,0.7)" : "rgba(30,35,45,0.75)"; ctx.lineWidth = 1.4;
