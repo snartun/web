@@ -82,24 +82,83 @@
     g.addColorStop(0, top); g.addColorStop(1, bot);
     ctx.fillStyle = g; ctx.fillRect(r.x, r.y, r.w, r.h);
   };
-  // uçuşan yazılar
+  // uçuşan yazılar: belirirken büyüyüp oturur (overshoot), yukarı süzülür
   K.pops = {
     add(list, text, x, y, color, big) { list.push({ text, x, y, c: color || "#fff", life: 1.1, big: !!big }); },
-    update(list, dt) { for (const p of list) { p.life -= dt * 0.9; p.y -= dt * 40; } for (let i = list.length - 1; i >= 0; i--) if (list[i].life <= 0) list.splice(i, 1); },
+    update(list, dt) { for (const p of list) { p.life -= dt * 0.9; p.y -= dt * (p.life > 0.9 ? 70 : 34); } for (let i = list.length - 1; i >= 0; i--) if (list[i].life <= 0) list.splice(i, 1); },
     draw(ctx, list, scale) {
       for (const p of list) {
-        const s = Math.round((p.big ? 34 : 22) * (scale || 1));
-        K.txt(ctx, p.text, p.x, p.y, s, p.c, { a: Math.min(1, p.life * 1.6), stroke: 4, ls: "1px", f: p.big ? K.DISP : K.COND, w: p.big ? "400" : "800" });
+        const s = Math.round((p.big ? 34 : 22) * (scale || 1)), age = 1.1 - p.life;
+        const k = age < 0.1 ? 0.4 + age * 9 : age < 0.22 ? 1.3 - (age - 0.1) * 2.5 : 1;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.scale(k, k);
+        K.txt(ctx, p.text, 0, 3, s, "rgba(0,0,0,0.35)", { a: Math.min(1, p.life * 1.6), ls: "1px", f: p.big ? K.DISP : K.COND, w: p.big ? "400" : "800" });
+        K.txt(ctx, p.text, 0, 0, s, p.c, { a: Math.min(1, p.life * 1.6), stroke: 4, ls: "1px", f: p.big ? K.DISP : K.COND, w: p.big ? "400" : "800" });
+        ctx.restore();
       }
     },
   };
-  // parçacıklar
+  // parçacıklar: parça (dönen, küçülen), kıvılcım (hız yönünde çizgi, toplamalı ışık), konfeti (savrulan),
+  // toz (yavaş büyüyen yumuşak bulut), halka (genişleyen şok dalgası)
+  const PCAP = 420;
+  const push = (list, p) => { if (list.length < PCAP) list.push(p); };
   K.parts = {
     burst(list, x, y, color, n, spd) {
-      for (let i = 0; i < (n || 12); i++) { const a = Math.random() * Math.PI * 2, v = (spd || 160) * (0.4 + Math.random() * 0.8); list.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, life: 0.5 + Math.random() * 0.4, s: 2 + Math.random() * 3, c: color }); }
+      for (let i = 0; i < (n || 12); i++) { const a = Math.random() * Math.PI * 2, v = (spd || 160) * (0.4 + Math.random() * 0.8); const l = 0.5 + Math.random() * 0.4; push(list, { k: 0, x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, life: l, max: l, s: 2.5 + Math.random() * 3.5, c: color, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 14, g: 420, dr: 0.985 }); }
     },
-    update(list, dt) { for (const p of list) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 300 * dt; p.vx *= 0.98; p.life -= dt; } for (let i = list.length - 1; i >= 0; i--) if (list[i].life <= 0) list.splice(i, 1); },
-    draw(ctx, list) { for (const p of list) { ctx.globalAlpha = K.clamp(p.life * 1.6, 0, 1); ctx.fillStyle = p.c; ctx.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s); } ctx.globalAlpha = 1; },
+    spark(list, x, y, color, n, spd) {
+      for (let i = 0; i < (n || 10); i++) { const a = Math.random() * Math.PI * 2, v = (spd || 260) * (0.5 + Math.random() * 0.7); const l = 0.25 + Math.random() * 0.3; push(list, { k: 1, x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: l, max: l, s: 1.2 + Math.random() * 1.6, c: color || "#ffe9a8", g: 260, dr: 0.94 }); }
+    },
+    confetti(list, x, y, n, spd, colors) {
+      const C = colors || ["#ff5a4e", "#ffd34d", "#2bb673", "#3d8bff", "#a46bff", "#ff7ab8", "#ffffff"];
+      for (let i = 0; i < (n || 30); i++) { const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2, v = (spd || 380) * (0.45 + Math.random() * 0.7); const l = 1.2 + Math.random() * 0.9; push(list, { k: 2, x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: l, max: l, s: 4 + Math.random() * 4, c: C[(Math.random() * C.length) | 0], rot: Math.random() * 6, vr: (Math.random() - 0.5) * 18, g: 300, dr: 0.965, ph: Math.random() * 6 }); }
+    },
+    dust(list, x, y, color, n, spd) {
+      for (let i = 0; i < (n || 8); i++) { const a = Math.random() * Math.PI * 2, v = (spd || 50) * (0.3 + Math.random()); const l = 0.6 + Math.random() * 0.5; push(list, { k: 3, x: x + (Math.random() - 0.5) * 8, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v * 0.4 - 12, life: l, max: l, s: 6 + Math.random() * 8, c: color || "rgba(200,180,150,1)", g: -10, dr: 0.94 }); }
+    },
+    ring(list, x, y, color, r, w) { push(list, { k: 4, x, y, vx: 0, vy: 0, life: 0.45, max: 0.45, s: r || 40, w: w || 4, c: color || "#fff", g: 0, dr: 1 }); },
+    update(list, dt) {
+      for (const p of list) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.g == null ? 300 : p.g) * dt; const d = Math.pow(p.dr || 0.98, dt * 60); p.vx *= d; p.vy *= p.k === 2 ? Math.pow(0.97, dt * 60) : 1; if (p.rot != null) p.rot += (p.vr || 0) * dt; if (p.k === 2) { p.ph += dt * 9; p.vx += Math.sin(p.ph) * 40 * dt; } p.life -= dt; }
+      for (let i = list.length - 1; i >= 0; i--) if (list[i].life <= 0) list.splice(i, 1);
+    },
+    draw(ctx, list) {
+      for (const p of list) {
+        const t = K.clamp(p.life / (p.max || 1), 0, 1);
+        if (p.k === 1) { // kıvılcım
+          ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = t; ctx.strokeStyle = p.c; ctx.lineWidth = p.s; ctx.lineCap = "round";
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.035, p.y - p.vy * 0.035); ctx.stroke(); ctx.globalCompositeOperation = "source-over";
+        } else if (p.k === 2) { // konfeti: dönerken incelip kalınlaşır
+          ctx.globalAlpha = Math.min(1, t * 3); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.scale(1, Math.abs(Math.cos(p.ph))); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s * 0.3, p.s, p.s * 0.6); ctx.restore();
+        } else if (p.k === 3) { // toz
+          const r = p.s * (1.6 - t * 0.8); ctx.globalAlpha = t * 0.35; ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+        } else if (p.k === 4) { // şok halkası
+          const e = 1 - t; ctx.globalAlpha = t * 0.9; ctx.strokeStyle = p.c; ctx.lineWidth = p.w * t + 0.5; ctx.beginPath(); ctx.arc(p.x, p.y, p.s * (0.3 + K.easeOut(e) * 0.9), 0, Math.PI * 2); ctx.stroke();
+        } else { // parça
+          const s = p.s * (0.4 + t * 0.6); ctx.globalAlpha = Math.min(1, t * 2.2); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot || 0); ctx.fillStyle = p.c; ctx.fillRect(-s / 2, -s / 2, s, s); ctx.fillStyle = "rgba(255,255,255,0.35)"; ctx.fillRect(-s / 2, -s / 2, s, s * 0.35); ctx.restore();
+        }
+      }
+      ctx.globalAlpha = 1;
+    },
+  };
+  // ---------- oyun hissi: ekran sarsıntısı (travma²), flaş, kısa donma (hit-stop) ----------
+  // Oyunlar yalnızca K.kick / K.flash / K.hitstop çağırır; app.js çizimi K.fxBegin/K.fxEnd ile sarar.
+  const RM = (() => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } })();
+  K.FX = { trauma: 0, flash: 0, flashC: "#ffffff", stop: 0, t: 0 };
+  K.kick = amt => { K.FX.trauma = Math.min(1, K.FX.trauma + (RM ? amt * 0.3 : amt)); };
+  K.flash = (a, c) => { if (a >= K.FX.flash) { K.FX.flash = Math.min(RM ? 0.25 : 0.6, a); K.FX.flashC = c || "#ffffff"; } };
+  K.hitstop = s => { K.FX.stop = Math.max(K.FX.stop, Math.min(0.12, s)); };
+  K.fxReset = () => { K.FX.trauma = 0; K.FX.flash = 0; K.FX.stop = 0; };
+  K.fxUpdate = dt => { K.FX.t += dt; K.FX.trauma = Math.max(0, K.FX.trauma - dt * 1.5); K.FX.flash = Math.max(0, K.FX.flash - dt * 3.5); };
+  K.fxBegin = (ctx, R) => {
+    const s = K.FX.trauma * K.FX.trauma; if (s < 0.002) return false;
+    const t = K.FX.t * 38, m = 16 * s;
+    const ox = (Math.sin(t * 1.13) + Math.sin(t * 2.71 + 1.7) * 0.5) * m * 0.66, oy = (Math.sin(t * 1.37 + 4.1) + Math.sin(t * 3.1) * 0.5) * m * 0.66, rot = Math.sin(t * 0.91 + 2.3) * 0.02 * s;
+    const cx = R.x + R.w / 2, cy = R.y + R.h / 2, z = 1 + 0.03 * s + (2 * m) / Math.min(R.w, R.h); // kenar boşluğu görünmesin diye hafif yakınlaş
+    ctx.save(); ctx.translate(cx + ox, cy + oy); ctx.rotate(rot); ctx.scale(z, z); ctx.translate(-cx, -cy);
+    return true;
+  };
+  K.fxEnd = (ctx, R, began) => {
+    if (began) ctx.restore();
+    if (K.FX.flash > 0.01) { ctx.save(); ctx.beginPath(); ctx.rect(R.x, R.y, R.w, R.h); ctx.clip(); ctx.globalAlpha = K.FX.flash; ctx.fillStyle = K.FX.flashC; ctx.fillRect(R.x, R.y, R.w, R.h); ctx.restore(); }
   };
 
   // ---------- kayıt ----------

@@ -75,7 +75,7 @@
   function startIntro(gid, seed) {
     dispose();
     M.gid = gid; M.def = K.game(gid);
-    M.inst = M.def.create({ seed, mode: M.mode });
+    M.inst = M.def.create({ seed, mode: M.mode }); K.fxReset();
     M.ph = "intro"; M.t = 3.2; M.timeLeft = M.def.timeLimit(M.mode);
     AU.level = 0;
     if (gid === "kelime" && K.loadWords) K.loadWords().catch(() => {});
@@ -102,7 +102,7 @@
 
   // ---------------- güncelleme ----------------
   function update(dt) {
-    M.clock += dt;
+    M.clock += dt; K.fxUpdate(dt);
     K.musicQuiet(screen === "game" && M.def && M.def.noMusic);
     if (screen !== "game") return;
     const inst = M.inst;
@@ -114,7 +114,8 @@
       if (M.t <= 0.2) { M.ph = "play"; SFX.beep(true); AU.level = 1; keepAwake(); }
       if (inst) inst.update(dt, false);
     } else if (M.ph === "play") {
-      inst.update(dt, true);
+      // hit-stop: vuruş anında oyun bir an neredeyse durur, his "ağır" olur
+      if (K.FX.stop > 0) { K.FX.stop -= dt; inst.update(dt * 0.06, true); } else inst.update(dt, true);
       if (M.timeLeft != null) {
         const before = Math.ceil(M.timeLeft);
         M.timeLeft = Math.max(0, M.timeLeft - dt);
@@ -348,7 +349,7 @@
   }
   function drawGame() {
     const G = geom(), P = G.play;
-    if (M.inst) M.inst.draw(ctx, P, M.ph === "play");
+    if (M.inst) { const fx = K.fxBegin(ctx, P); M.inst.draw(ctx, P, M.ph === "play"); K.fxEnd(ctx, P, fx); }
     else K.bg(ctx, P, "#1a1e2c", "#10131d");
     if (G.opp) { ctx.fillStyle = "#0c0e15"; ctx.fillRect(0, 0, W, SAFE_TOP); drawOpp(G.opp); }
     if (G.bar) {
