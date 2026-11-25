@@ -4,6 +4,22 @@
   const { hash, clamp, lerp, rr, txt, fit, SFX, buzz } = K;
   const SHOTS = 8, GW = 0.5, GH = 0.33; // kale yarı genişliği ve yüksekliği (dünya birimi)
   const TAU = Math.PI * 2;
+  // çizimle aynı ölçüler (kale çizgisinde, dünya birimi): top yarıçapı = 0.035·W / (0.95·W), direk yarı kalınlığı ≈ 0.013·W/2 / (0.95·0.56·W)
+  const BR = 0.035 / 0.95, PR = 0.0122;
+  // kaleci figürünün ölçüleri (keeperFig: kh = 0.2, kw = 0.07 dünya birimi)
+  const KH = 0.2, KW = 0.07;
+  const segD = (px, py, ax, ay, bx, by) => { const vx = bx - ax, vy = by - ay, l2 = vx * vx + vy * vy, t = l2 > 0 ? clamp(((px - ax) * vx + (py - ay) * vy) / l2, 0, 1) : 0; return Math.hypot(px - ax - vx * t, py - ay - vy * t); };
+  // kaleci gövdesi dünya koordinatında, çizilen pozla birebir: [ax, ay, bx, by, yarıçap] parçaları (gövde, baş, kollar, eldivenler)
+  function keeperParts(k) {
+    const d = k.dive || 0, e = d * d * (3 - 2 * d), r = (k.dir || 0) * d * (k.ang || 1.25), c = Math.cos(r), s = Math.sin(r);
+    const P = (lx, h) => [k.x + lx * c + h * s, k.y - lx * s + h * c];
+    const out = [], seg = (a, b, rad) => out.push([a[0], a[1], b[0], b[1], rad]);
+    seg(P(0, 0.02 * KH), P(0, 0.5 * KH), 0.5 * KW); seg(P(0, 0.5 * KH), P(0, 0.97 * KH), 0.8 * KW); seg(P(0, 1.13 * KH), P(0, 1.13 * KH), 0.43 * KW);
+    const hd = [-1, 1].map(sd => { const h = P(sd * lerp(1.65, 1.15, e) * KW, lerp(0.66, 1.62, e) * KH); seg(P(sd * 0.74 * KW, 0.92 * KH), h, 0.17 * KW); return h; });
+    if (e > 0.5) seg(hd[0], hd[1], 0.36 * KW); else { seg(hd[0], hd[0], 0.36 * KW); seg(hd[1], hd[1], 0.36 * KW); } // uzanınca iki eldiven birlikte
+    return out;
+  }
+  const keeperTouches = (k, x, y) => keeperParts(k).some(p => segD(x, y, p[0], p[1], p[2], p[3]) < p[4] + BR);
 
   // tribün uğultusu (sentez): filtrelenmiş gürültü, olaylarda kabarır
   function crowd() {
@@ -155,22 +171,31 @@
       return g.net * Math.exp(-d2 / 0.02) + g.net * 0.3 * Math.sin(Math.sqrt(d2) * 38 - tt * 22) * Math.exp(-d2 / 0.07);
     };
     function shoot(sw) {
-      const R = g.R, dx = sw.x1 - sw.x0, dy = sw.y0 - sw.y1, len = Math.hypot(dx, dy), dt = Math.max(0.06, sw.t1 - sw.t0);
+      // hız, parmağın kıpırdamaya başladığı andan ölçülür (topa basıp beklemek şutu zayıflatmaz)
+      const R = g.R, dx = sw.x1 - sw.x0, dy = sw.y0 - sw.y1, len = Math.hypot(dx, dy), dt = Math.max(0.06, sw.t1 - (sw.tm != null ? sw.tm : sw.t0));
       if (dy < 30 || len < 40) return false;
       const speed = len / dt;
       const tx = clamp((dx / (R.w * 0.42)) * GW, -GW * 1.6, GW * 1.6);
       const ty = clamp(((len - 60) / (R.h * 0.55)) * GH * (0.6 + Math.min(1, speed / 1600) * 0.6), 0.02, GH * 1.6);
-      // falso: kaydırma yolunun orta noktasının doğrudan sapması
-      const mx = (sw.x0 + sw.x1) / 2, curve = clamp(((sw.xm != null ? sw.xm : mx) - mx) / (R.w * 0.25), -1, 1) * 0.22;
+      // falso: kaydırma yolunun düz kirişten en büyük dik sapması (örnek sayısından bağımsız; küçük titreme yok sayılır).
+      // + = yol sağa doğru kavis yapar ")". Top da aynı kavisle gider: kirişin gösterdiği yere iner, yolda o yöne şişer.
+      let bow = 0;
+      for (const p of sw.pts) { const b = ((p[0] - sw.x0) * dy - (sw.y0 - p[1]) * dx) / len; if (Math.abs(b) > Math.abs(bow)) bow = b; }
+      const curve = clamp(Math.sign(bow) * Math.max(0, Math.abs(bow) - 6) / (R.w * 0.25), -1, 1) * 0.22;
       const power = clamp(speed / 1800, 0.3, 1.2);
       g.flight = { tx, ty, curve, T: lerp(0.75, 0.42, clamp(power, 0, 1)), t: 0 };
-      // kaleci kararı: tohumlu tahmin + atışlar ilerledikçe daha iyi okur
-      const r1 = hash(seed, g.shot * 7 + 1), r2 = hash(seed, g.shot * 7 + 2);
-      const readChance = 0.3 + g.shot * 0.05, readsIt = r1 < readChance;
-      const guessDir = readsIt ? Math.sign(tx) || (r2 < 0.5 ? -1 : 1) : r2 < 0.38 ? -1 : r2 < 0.76 ? 1 : 0;
-      g.keeper.target = guessDir * (0.22 + hash(seed, g.shot * 7 + 3) * 0.18);
-      g.keeper.high = readsIt && ty > GH * 0.55;
-      g.keeper.react = 0.12 + hash(seed, g.shot * 7 + 4) * 0.1;
+      // kaleci kararı: tohumlu tahmin + atışlar ilerledikçe daha iyi okur.
+      // Okursa topun ilk çıkış yönüne atlar (falso onu ters köşeye yatırabilir); okumazsa bir köşeye tahminle atlar
+      // ya da yerinde bekleyip topu görünce tepki verir (bu durumda yetişebildiği kadar uzanır: yavaş şut kolay kurtarılır).
+      const r1 = hash(seed, g.shot * 7 + 1), r2 = hash(seed, g.shot * 7 + 2), k = g.keeper;
+      const readChance = 0.3 + g.shot * 0.05, readsIt = r1 < readChance, wait = !readsIt && r2 >= 0.76;
+      const head = tx + 2 * curve; // topun çıkış yönü (falsodan önce)
+      k.dir = readsIt ? Math.sign(head) || (r2 < 0.5 ? -1 : 1) : wait ? (Math.abs(tx) < 0.1 ? 0 : Math.sign(tx)) : r2 < 0.38 ? -1 : 1;
+      k.high = readsIt || wait ? ty > GH * 0.55 : hash(seed, g.shot * 7 + 5) < 0.3;
+      k.x0 = k.x; k.target = k.dir * (wait ? 0.03 : (k.high ? 0.08 : 0.05) + hash(seed, g.shot * 7 + 3) * 0.1); // yan adım (ayak); gövde bunun ötesine uzanır
+      k.react = 0.12 + hash(seed, g.shot * 7 + 4) * 0.1 + (wait ? 0.12 : 0);
+      k.dur = wait ? 0.5 : g.flight.T - k.react; // tahminle atlayan, top gelene kadar dalışı tamamlar
+      k.ang = k.high ? 0.8 : 1.25; k.lift = k.high ? 0.08 : 0.05;
       g.phase = "fly"; g.t = 0;
       kick(power); buzz(15);
       // vuruş hissi: top ezilir, çim ve tebeşir tozu kalkar, hafif sarsıntı
@@ -182,14 +207,14 @@
       return true;
     }
     function resolve() {
-      const f = g.flight, x = f.tx + f.curve, y = f.ty, k = g.keeper;
-      const kx = k.x, reach = 0.17, keeperHigh = k.high ? 0.3 : 0.22;
+      const f = g.flight, x = f.tx, y = f.ty, k = g.keeper;
       let res;
+      // direğin iç yüzüne sürtüp giren top gol; çerçeveye değen (top + direk yarıçapı) diğer toplar direk; gerisi aut
       const inside = Math.abs(x) < GW - 0.015 && y < GH - 0.01;
-      const post = !inside && (Math.abs(Math.abs(x) - GW) < 0.03 && y < GH + 0.02 || (Math.abs(y - GH) < 0.025 && Math.abs(x) < GW + 0.02));
+      const ax = Math.abs(x), post = !inside && Math.min(segD(ax, y, GW, 0, GW, GH), segD(ax, y, 0, GH, GW, GH)) < BR + PR;
       if (post) res = "post";
       else if (!inside) res = "miss";
-      else if (Math.abs(x - kx) < reach && y < keeperHigh + 0.03) res = "save";
+      else if (keeperTouches(k, x, y)) res = "save"; // kurtarış = top, ekrandaki kalecinin gövdesine/eldivenine değiyor
       else res = "goal";
       g.results.push(res);
       const R = g.R, p = proj(R, x, y, 1), sx = Math.sign(x) || 1;
@@ -362,25 +387,30 @@
         if (g.phase === "fly") {
           const f = g.flight; f.t += sdt; g.t += sdt;
           const u = clamp(f.t / f.T, 0, 1);
-          g.ball.z = u; g.ball.x = lerp(0, f.tx, u) + f.curve * Math.sin(u * Math.PI / 2) * u; g.ball.y = f.ty * Math.sin(u * Math.PI * 0.5) + 0.02 * (1 - u); g.ball.spin += sdt * 20;
-          if (f.t > k.react) { const kt = clamp((f.t - k.react) / (f.T - k.react), 0, 1); k.x = lerp(k.x, k.target, Math.min(1, sdt * 9)); k.dive = kt; k.y = (k.high ? 0.16 : 0.07) * Math.sin(kt * Math.PI * 0.9); }
+          // falso: sabit yanal (Magnus) ivme → parabol; top kirişin gösterdiği yere iner
+          g.ball.z = u; g.ball.x = f.tx * u + 2 * f.curve * u * (1 - u); g.ball.y = f.ty * Math.sin(u * Math.PI * 0.5) + 0.02 * (1 - u); g.ball.spin += sdt * 20;
+          // kaleci zamanın kapalı fonksiyonu (kare hızından bağımsız); top çizgiye vardığı anda (f.T) değerlendirilir
+          const tk = Math.min(f.t, f.T) - k.react;
+          if (tk > 0) { const kt = clamp(tk / k.dur, 0, 1); k.x = k.target + (k.x0 - k.target) * Math.exp(-9 * tk); k.dive = kt; k.y = k.lift * Math.sin(kt * Math.PI * 0.75); } // top gelirken kaleci hâlâ havada
           if (u >= 1) resolve();
         } else if (g.phase === "result") {
-          g.t += dt; afterStep(dt);
+          g.t += dt; afterStep(sdt);
+          { const k = g.keeper; if (k.y > 0) { k.vy = (k.vy || 0) - 2.2 * sdt; k.y = Math.max(0, k.y + k.vy * sdt); } } // dalıştan sonra yere düşer (görsel)
           if (g.t > 1.6) { g.shot++; if (g.shot >= SHOTS) { g.over = true; if (g.crowd) g.crowd.set(0.25, 0.3); } else { g.phase = "aim"; g.ball = { x: 0, y: 0, z: 0, spin: 0 }; g.keeper = { x: 0, y: 0, dive: 0, react: 0 }; g.after = null; g.trail.length = 0; whistle(); } }
         }
       },
-      pointer(type, x, y) {
+      pointer(type, x, y, id) {
         if (!g.R || g.over || g.phase !== "aim") return;
         const now = performance.now() / 1000;
-        if (type === "down") { const b = proj(g.R, 0, 0, 0); if (Math.hypot(x - b.x, y - b.y) < g.R.w * 0.3) g.swipe = { x0: x, y0: y, x1: x, y1: y, t0: now, t1: now, pts: [[x, y]] }; }
-        else if (type === "move" && g.swipe) { g.swipe.x1 = x; g.swipe.y1 = y; g.swipe.t1 = now; g.swipe.pts.push([x, y]); }
-        else if ((type === "up" || type === "cancel") && g.swipe) {
-          const sw = g.swipe; g.swipe = null;
-          if (type !== "up") return;
-          sw.t1 = now; if (sw.pts.length > 2) sw.xm = sw.pts[Math.floor(sw.pts.length / 2)][0];
-          shoot(sw);
+        // tek parmak: kaydırmayı başlatan parmak dışındaki dokunuşlar yok sayılır
+        if (type === "down") { if (g.swipe && g.swipe.id !== id) return; const b = proj(g.R, 0, 0, 0); if (Math.hypot(x - b.x, y - b.y) < g.R.w * 0.3) g.swipe = { id, x0: x, y0: y, x1: x, y1: y, t0: now, t1: now, tl: now, tm: null, pts: [[x, y]] }; return; }
+        const sw = g.swipe; if (!sw || sw.id !== id) return;
+        if (type === "move" || type === "up") {
+          // parmak 10 px kıpırdayınca hız saati başlar (son örnekten; uzun süre kıpırtısız beklendiyse ~2 kare önce)
+          if (sw.tm == null && Math.hypot(x - sw.x0, y - sw.y0) > 10) sw.tm = Math.max(sw.tl, now - 0.03);
+          sw.x1 = x; sw.y1 = y; sw.t1 = sw.tl = now; sw.pts.push([x, y]); // bırakılan nokta da geçerli (son "move" gelmese de)
         }
+        if (type === "up" || type === "cancel") { g.swipe = null; if (type === "up") shoot(sw); }
       },
       net() { return { s: g.shot, gl: g.goals, r: g.results.map(r => r[0]).join("") }; },
       draw(ctx, R) {
@@ -438,7 +468,7 @@
         ctx.restore();
         // kaleci: zemin gölgesi, dalış hayaletleri (hareket bulanıklığı), gövde
         const k = g.keeper, kp = proj(R, k.x, k.y, 1), kg = proj(R, k.x, 0, 1), ks = kp.s * W * 0.95, kh = ks * 0.2, kw = ks * 0.07;
-        const kdir = Math.sign(k.target || 0), rot = kdir * k.dive * 1.25, hop = g.phase === "aim" ? -Math.abs(Math.sin(g.clock * 3.2)) * kh * 0.05 : 0;
+        const kdir = k.dir || 0, rot = kdir * k.dive * (k.ang || 1.25), hop = g.phase === "aim" ? -Math.abs(Math.sin(g.clock * 3.2)) * kh * 0.05 : 0;
         { const sw2 = kw * 2.4 + k.dive * kh * 0.9 * Math.abs(kdir), a = 0.4 * Math.max(0.3, 1 - k.y * 4); ctx.globalAlpha = a; ctx.drawImage(S.blob, kg.x + kdir * k.dive * kh * 0.45 - sw2, kg.y - kw * 0.45, sw2 * 2, kw * 1.1); ctx.globalAlpha = 1; }
         g.kHist.push({ x: kp.x, y: kp.y, rot, dive: k.dive }); if (g.kHist.length > 7) g.kHist.shift();
         if (g.phase === "fly" && k.dive > 0.05 && k.dive < 0.98) {

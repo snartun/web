@@ -1,7 +1,7 @@
 # Düello Arenası — devam notu (oturum devri)
 
 Oyun: `kule-yarisi/` (tek sayfa canvas). Dal: `claude/cool-archimedes-cqk1mn`; yayın: aynı içerik `gh-pages` dalına push edilir.
-Yayından önce `sw.js` içindeki önbellek adını bir artır (şu an `duello-arenasi-v13`).
+Yayından önce `sw.js` içindeki önbellek adını bir artır (şu an `duello-arenasi-v14`).
 
 ## Yapı
 - `core.js`: K yardımcıları, ses motoru (Web Audio + `ses/*.mp3`), müzik. `K.musicQuiet(true)` menü müziğini susturur.
@@ -24,6 +24,10 @@ Kullanıcı isteği: tüm oyun testleri sessiz. Tarayıcıda `K.setSfx(false); K
 - Misket hatası: çember temizlenince yeni dizilim çemberde kalan atıcının üstüne doğup misketi rastgele fırlatıyordu → düzeltildi; toprak sürtünmesi/esneklik gerçekçi (`PHYS`).
 - Tüm oyunların grafikleri ve oyun hissi yenilendi (kurallar/puanlama/ağ verisi aynı).
 
+- Mantık denetimi (her hata betikle yeniden üretilip düzeltildi): blok/kelime 6, kule/basket 8, renk/refleks 2, penaltı/misket 14, korku 11, app.js/sw.js 10. Ayrıntı: git log.
+
 ## KALAN / öneriler
 - Gerçek orta seviye telefonda kare hızı kontrolü (özellikle penaltı ilk kare, korku, blok).
 - Yürüyen yaratık ve yakalanma yüzünün arka planı yerelde silindi (BiRefNet değil); istenirse kullanıcı dosyaları ElevenLabs akışına yükleyip BiRefNet'ten geçirebilir.
+- Kullanıcı kararı bekleyenler: karışık düelloda tur beraberliği ham puan toplamıyla bozuluyor (oyun ölçekleri farklı; normalleştirme önerildi); Refleks'te erken dokunuş turu yakıyor (yeniden başlatma alternatifi); Misket'te süre biterken yuvarlanan misket sayılmıyor (app.js'in atışı bitirmesi gerekir).
+- Gerçekçi görseller için kaynak seçimi: ücretsiz CC0 (ambientCG WoodFloor041 parke, Facade001 cephe, Poly Haven puresky gökyüzü) ve/veya ElevenLabs tribün görselleri.

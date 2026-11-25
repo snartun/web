@@ -1,7 +1,7 @@
 {
   "name": "Düello Arenası",
   "short_name": "Düello",
-  "description": "6 mini oyun: tek başına rekor kır ya da arkadaşınla online düello yap.",
+  "description": "9 mini oyun: tek başına rekor kır ya da arkadaşınla online düello yap.",
   "lang": "tr",
   "start_url": "./",
   "scope": "./",

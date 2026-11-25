@@ -263,10 +263,10 @@
     }
     function loseLife() {
       g.streak = 0; K.kick(0.42); K.flash(0.16, "#ff3b3b");
-      buzz([40, 40, 90]); setTimeout(() => SFX.crash(), 250);
+      buzz([40, 40, 90]); setTimeout(() => { if (!g.disposed) SFX.crash(); }, 250);
       g.lives--;
       if (g.lives > 0) { SFX.lifeLost(); popW(g.lives + " CAN KALDI", "#ff6b78", 2.4); g.phase = "settle"; g.phaseT = -0.35; }
-      else { g.phase = "dead"; g.over = true; }
+      else { g.phase = "dead"; g.over = true; g.deadT = 0; } // son çöküş görünsün diye bitiş ~0,9 sn sonra bildirilir
     }
     function afterLanding() {
       g.fall = null; g.phase = "settle"; g.phaseT = 0;
@@ -290,7 +290,8 @@
     }
     function land() {
       const f = g.fall, ti = g.blocks.length - 1, tb = g.blocks[ti];
-      const topX = tb.x + swayAt(ti), d = f.x - topX, ad = Math.abs(d), y = top();
+      // destek: alttaki katın gerçek yarı genişliği (1. kat geniş tabana oturur)
+      const topX = tb.x + swayAt(ti), d = f.x - topX, ad = Math.abs(d), y = top(), half = tb.w / 2;
       if (ad <= PERFECT * BW) {
         const ni = g.blocks.length;
         g.blocks.push({ x: topX - swayAt(ni), w: BW, perfect: true });
@@ -304,7 +305,7 @@
         if (g.L) { const cx = PX(topX), cy = PY(y); K.parts.ring(g.fxp, cx, cy, "#ffe08a", g.L.BH * (2.2 + k * 1.6), 4 + k * 3); K.parts.spark(g.fxp, cx - BW * g.L.s / 2, cy, "#ffe9a8", 6 + k * 6, g.L.BH * 6); K.parts.spark(g.fxp, cx + BW * g.L.s / 2, cy, "#ffe9a8", 6 + k * 6, g.L.BH * 6); if (g.streak >= 3) K.parts.confetti(g.fxp, cx, cy - g.L.BH, 10 + g.streak * 2, g.L.BH * 8, ["#ffd34d", "#fff3c4", "#ff6a3d", "#ffffff"]); }
         SFX.thud(0.7); SFX.chime(g.streak - 1); buzz(15); dust(topX, y, 4);
         afterLanding();
-      } else if (ad <= 0.5 * BW) {
+      } else if (ad <= half) {
         const ni = g.blocks.length;
         g.blocks.push({ x: f.x - swayAt(ni), w: BW, perfect: false });
         g.streak = 0; g.score += 25;
@@ -312,9 +313,9 @@
         g.squash = 1; K.kick(0.24); K.hitstop(0.03);
         SFX.thud(1); buzz(10); dust(f.x, y, 7); chunks(f.x, y, 5, "#a49d92", g.L ? g.L.BH * 2.5 : 0);
         afterLanding();
-      } else if (ad < BW) {
+      } else if (ad < half + BW / 2) {
         const side = d > 0 ? 1 : -1;
-        g.topple = { side, px: topX + side * BW / 2, bx: f.x, y, th: 0, w: 0 };
+        g.topple = { side, px: topX + side * half, bx: f.x, y, th: 0, w: 0 };
         g.phase = "topple"; g.fall = null;
         K.kick(0.16); if (g.L) { const px = g.topple.px; chunks(px, y, 9, "#bdb6aa"); K.parts.dust(g.fxp, PX(px), PY(y), DUST, 6, g.L.BH * 0.8); }
         SFX.thud(0.6); SFX.topple();
@@ -325,7 +326,7 @@
     }
     function step(dt, active) {
       g.swayT += dt;
-      if (g.over) return;
+      if (g.over) { g.deadT += dt; return; }
       if (g.phase === "lower") { g.phaseT += dt; g.t += dt; if (g.phaseT >= 0.42) g.phase = "swing"; }
       else if (g.phase === "swing") { if (active) g.t += dt; }
       else if (g.phase === "drop") {
@@ -334,7 +335,10 @@
         if (w) { const dx = w.dir * w.s * 0.1 * dt; if (Math.abs(f.drift + dx) <= 0.15 * BW) { f.drift += dx; f.x += dx; } }
         if (f.y <= top()) { f.y = top(); land(); }
       } else if (g.phase === "topple") {
-        const tp = g.topple; tp.w += 9 * dt; tp.th += tp.w * dt;
+        // kenar üzerinde dönen dikdörtgen: tork = ağırlık × ağırlık merkezinin kenara yatay uzaklığı (kat birimiyle);
+        // kenardan az taşan blok bir an sallanıp yavaş, çok taşan hızla devrilir
+        const tp = g.topple, e = Math.max(0.15, Math.abs(tp.bx - tp.px) / BHW), lever = e * Math.cos(tp.th) + 0.5 * Math.sin(tp.th);
+        tp.w += G * lever / (e * e + 0.25 + (Math.pow(BW / BHW, 2) + 1) / 12) * dt; tp.th += tp.w * dt;
         if (tp.th > 1.3) {
           const phi = -tp.side * tp.th, dx = tp.bx - tp.px, dyu = 0.5 * BHW;
           const cx = tp.px + dx * Math.cos(phi) - dyu * Math.sin(phi), cy = tp.y + (dx * Math.sin(phi) + dyu * Math.cos(phi)) / BHW;
@@ -379,8 +383,9 @@
 
     const inst = {
       _g: g,
+      dispose() { g.disposed = true; }, // gecikmeli sesler menüde çalmasın
       get score() { return g.score; },
-      get over() { return g.over; },
+      get over() { return g.over && g.deadT >= 0.9; },
       get windLevel() { return g.windLevel; },
       info() { return { lives: g.lives, maxLives: LIVES, extra: g.streak > 1 ? "SERİ ×" + g.streak : "", sub: "KAT " + floors() + " · " + (floors() * FLOOR_M).toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " m" }; },
       update(dt, active) {
@@ -390,8 +395,9 @@
       },
       pointer(type) {
         if (type !== "down" || g.over || g.phase !== "swing") return;
-        const a = hookAngle();
-        g.fall = { x: 0.5 + Math.sin(a) * ROPE * BHW, y: pivotY() - Math.cos(a) * ROPE - 1, vy: 0, rot: a, drift: 0 };
+        // bırakılan blok, ekranda asılı çizildiği yerden düşer (makara 6 px aşağıda, blok merkezi ipin ucundan yarım kat aşağıda)
+        const a = hookAngle(), lc = ROPE + 0.5, py = pivotY() - (g.L ? 6 / g.L.BH : 0);
+        g.fall = { x: 0.5 + Math.sin(a) * lc * BHW, y: py - Math.cos(a) * lc - 0.5, vy: 0, rot: a, drift: 0 };
         g.phase = "drop"; g.retract = 0.3;
         SFX.release(); SFX.whoosh();
       },
@@ -517,7 +523,7 @@
           if (night > 0.3) { const on = Math.sin(t * 3) > 0; if (on) { ctx.fillStyle = "rgba(255,60,60,0.25)"; ctx.beginPath(); ctx.arc(VW - 8, pvy - jd, 7, 0, Math.PI * 2); ctx.fill(); } ctx.fillStyle = on ? "#ff3b3b" : "#5a1010"; ctx.beginPath(); ctx.arc(VW - 8, pvy - jd, 2.5, 0, Math.PI * 2); ctx.fill(); }
         }
         const hanging = !g.over && (g.phase === "lower" || g.phase === "swing");
-        if (hanging) { const a = hookAngle(), L = ropeLen(); dropShadow(0.5 + Math.sin(a) * L * BHW, 0.15); }
+        if (hanging) { const a = hookAngle(), L = ropeLen(); dropShadow(0.5 + Math.sin(a) * (L + 0.5) * BHW, 0.15); }
         if (!g.over && (hanging || g.retract > 0)) {
           const a = hanging ? hookAngle() : 0, L = (hanging ? ropeLen() : ROPE * (0.3 + 0.7 * (g.retract / 0.3))) * BH;
           const hbT = L - BH * 0.8, hbH = BH * 0.24, hr = Math.max(2.5, BH * 0.08), hkY = hbT + hbH + 3, hkB = hkY + hr * 2;

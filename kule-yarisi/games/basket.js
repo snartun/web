@@ -3,6 +3,8 @@
   "use strict";
   const { hash, clamp, lerp, rr, txt, fit, SFX, buzz } = K;
   const RIM_Y = 0.42, RIM_R = 0.06;
+  // pota düzlemindeki dünya ölçüleri (çizimle aynı): çember yarıçapı, top yarıçapı, panya yarı genişliği
+  const RIM_W = RIM_R * 1.6, BALL_W = 0.06 / 0.9, BOARD_W = 0.18;
   function swish() { const AU = K.AU; if (!AU.ctx || AU.ctx.state !== "running") return; const c = AU.ctx, t = c.currentTime, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = AU.noise; f.type = "bandpass"; f.frequency.setValueAtTime(2500, t); f.frequency.exponentialRampToValueAtTime(900, t + 0.25); f.Q.value = 1.2; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.35, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3); s.connect(f).connect(g).connect(AU.sfx); s.start(t); s.stop(t + 0.35); }
   function rim(v) { const AU = K.AU; if (!AU.ctx || AU.ctx.state !== "running") return; const c = AU.ctx, t = c.currentTime; for (const [fq, a] of [[310, 0.2 * v], [905, 0.08 * v], [1650, 0.04 * v]]) { const o = c.createOscillator(), g = c.createGain(); o.type = "triangle"; o.frequency.value = fq; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.001, a), t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5); o.connect(g).connect(AU.sfx); o.start(t); o.stop(t + 0.6); } }
   function bounce(v) { if (!K.play("thud", { vol: 0.5 * v, rate: 1.3 })) SFX.thud(0.4 * v); }
@@ -182,8 +184,12 @@
   function create(opts) {
     const seed = opts.seed | 0;
     const g = { score: 0, over: false, n: 0, made: 0, streak: 0, phase: "aim", t: 0, ball: null, swipe: null, hoopX: 0, netSw: 0, msg: "", msgC: "#fff", msgT: 0, msgT0: 1, pops: [], parts: [], R: null, clock: 0, fire: [],
-      sqA: 0, sqT: 9, spawnT: 1, rimWob: 0, boardWob: 0, cheer: 0, flashes: [], trail: [] };
+      sqA: 0, sqT: 9, spawnT: 1, rimWob: 0, boardWob: 0, cheer: 0, flashes: [], trail: [], hph: 0, hA: 0 };
     const startX = () => (hash(seed, g.n * 3 + 1) - 0.5) * 0.5;
+    // pota 6 isabetten sonra sağa sola kayar: faz zamanla birikir, genlik yumuşakça büyür (sayıda sıçramaz)
+    const hoopW = () => 0.7 + hash(seed, 9) * 0.5 + g.made * 0.02;
+    const hoopA = () => (g.made >= 6 ? Math.min(0.28, 0.08 + (g.made - 6) * 0.02) : 0);
+    const hoopAt = T => { const A = hoopA(); return Math.sin(g.hph + (A > 0 ? hoopW() * T : 0)) * (A + (g.hA - A) * Math.exp(-2 * T)); };
     g.ball = { x: startX(), y: 0, z: 0, spin: 0, sx: 0 };
     // görsel yay: + uzama (dikey), − basılma (yatay); kısa sönümlü salınım
     const squash = a => { g.sqA = a; g.sqT = 0; };
@@ -191,15 +197,20 @@
       const R = g.R, dx = sw.x1 - sw.x0, dy = sw.y0 - sw.y1;
       if (dy < 40) return;
       const ideal = R.h * 0.42, perr = clamp(dy / ideal - 1, -0.8, 0.8);
-      const aimX = g.ball.x + (dx / (R.w * 0.5)) * 0.5;
-      const ex = aimX - g.hoopX, ax = Math.abs(ex), ap = Math.abs(perr);
+      // yön: kaydırma doğrultusunun ekranda topu potaya bağlayan doğrultudan sapması (ideal uzunlukta yatay piksel
+      // karşılığı; tam potaya doğru kaydırmak her konumdan isabet, tolerans eski ölçekle aynı)
+      const b0 = proj(R, g.ball.x, 0, 0), h0 = proj(R, g.hoopX, RIM_Y, 1);
+      const ex = (dx / dy - (h0.x - b0.x) / (b0.y - h0.y)) * ideal / R.w, ax = Math.abs(ex), ap = Math.abs(perr);
       let res;
       if (ax < 0.022 && ap < 0.09) res = "swish";
       else if (ax < 0.05 && ap < 0.17) res = "in";
-      else if (ax < 0.09 && ap < 0.28) res = "rimout";
-      else res = perr > 0.25 ? "board" : "miss";
-      const endY = RIM_Y + 0.02 + perr * 0.18;
-      g.shot = { res, ex, perr, sx: g.ball.x, ex2: g.hoopX + ex, ey: res === "swish" || res === "in" ? RIM_Y + 0.015 : endY, T: 0.85, t: 0, apex: 0.55 + Math.max(0, perr) * 0.2 };
+      else if (ax < RIM_W + BALL_W && ap < 0.28) res = "rimout"; // top çembere değiyor
+      else if (perr > 0.25 && ax < BOARD_W + BALL_W) res = "board"; // uzun ve panyanın önünde
+      else res = perr < -0.28 ? "short" : "miss";
+      const endY = RIM_Y + 0.02 + perr * 0.18, T = 0.85;
+      // hareketli pota: top, varış anında potanın olacağı yere gider (görüntü ile sonuç uyuşur)
+      const hx = hoopAt(T) + ex, ez = res === "short" ? clamp(1 + perr * 0.45, 0.62, 0.9) : 1; // kısa atış potanın önüne düşer
+      g.shot = { res, ex, perr, sx: g.ball.x, ex2: lerp(g.ball.x, hx, ez), ez, ey: res === "swish" || res === "in" ? RIM_Y + 0.015 : endY, T, t: 0, apex: 0.55 + Math.max(0, perr) * 0.2 };
       g.phase = "fly"; g.n++;
       if (!K.play("drop", { vol: 0.5, rate: 0.7 })) SFX.pop(true);
       const bp = proj(R, g.ball.x, 0, 0); squash(0.28); K.kick(0.05); K.parts.dust(g.parts, bp.x, bp.y + R.w * 0.05, "rgb(150,110,80)", 5, 40); g.trail = [];
@@ -211,7 +222,7 @@
         g.streak++; g.made++;
         const fireOn = g.streak >= 3, base = s.res === "swish" ? 3 : 2, pts = base * (fireOn ? 2 : 1);
         g.score += pts; g.netSw = 1;
-        if (s.res === "swish") swish(); else { rim(0.7); setTimeout(swish, 120); }
+        if (s.res === "swish") swish(); else { rim(0.7); setTimeout(() => { if (!g.disposed) swish(); }, 120); }
         g.msg = s.res === "swish" ? (fireOn ? "ATEŞTE! TEMİZ!" : "TEMİZ SAYI!") : fireOn ? "ATEŞTE!" : "SAYI!"; g.msgC = fireOn ? "#ff7a2e" : "#ffd34d"; g.msgT = 1; g.msgT0 = 1;
         K.pops.add(g.pops, "+" + pts, hp.x, hp.y - 30, fireOn ? "#ff7a2e" : "#ffd34d", true);
         K.parts.burst(g.parts, hp.x, hp.y, fireOn ? "#ff7a2e" : "#ffffff", 18, 200);
@@ -225,7 +236,7 @@
         if (g.streak === 3) { SFX.milestone(); K.kick(0.3); K.flash(0.25, "#ff7a2e"); K.parts.confetti(g.parts, R.x + R.w / 2, R.y + R.h * 0.3, 40, 420, ["#ff7a2e", "#ffd34d", "#ff4d1a", "#ffffff"]); crowdFlash(10); }
       } else {
         if (g.streak >= 3) { g.msg = "ATEŞ SÖNDÜ"; g.msgC = "#a3a9b8"; g.msgT = 1; }
-        else { g.msg = s.res === "rimout" ? "ÇEMBERDEN DÖNDÜ" : s.res === "board" ? "PANYA!" : "KISA KALDI"; g.msgC = "#cfd6e6"; g.msgT = 0.9; }
+        else { g.msg = s.res === "rimout" ? "ÇEMBERDEN DÖNDÜ" : s.res === "board" ? "PANYA!" : s.res === "short" ? "KISA KALDI" : "ISKA"; g.msgC = "#cfd6e6"; g.msgT = 0.9; }
         g.msgT0 = g.msgT;
         g.streak = 0;
         if (s.res === "rimout") { rim(1); K.kick(0.2); K.hitstop(0.04); g.rimWob = 1; g.netSw = 0.3; K.parts.spark(g.parts, hp.x + Math.sign(s.ex || 1) * rw, hp.y, "#ffe0b0", 14, 260); }
@@ -274,6 +285,7 @@
       if (front) { ctx.strokeStyle = "rgba(255,235,210,0.7)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(hp.x, y - lw * 0.3, rw, rw * 0.28, 0, Math.PI * 0.55, Math.PI * 0.8); ctx.stroke(); }
     }
     return {
+      dispose() { g.disposed = true; }, // gecikmeli sesler menüde çalmasın
       get score() { return g.score; },
       get over() { return g.over; },
       _g: g,
@@ -283,10 +295,10 @@
         g.sqT += dt; g.spawnT += dt; g.rimWob = Math.max(0, g.rimWob - dt * 3.5); g.boardWob = Math.max(0, g.boardWob - dt * 4); g.cheer = Math.max(0, g.cheer - dt * 1.2);
         for (const f of g.flashes) { if (f.d > 0) f.d -= dt; else f.life -= dt; } g.flashes = g.flashes.filter(f => f.life > 0);
         // pota 6 isabetten sonra sağa sola kaymaya başlar (tohumlu hız)
-        if (g.made >= 6) g.hoopX = Math.sin(g.clock * (0.7 + hash(seed, 9) * 0.5 + g.made * 0.02)) * Math.min(0.28, 0.08 + (g.made - 6) * 0.02);
+        { const A = hoopA(); if (A > 0) g.hph += dt * hoopW(); g.hA = A + (g.hA - A) * Math.exp(-2 * dt); g.hoopX = Math.sin(g.hph) * g.hA; }
         if (g.phase === "fly") {
           const s = g.shot; s.t += dt; const u = clamp(s.t / s.T, 0, 1);
-          g.ball.z = u; g.ball.x = lerp(s.sx, s.ex2, u); g.ball.y = lerp(0, s.ey, u) + s.apex * 4 * u * (1 - u); g.ball.spin -= dt * 14;
+          g.ball.z = u * s.ez; g.ball.x = lerp(s.sx, s.ex2, u); g.ball.y = lerp(0, s.ey, u) + s.apex * 4 * u * (1 - u); g.ball.spin -= dt * 14;
           if (u >= 1) settle();
         } else if (g.phase === "after") {
           g.t += dt; const s = g.shot;
@@ -303,11 +315,13 @@
         for (const f of g.fire) { f.life -= dt; f.y += dt * 0.15; } g.fire = g.fire.filter(f => f.life > 0);
         K.pops.update(g.pops, dt); K.parts.update(g.parts, dt);
       },
-      pointer(type, x, y) {
+      pointer(type, x, y, id) {
         if (!g.R || g.over || g.phase !== "aim") return;
-        if (type === "down") { const b = proj(g.R, g.ball.x, 0, 0); if (Math.hypot(x - b.x, y - b.y) < g.R.w * 0.28) g.swipe = { x0: x, y0: y, x1: x, y1: y }; }
-        else if (type === "move" && g.swipe) { g.swipe.x1 = x; g.swipe.y1 = y; }
-        else if ((type === "up" || type === "cancel") && g.swipe) { const sw = g.swipe; g.swipe = null; if (type === "up") shoot(sw); }
+        // yalnız kaydırmayı başlatan parmak izlenir; ikinci parmak atışı bozamaz
+        if (type === "down") { const b = proj(g.R, g.ball.x, 0, 0); if ((!g.swipe || g.swipe.id === id) && Math.hypot(x - b.x, y - b.y) < g.R.w * 0.28) g.swipe = { x0: x, y0: y, x1: x, y1: y, id }; }
+        else if (!g.swipe || g.swipe.id !== id) return;
+        else if (type === "move") { g.swipe.x1 = x; g.swipe.y1 = y; }
+        else if (type === "up" || type === "cancel") { const sw = g.swipe; g.swipe = null; if (type === "up") shoot(sw); }
       },
       net() { return { m: g.made, n: g.n, f: g.streak >= 3 ? 1 : 0, h: Math.round(g.hoopX * 100) }; },
       draw(ctx, R) {
@@ -338,7 +352,7 @@
         // top yayı: kalkışta uzar, zemine çarpınca basılır; yeni top yaylanarak belirir
         const sq = g.sqA * Math.exp(-g.sqT * 9) * Math.cos(g.sqT * 22), press = g.swipe ? 1.06 : 1, pop = g.spawnT < 0.3 ? 0.6 + 0.4 * Math.sin(Math.min(1, g.spawnT / 0.3) * Math.PI * 0.5) + Math.sin(g.spawnT / 0.3 * Math.PI) * 0.12 : 1;
         const br = br0 * press * pop, kx = 1 - sq * 0.8, ky = 1 + sq;
-        const nodes = netNodes(hp, rw, netL, behind ? { y: bp.y, r: br } : null);
+        const nodes = netNodes(hp, rw, netL, behind && Math.abs(b.x - g.hoopX) < RIM_W ? { y: bp.y, r: br } : null); // file yalnız top çemberin içindeyken şişer
         drawNet(ctx, nodes, false);
         const ballLayer = () => {
           // hareket izi

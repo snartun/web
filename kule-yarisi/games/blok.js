@@ -167,17 +167,46 @@
     const seed = opts.seed | 0, duel = opts.mode === "duel";
     const g = { score: 0, over: false, grid: new Array(N * N).fill(0), tray: [], next: 0, combo: 0, drag: null, R: null, fade: [], parts: [], pops: [], clock: 0,
       land: new Float32Array(N * N).fill(9), tin: [0, 0, 0], ret: null, glow: null, heat: 0, bg: null, bgKey: "", overT: 0 };
+    // Yeni tepsi adil olsun: önce üç parçanın da (herhangi sırayla, aradaki temizlemeler dahil)
+    // yerleştirilebildiği bir tepsi ara; yoksa en az birinin sığdığını kabul et. Düelloda iki oyuncu
+    // aynı parça dizisini alsın diye tahtaya bakılmaz.
     function refill() {
+      let some = null;
       for (let attempt = 0; attempt < 12; attempt++) {
         const k = g.next + attempt * 1000003;
         const t = [pieceAt(seed, k), pieceAt(seed, k + 1), pieceAt(seed, k + 2)];
-        if (duel || attempt === 11 || t.some(anyFit)) { g.tray = t; break; }
+        if (duel || placeable(g.grid, t, { n: 4000 })) { g.tray = t; break; }
+        if (!some && t.some(anyFit)) some = t;
+        if (attempt === 11) g.tray = some || t;
       }
       g.next += 3;
       g.tin = [0, -0.07, -0.14]; // yeni parçalar sırayla belirir
     }
     const fits = (p, gx, gy) => p.cells.every(([cx, cy]) => { const x = gx + cx, y = gy + cy; return x >= 0 && y >= 0 && x < N && y < N && !g.grid[y * N + x]; });
     const anyFit = p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (fits(p, x, y)) return true; return false; };
+    // G tahtasına p'yi koy, dolan satır/sütunları sil (kopya döndürür)
+    function dropOn(G, p, gx, gy) {
+      const t = G.slice();
+      for (const [cx, cy] of p.cells) t[(gy + cy) * N + gx + cx] = 1;
+      const rows = [], cols = [];
+      for (let y = 0; y < N; y++) { let f = true; for (let x = 0; x < N; x++) if (!t[y * N + x]) { f = false; break; } if (f) rows.push(y); }
+      for (let x = 0; x < N; x++) { let f = true; for (let y = 0; y < N; y++) if (!t[y * N + x]) { f = false; break; } if (f) cols.push(x); }
+      for (const y of rows) for (let x = 0; x < N; x++) t[y * N + x] = 0;
+      for (const x of cols) for (let y = 0; y < N; y++) t[y * N + x] = 0;
+      return t;
+    }
+    // ps parçalarının hepsi bir sırayla yerleştirilebilir mi (arama bütçeli; bütçe biterse tahta bol yerlidir, adil say)
+    function placeable(G, ps, budget) {
+      if (!ps.length) return true;
+      for (let k = 0; k < ps.length; k++) {
+        const p = ps[k], rest = ps.filter((_, j) => j !== k);
+        for (let y = 0; y <= N - p.h; y++) for (let x = 0; x <= N - p.w; x++) {
+          if (!p.cells.every(([cx, cy]) => !G[(y + cy) * N + x + cx])) continue;
+          if (--budget.n < 0 || placeable(dropOn(G, p, x, y), rest, budget)) return true;
+        }
+      }
+      return false;
+    }
     refill();
     // yerleştirilirse dolacak satır/sütunlar (önizleme için)
     function wouldClear(p, gx, gy) {
@@ -291,19 +320,22 @@
         if (g.glow) { g.glow.life -= dt; if (g.glow.life <= 0) g.glow = null; }
         K.parts.update(g.parts, dt); K.pops.update(g.pops, dt);
       },
-      pointer(type, x, y) {
+      pointer(type, x, y, id) {
         if (!g.R || g.over) return;
-        if (type === "down") { const i = trayHit(x, y); if (i >= 0) { g.drag = { i, x, y, t: 0 }; if (g.ret && g.ret.i === i) g.ret = null; SFX.pop(true); } }
-        else if (type === "move" && g.drag) { g.drag.x = x; g.drag.y = y; }
+        // tek parmak: sürükleme sürerken başka parmağın dokunuşu parçayı kapmaz, onun hareketi/kalkışı yok sayılır
+        if (type === "down") { if (g.drag && g.drag.id !== id) return; const i = trayHit(x, y); if (i >= 0) { g.drag = { i, x, y, t: 0, id, x0: x, y0: y, moved: 0 }; if (g.ret && g.ret.i === i) g.ret = null; SFX.pop(true); } }
+        else if (!g.drag || g.drag.id !== id) return;
+        else if (type === "move") { g.drag.x = x; g.drag.y = y; g.drag.moved = Math.max(g.drag.moved, Math.hypot(x - g.drag.x0, y - g.drag.y0)); }
         else if ((type === "up" || type === "cancel") && g.drag) {
-          const t = dragTarget(), p = g.tray[g.drag.i], i = g.drag.i;
+          const t = dragTarget(), p = g.tray[g.drag.i], i = g.drag.i, tap = g.drag.moved < layout(g.R).cs * 0.3;
           g.drag = null;
-          if (type === "up" && t.ok) place(p, t.gx, t.gy);
+          // sadece dokunup bırakmak (sürüklemeden) parçayı tahtaya koymaz
+          if (type === "up" && t.ok && !tap) place(p, t.gx, t.gy);
           else {
             // geçersiz bırakma: parça tepsiye süzülerek geri döner
             const L = layout(g.R), S = L.cs * LIFT;
             g.ret = { i, x: t.ax - (S - L.cs) * p.w / 2, y: t.ay - (S - L.cs) * p.h / 2, s: S, t: 0 };
-            if (type === "up") { SFX.pop(false); buzz(12); }
+            if (type === "up" && !tap) { SFX.pop(false); buzz(12); }
           }
         }
       },

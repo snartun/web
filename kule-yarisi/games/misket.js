@@ -157,7 +157,9 @@
         g.clock += dt;
         if (g.moving) {
           g.acc += Math.min(dt, 0.05);
-          while (g.acc >= STEP) { physics(STEP); g.acc -= STEP; }
+          // durma kontrolü her sabit adımda: sonuç kare hızından bağımsız (eskiden karede bir bakılıyordu → 30/60/120 fps'te farklı skor)
+          let still = false;
+          while (g.acc >= STEP) { physics(STEP); g.acc -= STEP; if (!stillMoving()) { still = true; g.acc = 0; break; } }
           // çarpışma geri bildirimi (görsel): darbe hızına göre kıvılcım, toz, çok hafif sarsıntı
           if (g.fx.length && g.R) {
             const M = map(g.R); let mv = 0;
@@ -166,9 +168,9 @@
           }
           // yuvarlanan misketler hafif toz bırakır
           if (g.R) { const M = map(g.R); for (const b of [g.sh, ...g.balls]) { if (b.out) continue; const sp = Math.hypot(b.vx, b.vy); if (sp < 30) continue; b._dd = (b._dd || 0) + sp * dt; if (b._dd > 12) { b._dd = 0; K.parts.dust(g.parts, M.sx(b.x), M.sy(b.y) + b.r * M.u * 0.6, "#d6ba8a", 1, 8 + sp * 0.1); } } }
-          if (!stillMoving()) {
+          if (still) {
             g.moving = false;
-            for (const b of [g.sh, ...g.balls]) { b.vx = 0; b.vy = 0; }
+            for (const b of [g.sh, ...g.balls]) if (!b.out) { b.vx = 0; b.vy = 0; }
             if (g.hits === 0) SFX.pop(false);
             g.hits = 0;
             // Kural: atıcı çemberin içinde kaldıysa bir sonraki atış oradan yapılır.
@@ -184,16 +186,23 @@
             }
           }
         }
-        for (const b of g.balls) if (b.out) b.fade = Math.max(0, b.fade - dt * 2);
+        // çembere çıkan misket çizgide donmaz: sönerken yuvarlanmaya devam eder (yalnızca görsel; çarpışmaya katılmaz)
+        for (const b of g.balls) if (b.out && b.fade > 0) {
+          b.fade = Math.max(0, b.fade - dt * 2);
+          const sp = Math.hypot(b.vx, b.vy), d = Math.min(dt, 0.05);
+          if (sp > 0) { const ns = Math.max(0, sp * Math.exp(-PHYS.drag * d) - PHYS.roll * d); b.x += b.vx * d; b.y += b.vy * d; b.vx *= ns / sp; b.vy *= ns / sp; }
+        }
         g.snap = Math.max(0, (g.snap || 0) - dt * 6);
         K.pops.update(g.pops, dt); K.parts.update(g.parts, dt);
       },
-      pointer(type, x, y) {
+      pointer(type, x, y, id) {
         if (!g.R || g.over || g.moving) return;
         const M = map(g.R);
-        if (type === "down") g.aim = { x: M.wx(x), y: M.wy(y), x0: M.wx(x), y0: M.wy(y) };
-        else if (type === "move" && g.aim) { g.aim.x = M.wx(x); g.aim.y = M.wy(y); }
-        else if ((type === "up" || type === "cancel") && g.aim) {
+        // tek parmak: nişanı başlatan parmak dışındaki dokunuşlar yok sayılır (ikinci parmak nişanı bozmasın)
+        if (type === "down") { if (!g.aim || g.aim.id === id) g.aim = { id, x: M.wx(x), y: M.wy(y), x0: M.wx(x), y0: M.wy(y) }; }
+        else if (!g.aim || g.aim.id !== id) return;
+        else if (type === "move") { g.aim.x = M.wx(x); g.aim.y = M.wy(y); }
+        else if (type === "up" || type === "cancel") {
           if (type === "up") { g.aim.x = M.wx(x); g.aim.y = M.wy(y); } // son "move" gelmese de bırakılan nokta geçerli
           const dx = g.aim.x0 - g.aim.x, dy = g.aim.y0 - g.aim.y, len = Math.hypot(dx, dy);
           g.aim = null;
@@ -205,7 +214,8 @@
           }
         }
       },
-      net() { return { b: g.balls.filter(b => !b.out).map(b => [Math.round(b.x), Math.round(b.y)]), s: [Math.round(g.sh.x), Math.round(g.sh.y)] }; },
+      // her misketin renk sırası da gider: biri çıkınca rakip ekranında kalanların rengi kaymasın
+      net() { return { b: g.balls.filter(b => !b.out).map(b => [Math.round(b.x), Math.round(b.y), Math.max(0, COLORS.indexOf(b.c))]), s: [Math.round(g.sh.x), Math.round(g.sh.y)] }; },
       draw(ctx, R) {
         g.R = R;
         const M = map(R), u = M.u, d = DPR(), ready = !!(soil.complete && soil.naturalWidth);
@@ -220,15 +230,16 @@
         let aim = null;
         if (g.aim && !g.moving) {
           const dx = g.aim.x0 - g.aim.x, dy = g.aim.y0 - g.aim.y, len = Math.hypot(dx, dy);
-          if (len > 1) { const p = Math.min(len, 32) / 32, ux = dx / len, uy = dy / len, pull = Math.min(len, 32) * 0.22; aim = { p, ux, uy, L: 12 + p * 45, px: g.sh.x - ux * pull, py: g.sh.y - uy * pull, col: powCol(p) }; }
+          if (len > 3) { const p = Math.min(len, 32) / 32, ux = dx / len, uy = dy / len, pull = Math.min(len, 32) * 0.22; aim = { p, ux, uy, L: 12 + p * 45, px: g.sh.x - ux * pull, py: g.sh.y - uy * pull, col: powCol(p) }; }
         }
         // görsel durum: yuvarlanma yönelimi, izler, kuyruk
         const all = [...g.balls, g.sh], mx = g.marks.x;
         all.forEach((b, i) => {
           if (!b._m) { const a = hash(i + g.k * 31, 7) * TAU, c = hash(i + g.k * 31, 8) * TAU; b._m = [1, 0, 0, 0, 1, 0, 0, 0, 1]; roll(b._m, Math.cos(a), Math.sin(a), 1 / (c + 0.5)); roll(b._m, -Math.sin(c), Math.cos(c), 1 / (a + 0.5)); }
-          if (b._px != null && !b.out) {
+          if (b._px != null && (!b.out || b.fade > 0)) {
             const ddx = b.x - b._px, ddy = b.y - b._py, dd = Math.hypot(ddx, ddy);
-            if (dd > 0.001 && dd < 20) { roll(b._m, ddx, ddy, b.r); mx.strokeStyle = "rgba(70,45,22,0.045)"; mx.lineWidth = b.r * u * 0.9; mx.beginPath(); mx.moveTo(M.sx(b._px), M.sy(b._py)); mx.lineTo(M.sx(b.x), M.sy(b.y)); mx.stroke(); }
+            if (dd > 0.001 && dd < 20) roll(b._m, ddx, ddy, b.r);
+            if (dd > 0.001 && dd < 20 && !b.out) { mx.strokeStyle = "rgba(70,45,22,0.045)"; mx.lineWidth = b.r * u * 0.9; mx.beginPath(); mx.moveTo(M.sx(b._px), M.sy(b._py)); mx.lineTo(M.sx(b.x), M.sy(b.y)); mx.stroke(); }
           }
           b._px = b.x; b._py = b.y;
           const sp = Math.hypot(b.vx, b.vy); b._tr = b._tr || [];
@@ -349,7 +360,7 @@
     const u = Math.min(R.w / 100, R.h / 100), ox = R.x + (R.w - 100 * u) / 2, oy = R.y + (R.h - 100 * u) / 2;
     ctx.lineWidth = Math.max(1.5, u * 0.8); ctx.strokeStyle = "rgba(52,30,12,0.55)"; ctx.beginPath(); ctx.arc(ox + RING.x * u - 0.5, oy + RING.y * u - 0.5, RING.r * u, 0, Math.PI * 2); ctx.stroke();
     ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255,238,205,0.55)"; ctx.beginPath(); ctx.arc(ox + RING.x * u + 1, oy + RING.y * u + 1, RING.r * u, 0, Math.PI * 2); ctx.stroke();
-    (d && Array.isArray(d.b) ? d.b : []).forEach((p, i) => marble(ctx, ox + p[0] * u, oy + p[1] * u, TR * u, COLORS[i % COLORS.length]));
+    (d && Array.isArray(d.b) ? d.b : []).forEach((p, i) => marble(ctx, ox + p[0] * u, oy + p[1] * u, TR * u, COLORS[(p[2] != null ? p[2] | 0 : i) % COLORS.length]));
     if (d && Array.isArray(d.s)) marble(ctx, ox + d.s[0] * u, oy + d.s[1] * u, SR * u, "#3d8bff", true);
   }
   K.register({

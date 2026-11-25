@@ -21,7 +21,8 @@
     layout: store.get("layout2", "single") === "online" ? "online" : "single",
     mt: store.get("mt", "mix"),
   };
-  if (cfg.mt !== "mix" && !K.game(cfg.mt)) cfg.mt = "mix";
+  const okMt = m => m === "mix" || !!K.game(m); // rakipten gelen bilinmeyen tür (farklı sürüm) çizimi çökertmesin
+  if (!okMt(cfg.mt)) cfg.mt = "mix";
   const isOnline = () => cfg.layout === "online";
   const MIX_ROUNDS = 5, MIX_WIN = 3;
 
@@ -45,17 +46,21 @@
     saveMeta();
   }
   ensureMissions();
-  function award(gid, score, duel) {
+  // dün = takvimde bir gün geri (Date.now()-24 saat, yaz saati geçişinde iki gün geriye düşebiliyordu)
+  const yday = () => { const y = new Date(); y.setDate(y.getDate() - 1); return dayStr(y); };
+  // plays: [[oyunId, puan], ...] — düelloda her tur kendi oyununun eşiğiyle değerlendirilir
+  function award(plays, duel) {
     ensureMissions();
     const before = levelOf(meta.xp), done = [];
-    let gain = 15 + Math.min(60, Math.round((score / (THR[gid] || 500)) * 30));
-    const today = dayStr(), y = new Date(); y.setDate(y.getDate() - 1);
-    if (meta.last !== today) { meta.streak = meta.last === dayStr(y) ? meta.streak + 1 : 1; meta.last = today; }
+    const norm = plays.length ? plays.reduce((s, [g, v]) => s + v / (THR[g] || 500), 0) / plays.length : 0;
+    let gain = 15 + Math.min(60, Math.round(norm * 30));
+    const today = dayStr();
+    if (meta.last !== today) { meta.streak = meta.last === yday() ? meta.streak + 1 : 1; meta.last = today; }
     for (const m of meta.missions) {
       if (m.p >= m.n) continue;
       if (m.t === "play") m.p++;
       else if (m.t === "duel" && duel) m.p++;
-      else if (m.t === "score" && m.g === gid && score >= m.n) m.p = m.n;
+      else if (m.t === "score" && plays.some(([g, v]) => g === m.g && v >= m.n)) m.p = m.n;
       if (m.p >= m.n) { done.push(m.text); gain += 50; }
     }
     meta.xp += gain; saveMeta();
@@ -77,7 +82,7 @@
     M.gid = gid; M.def = K.game(gid);
     M.inst = M.def.create({ seed, mode: M.mode }); K.fxReset();
     M.ph = "intro"; M.t = 3.2; M.timeLeft = M.def.timeLimit(M.mode);
-    AU.level = 0;
+    AU.level = 0; SFX.beep(false); // "3" için bip (2 ve 1 update içinde çalar)
     if (gid === "kelime" && K.loadWords) K.loadWords().catch(() => {});
   }
   function startSingle(gid) {
@@ -90,7 +95,7 @@
     AU.level = 0; K.setWind(0); dispose();
     if (M.mode === "single") {
       M.newBest = K.saveBest(M.gid, sc);
-      M.award = award(M.gid, sc, false);
+      M.award = award([[M.gid, sc]], false);
       M.ph = "final"; M.t = 0;
       (M.newBest ? SFX.win : SFX.lose)();
       renderLists();
@@ -132,7 +137,7 @@
   }
 
   // ---------------- online taşıma (claude.ai room veya PeerJS) ----------------
-  const net = { apiP: null, room: null, code: "", host: false, oppSeen: 0, lastSend: 0 };
+  const net = { apiP: null, room: null, code: "", host: false, oppSeen: 0, lastSend: 0, joinTok: 0 };
   const ROOM_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   const newCode = () => { let c = ""; for (let i = 0; i < 4; i++) c += ROOM_CHARS[Math.floor(Math.random() * ROOM_CHARS.length)]; return c; };
   function getRoomApi() {
@@ -195,15 +200,21 @@
     code = (code || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
     if (code.length !== 4) { setRoomStatus("Kod 4 karakter olmalı."); return; }
     setRoomStatus("Bağlanıyor…");
+    // Bağlanırken ikinci kez basılırsa (çift dokunma) yalnız son istek geçerli; öncekinin odası terk edilir, sızmaz.
+    const tok = ++net.joinTok;
     if (net.room) { const old = net.room; net.room = null; try { await old.leave(); } catch (e) {} }
     try {
       const api = await getRoomApi();
-      if (api) net.room = wrapRoom(await api.join("kule-" + code.toLowerCase()));
-      else if (!K.IN_CLAUDE && typeof RTCPeerConnection !== "undefined") net.room = await peerTransport(code, host);
+      let room;
+      if (api) room = wrapRoom(await api.join("kule-" + code.toLowerCase()));
+      else if (!K.IN_CLAUDE && typeof RTCPeerConnection !== "undefined") room = await peerTransport(code, host);
       else { setRoomStatus("Online mod bu görünümde kullanılamıyor. Oyunu web adresinden aç ya da claude.ai'de giriş yapmış olarak aç."); refreshMenu(); return; }
+      if (tok !== net.joinTok) { try { await room.leave(); } catch (e) {} return; }
+      net.room = room;
       net.code = code; net.host = host; M.r = 0; M.ready = false;
       pushPresence(true); updateRoomStatus();
     } catch (e) {
+      if (tok !== net.joinTok) return;
       net.room = null;
       if (host && !retried && e && e.code === "unavailable-id") return joinRoom(newCode(), true, true);
       setRoomStatus(joinError(e));
@@ -211,7 +222,7 @@
     refreshMenu();
   }
   async function leaveRoom() {
-    const old = net.room; net.room = null; net.code = "";
+    const old = net.room; net.room = null; net.code = ""; net.joinTok++;
     if (old) { try { await old.leave(); } catch (e) {} }
     setRoomStatus("Bir oda kur ve kodu arkadaşına söyle, ya da onun kodunu yazıp katıl.");
     refreshMenu();
@@ -249,7 +260,7 @@
     const o = opp();
     if (o) net.oppSeen = M.clock;
     if (o && o.r === M.r && Array.isArray(o.rs)) M.oppRs = o.rs.slice();
-    if (!net.host && o && o.host && o.mt && o.mt !== cfg.mt && (M.ph === "lobby" || M.ph === "final")) { cfg.mt = o.mt; }
+    if (!net.host && o && o.host && okMt(o.mt) && o.mt !== cfg.mt && (M.ph === "lobby" || M.ph === "final")) { cfg.mt = o.mt; }
     if (M.ph === "lobby" || (M.ph === "final" && M.t > 0.9)) {
       if (M.ready && o && o.ready) {
         const idle = o.ph === "lobby" || o.ph === "final";
@@ -262,6 +273,11 @@
     }
     const live = ["intro", "play", "done", "result"].includes(M.ph);
     if (live && !o && M.clock - net.oppSeen > 8) { M.note = "Rakibin bağlantısı koptu"; finalize(0); return; }
+    // Rakip maç sürerken menüye döndü (ya da odaya yeniden girdi): o turun puanı hiç gelmeyecek, sonsuza dek beklemeyelim.
+    // Maç başlarken rakip bir an "lobby + hazır + eski r" görünür; o durum hariç. "result"ta iki puan zaten elde.
+    if (o && (M.ph === "intro" || M.ph === "play" || M.ph === "done") && o.ph === "lobby" && ((o.r | 0) === M.r || !o.ready)) {
+      M.note = "Rakip maçtan çıktı"; finalize(0); return;
+    }
     if (M.ph === "done" && o && o.r === M.r && Array.isArray(o.rs) && o.rs[M.ri] != null) {
       const my = M.rs[M.ri], os = +o.rs[M.ri] || 0;
       const w = my > os ? 0 : my < os ? 1 : -1;
@@ -281,8 +297,10 @@
     pushPresence(false);
   }
   function finalize(w) {
+    if (M.ph === "intro" || M.ph === "play") dispose(); // tur yarıda kesildi (kopma/rakip çıktı): oyunun sesleri sussun
     M.ph = "final"; M.t = 0; M.finalWin = w; M.ready = false;
-    M.award = award(M.gid, M.rs.reduce((a, v) => a + (v || 0), 0) / Math.max(1, M.rs.length), true);
+    const plays = []; M.rs.forEach((v, i) => { if (v != null) plays.push([M.order[i], v]); });
+    M.award = award(plays, true);
     AU.level = 0; K.setWind(0);
     (w === 0 ? SFX.win : w === 1 ? SFX.lose : SFX.click)();
     pushPresence(true);
@@ -362,7 +380,7 @@
     const def = M.def, pulse = 0.6 + 0.4 * Math.sin(M.clock * 5);
     const big = Math.round(clamp(Math.min(W / 9, P.h / 8), 22, 46)), mid = Math.round(big * 0.52), small = Math.round(Math.max(13, big * 0.4));
     if (M.ph === "lobby") {
-      const mtName = M.mt === "mix" || cfg.mt === "mix" ? "Karışık düello · ilk 3 turu alan kazanır" : K.game(cfg.mt).name + " · tek tur";
+      const mtName = cfg.mt === "mix" || !K.game(cfg.mt) ? "Karışık düello · ilk 3 turu alan kazanır" : K.game(cfg.mt).name + " · tek tur";
       panel(P, [
         { t: "HAZIR MISIN?", s: big, f: K.DISP, w: "400", c: "#f4b400" },
         { t: mtName, s: small, w: "600", c: "#a3a9b8" },
@@ -467,8 +485,17 @@
       else cv.dispatchEvent(new PointerEvent("pointerdown", { clientX: 5, clientY: 5 }));
     }
   });
-  let wakeLock = null;
-  function keepAwake() { try { if (navigator.wakeLock) navigator.wakeLock.request("screen").then(l => { wakeLock = l; }).catch(() => {}); } catch (e) {} }
+  // Ekran kilidi: her turda yeni kilit istenip eskisi bırakılmazsa menüye dönünce yalnız sonuncusu bırakılıyordu, ekran açık kalıyordu.
+  let wakeLock = null, wakeP = false;
+  function keepAwake() {
+    if (wakeP || (wakeLock && !wakeLock.released)) return;
+    try {
+      if (!navigator.wakeLock) return;
+      wakeP = true;
+      navigator.wakeLock.request("screen").then(l => { wakeLock = l; if (screen !== "game") releaseAwake(); }).catch(() => {}).then(() => { wakeP = false; });
+    } catch (e) { wakeP = false; }
+  }
+  function releaseAwake() { const l = wakeLock; wakeLock = null; try { if (l) Promise.resolve(l.release()).catch(() => {}); } catch (e) {} }
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && screen === "game") keepAwake(); });
 
   // ---------------- menü ----------------
@@ -478,7 +505,7 @@
   function updateRoomStatus() {
     if (!net.room) return;
     const el = $("#roomStatus"), o = opp();
-    if (o && o.host && !net.host && o.mt && o.mt !== cfg.mt) { cfg.mt = o.mt; renderLists(); }
+    if (o && o.host && !net.host && okMt(o.mt) && o.mt !== cfg.mt) { cfg.mt = o.mt; renderLists(); }
     el.textContent = "";
     const b = document.createElement("div"); b.className = "code"; b.textContent = net.code;
     const sp = document.createElement("span");
@@ -512,7 +539,7 @@
     $("#lvl").textContent = "SEVİYE " + lv;
     $("#xpbar").style.width = Math.round(((meta.xp - a) / (b - a)) * 100) + "%";
     $("#xptxt").textContent = (meta.xp - a) + " / " + (b - a) + " XP";
-    $("#streak").textContent = meta.streak > 0 && (meta.last === dayStr() || meta.last === dayStr(new Date(Date.now() - 864e5))) ? "SERİ " + meta.streak + " GÜN" : "SERİ YOK";
+    $("#streak").textContent = meta.streak > 0 && (meta.last === dayStr() || meta.last === yday()) ? "SERİ " + meta.streak + " GÜN" : "SERİ YOK";
     const ul = $("#missions"); ul.textContent = "";
     for (const m of meta.missions) { const li = document.createElement("li"); li.className = m.p >= m.n ? "done" : ""; const s1 = document.createElement("span"); s1.textContent = m.text; const s2 = document.createElement("b"); s2.textContent = m.p >= m.n ? "✓ +50 XP" : Math.min(m.p, m.n) + "/" + (m.t === "score" ? 1 : m.n); if (m.t === "score" && m.p < m.n) s2.textContent = "0/1"; li.append(s1, s2); ul.append(li); }
   }
@@ -538,7 +565,7 @@
     dispose(); M.inst = null; M.def = null; M.ph = "lobby"; M.ready = false; AU.level = 0; K.setWind(0);
     if (net.room) pushPresence(true);
     refreshMenu();
-    try { if (wakeLock) wakeLock.release(); } catch (e) {}
+    releaseAwake();
   }
   document.querySelector('[data-group="layout"]').addEventListener("click", e => {
     const b = e.target.closest(".opt"); if (!b) return;
@@ -600,8 +627,12 @@
   let last = performance.now();
   function frame(t) {
     const dt = Math.min(0.1, (t - last) / 1000); last = t;
-    update(dt); render();
-    requestAnimationFrame(frame);
+    requestAnimationFrame(frame); // önce sıradaki kare: bir oyunda tek bir hata tüm döngüyü (ve uygulamayı) dondurmasın
+    try { update(dt); render(); }
+    catch (e) {
+      for (let i = 0; i < 32; i++) ctx.restore(); // yarıda kalan save()'leri boşalt (clip/alfa sonraki karelere sızmasın)
+      if (!frame.err) { frame.err = true; console.error(e); }
+    }
   }
   requestAnimationFrame(frame);
   window.__arena = { M, cfg, startSingle };

@@ -310,12 +310,12 @@
         fl.push({ c, from: g.sel, to: i, slot: dst.length + k, x0: ps.x + ps.w / 2, y0, t: -k * 0.07, dur });
       }
       g.fly.push(...fl);
-      g.hist.push({ from: g.sel, to: i, m });
+      const h = { from: g.sel, to: i, m, pts: 0 }; g.hist.push(h);
       for (let k = 0; k < m; k++) dst.push(src.pop());
       g.sel = -1; g.moves++;
       SFX.pop(false);
       if (complete(dst) && !g.doneSet.has(i)) {
-        g.doneSet.add(i); g.score += 20;
+        g.doneSet.add(i); g.score += 20; h.pts = 20; // geri alınırsa bu puan da geri alınır (geri al → yeniden tamamla ile puan kasılmasın)
         fl[fl.length - 1].done = g.doneSet.size; // kutlama top yerine oturunca
       }
       const colorsN = g.tubes.length - 2;
@@ -348,7 +348,8 @@
           const pt = L.pos[h.to], A = g.tubes[h.to], B = g.tubes[h.from];
           for (let k = 0; k < h.m; k++) g.fly.push({ c: A[A.length - 1 - k], from: h.to, to: h.from, slot: B.length + k, x0: pt.x + pt.w / 2, y0: slotY(pt, L.br, A.length - 1 - k), t: -k * 0.05, dur: 0.3 });
           for (let k = 0; k < h.m; k++) g.tubes[h.from].push(g.tubes[h.to].pop());
-          g.doneSet.delete(h.to); g.undos--; g.sel = -1; g.undoP = 1; SFX.whoosh(); return;
+          if (h.pts) K.pops.add(g.pops, "-" + h.pts, pt.x + pt.w / 2, pt.y - 18, "#ff9aa4");
+          g.doneSet.delete(h.to); g.score -= h.pts || 0; g.undos--; g.sel = -1; g.undoP = 1; SFX.whoosh(); return;
         }
         // tek bir tüp seç: dokunulan noktaya en yakın tüp
         let best = -1, bd = 1e9;

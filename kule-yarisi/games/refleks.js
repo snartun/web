@@ -75,7 +75,9 @@
     const g = { score: 0, over: false, k: 0, st: "wait", t: 0, delay: 0, rt: [], msg: "", R: null, pops: [], parts: [], clock: 0, started: false,
       // görsel durum
       tap: null, showAt: 0, goAt2: 0, chipAt: [], crack: null, bgK: "idle", bgP: "idle", bgAt: -9, last: 0 };
-    const newRound = () => { g.st = "wait"; g.t = 0; g.delay = 1.3 + hash(seed, g.k * 7 + 3) * 2.4; };
+    const newRound = () => { g.st = "wait"; g.t = 0; // bekleme: sabit 1,4 sn + üstel (belleksiz) rastgele kısım (ort. 1,3 sn, en çok 5,6 sn). Eşit dağılımda
+    // ~3,5 sn'den sonra yeşil "kesin" gelir ve tahminle basılabilir; üstelde ne kadar beklersen bekle tahmin edemezsin.
+    g.delay = 1.4 + Math.min(4.2, -1.3 * Math.log(1 - hash(seed, g.k * 7 + 3) * 0.999)); };
     newRound();
     // erken dokunuşta dokunulan noktadan yayılan cam çatlağı
     function mkCrack(x, y, R) {
@@ -103,13 +105,14 @@
       g.msg = early ? "ERKEN!" : rt >= 1000 ? "ÇOK GEÇ" : Math.round(rt) + " ms";
       const R = g.R, tp = g.tap; g.tap = null;
       g.showAt = g.clock; g.chipAt[g.rt.length - 1] = g.clock; g.last = early ? -1 : rt; g.crack = null;
-      if (R) K.pops.add(g.pops, early ? "0" : "+" + pts, R.x + R.w / 2, R.y + R.h * 0.62, early ? "#ff9aa4" : "#ffd34d", !early && rt < 250);
+      const miss = early || rt >= 1000; // erken ya da süre doldu: ödül değil, ceza geri bildirimi
+      if (R) K.pops.add(g.pops, miss ? "0" : "+" + pts, R.x + R.w / 2, R.y + R.h * 0.62, miss ? "#ff9aa4" : "#ffd34d", !miss && rt < 250);
       if (early) {
         SFX.buzz(); buzz([50, 30, 50]); K.play("glass", { vol: 0.45, rate: 1.15 });
         K.kick(0.42);
         if (R) { const x = tp ? tp.x : R.x + R.w / 2, y = tp ? tp.y : R.y + R.h * 0.42; g.crack = { L: mkCrack(x, y, R), x, y }; K.parts.spark(g.parts, x, y, "#ffd0d4", 16, 320); K.parts.burst(g.parts, x, y, "rgba(255,220,225,0.9)", 10, 200); }
       } else {
-        SFX.chime(rt < 220 ? 10 : rt < 300 ? 7 : rt < 400 ? 4 : 1); buzz(15);
+        if (rt >= 1000) { SFX.buzz(); buzz([30, 20, 30]); } else { SFX.chime(rt < 220 ? 10 : rt < 300 ? 7 : rt < 400 ? 4 : 1); buzz(15); }
         const col = grade(rt)[1];
         if (R) {
           const cx = R.x + R.w / 2, cy = R.y + R.h * 0.42;
@@ -133,7 +136,8 @@
         if (!active || g.over) return;
         g.t += dt;
         if (g.st === "wait" && g.t >= g.delay) {
-          g.st = "go"; g.t = 0; g.goAt = performance.now(); SFX.beep(true);
+          // goAt burada yalnızca yedek; asıl ölçüm başlangıcı yeşilin ilk çizildiği karede (draw sonunda) yazılır
+          g.st = "go"; g.t = 0; g.goAt = performance.now(); g.goShown = false; SFX.beep(true);
           g.goAt2 = g.clock; const R = g.R; if (R) { const cx = R.x + R.w / 2, cy = R.y + R.h * 0.42; K.parts.ring(g.parts, cx, cy, "#ffffff", Math.min(R.w, R.h) * 0.6, 6); K.parts.spark(g.parts, cx, cy, "#eaffd8", 18, 380); }
         }
         else if (g.st === "go" && g.t >= 1.0) finish(1000, false);
@@ -149,6 +153,10 @@
       _g: g,
       draw(ctx, R, active) {
         g.R = R;
+        // tüm sahne arka planlarını bu boyut için önceden üret (geri sayımda): yeşilin ilk karesi
+        // tembel sprite üretimiyle gecikmesin (ilk turda ölçülen süreye ~30–50 ms ekleniyordu)
+        const wk = R.w + "x" + R.h;
+        if (g.warm !== wk) { g.warm = wk; for (const s in STAGE) stage(s, R.w, R.h); for (const v of [-1, 150, 220, 270, 350, 500, 1000]) glow(grade(v)[1]); }
         ctx.save(); ctx.beginPath(); ctx.rect(R.x, R.y, R.w, R.h); ctx.clip();
         const st = active ? g.st : "idle", T = g.clock;
         // arka plan: "go" anında anlık (ölçüm adil olsun); diğer geçişler 0,3 sn yumuşak (ani parlaklık sıçraması yok)
@@ -237,11 +245,13 @@
             }
           }
         } else if (g.over) {
-          const { avg, best } = stats();
-          const label = !avg ? "—" : avg < 200 ? "ŞİMŞEK GİBİ" : avg < 240 ? "ÇOK HIZLI" : avg < 280 ? "ORTALAMANIN ÜSTÜ" : avg < 330 ? "ORTALAMA" : "BİRAZ YAVAŞ";
+          const { v: okV, avg, best } = stats();
+          // bantlar ekranda yazan ≈273 ms ortancayı "ORTALAMA" içine alır (eskiden 273 ms "ortalamanın üstü" sayılıyordu)
+          const label = !avg ? "—" : avg < 200 ? "ŞİMŞEK GİBİ" : avg < 235 ? "ÇOK HIZLI" : avg < 260 ? "ORTALAMANIN ÜSTÜ" : avg < 300 ? "ORTALAMA" : "BİRAZ YAVAŞ";
           const col = avg ? grade(avg)[1] : "#c9ced9";
           ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.6; ctx.drawImage(glow(col), cx - rad * 1.8, cy - rad * 1.8, rad * 3.6, rad * 3.6); ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
-          txt(ctx, "5 TURUN ORTALAMASI", cx, cy - big * 1.15, 15, "rgba(255,255,255,0.6)", { ls: "4px" });
+          const allOk = okV.length === ROUNDS || !okV.length;
+          txt(ctx, allOk ? ROUNDS + " TURUN ORTALAMASI" : okV.length + " GEÇERLİ TURUN ORTALAMASI", cx, cy - big * 1.15, allOk ? 15 : 14, "rgba(255,255,255,0.6)", { ls: allOk ? "4px" : "2px" });
           txt(ctx, avg ? avg + " ms" : "—", cx, cy - big * 0.3, big, "#ffffff", { f: K.DISP, w: "400", stroke: 5, strokeColor: "rgba(0,0,0,0.3)" });
           txt(ctx, label, cx, cy + big * 0.55, 22, col === "#c9ced9" ? "#ffd34d" : col, { ls: "2px" });
           txt(ctx, "İnsanların ortanca değeri ≈ 273 ms", cx, cy + big * 0.55 + 28, 15, "rgba(255,255,255,0.7)", { w: "600" });
@@ -262,6 +272,8 @@
         }
         K.parts.draw(ctx, g.parts); K.pops.draw(ctx, g.pops, 1.2);
         ctx.restore();
+        // süre ölçümü yeşil gerçekten çizildikten sonra başlar (update ile çizim arasındaki iş sayılmaz)
+        if (active && g.st === "go" && !g.goShown) { g.goShown = true; g.goAt = performance.now(); }
       },
     };
   }
