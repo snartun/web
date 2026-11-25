@@ -6,6 +6,8 @@
   const TR = 2.8, SR = 3.6, START = { x: 50, y: 88 };
   const COLORS = ["#ff5a4e", "#f4b400", "#2bb673", "#3d8bff", "#a46bff", "#ff7ab8", "#1fc2b0"];
   const STEP = 1 / 240;
+  // toprakta yuvarlanma: hıza bağlı + sabit sürtünme; cam-cam çarpışma esnekliği; atış hızı aralığı
+  const PHYS = { drag: 1.6, roll: 26, rest: 0.82, v0: 32, v1: 125 };
   // toprak zemin dokusu (CC0, Poly Haven "aerial_beach_01"; bkz. KAYNAKLAR.md)
   const soil = new Image(); soil.src = "doku/toprak.jpg";
   let soilPat = null;
@@ -39,7 +41,7 @@
       tries++;
       const a = hash(seed, k * 100 + tries) * Math.PI * 2, d = Math.sqrt(hash(seed, k * 100 + tries + 50)) * 15;
       const x = RING.x + Math.cos(a) * d, y = RING.y + Math.sin(a) * d;
-      if (out.every(o => Math.hypot(o.x - x, o.y - y) > TR * 2.4)) out.push({ x, y, vx: 0, vy: 0, r: TR, m: 1, c: COLORS[out.length % COLORS.length], out: false, fade: 1 });
+      if (out.every(o => Math.hypot(o.x - x, o.y - y) > TR * 2.4) && Math.hypot(START.x - x, START.y - y) > TR + SR + 1) out.push({ x, y, vx: 0, vy: 0, r: TR, m: 1, c: COLORS[out.length % COLORS.length], out: false, fade: 1 });
     }
     return out;
   }
@@ -53,7 +55,7 @@
       for (const b of all) {
         b.x += b.vx * dt; b.y += b.vy * dt;
         const sp = Math.hypot(b.vx, b.vy);
-        if (sp > 0) { const ns = Math.max(0, sp * Math.exp(-1.05 * dt) - 9 * dt); b.vx *= ns / sp; b.vy *= ns / sp; }
+        if (sp > 0) { const ns = Math.max(0, sp * Math.exp(-PHYS.drag * dt) - PHYS.roll * dt); b.vx *= ns / sp; b.vy *= ns / sp; }
         if (b.x < b.r) { b.x = b.r; b.vx = Math.abs(b.vx) * 0.6; } if (b.x > 100 - b.r) { b.x = 100 - b.r; b.vx = -Math.abs(b.vx) * 0.6; }
         if (b.y < b.r) { b.y = b.r; b.vy = Math.abs(b.vy) * 0.6; } if (b.y > 100 - b.r) { b.y = 100 - b.r; b.vy = -Math.abs(b.vy) * 0.6; }
       }
@@ -64,7 +66,7 @@
           a.x -= nx * ov * (b.m / tm); a.y -= ny * ov * (b.m / tm); b.x += nx * ov * (a.m / tm); b.y += ny * ov * (a.m / tm);
           const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
           if (rv < 0) {
-            const j2 = (-(1 + 0.93) * rv) / (1 / a.m + 1 / b.m);
+            const j2 = (-(1 + PHYS.rest) * rv) / (1 / a.m + 1 / b.m);
             a.vx -= (j2 / a.m) * nx; a.vy -= (j2 / a.m) * ny; b.vx += (j2 / b.m) * nx; b.vy += (j2 / b.m) * ny;
             if (-rv > 6) SFX.clack(-rv / 90);
           }
@@ -99,6 +101,8 @@
             if (g.balls.every(b => b.out)) {
               g.score += 150;
               K.pops.add(g.pops, "ÇEMBER TEMİZ!  +150", g.R.x + g.R.w / 2, g.R.y + 40, "#ffd34d", true);
+              // yeni dizilim: atıcı çizgiye döner (eskiden çemberde kalan atıcının üstüne misket doğup rastgele fırlıyordu)
+              g.sh.x = START.x; g.sh.y = START.y;
               SFX.milestone(); g.k++; g.balls = rack(seed, g.k);
             }
           }
@@ -112,10 +116,11 @@
         if (type === "down") g.aim = { x: M.wx(x), y: M.wy(y), x0: M.wx(x), y0: M.wy(y) };
         else if (type === "move" && g.aim) { g.aim.x = M.wx(x); g.aim.y = M.wy(y); }
         else if ((type === "up" || type === "cancel") && g.aim) {
+          if (type === "up") { g.aim.x = M.wx(x); g.aim.y = M.wy(y); } // son "move" gelmese de bırakılan nokta geçerli
           const dx = g.aim.x0 - g.aim.x, dy = g.aim.y0 - g.aim.y, len = Math.hypot(dx, dy);
           g.aim = null;
           if (type === "up" && len > 3) {
-            const p = Math.min(len, 32) / 32, sp = 25 + p * 120;
+            const p = Math.min(len, 32) / 32, sp = PHYS.v0 + p * PHYS.v1;
             g.sh.vx = (dx / len) * sp; g.sh.vy = (dy / len) * sp;
             g.moving = true; g.shots++; SFX.whoosh(); SFX.clack(0.5);
           }
